@@ -870,8 +870,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     <div class="trunk-grid" id="trunk-container"></div>
   </main>
 
-    </main>
-
   <script>
     const TRUNK_META = {
       mali: { script: "asterisk_callgen.sh" },
