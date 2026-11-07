@@ -827,6 +827,110 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       word-break: break-all;
     }
 
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(30, 25, 22, 0.52);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      padding: 16px;
+    }
+    .modal-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .modal-dialog {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      animation: modalFadeIn 0.2s ease-out;
+      overflow: hidden;
+    }
+    @keyframes modalFadeIn {
+      from { transform: scale(0.96) translateY(8px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      background: #FAFBF9;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close:hover {
+      background: #F0ECE8;
+      color: var(--brown);
+    }
+    .modal-body {
+      padding: 22px 24px;
+      overflow-y: auto;
+    }
+    .btn-gear {
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: var(--muted);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .btn-gear:hover {
+      background: var(--brown-light);
+      border-color: #DBCFC9;
+      color: var(--brown);
+      transform: rotate(30deg);
+    }
+    .btn-link-gear {
+      background: transparent;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sage);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-link-gear:hover {
+      background: #E8EFEA;
+      color: var(--sage-hover);
+    }
+
     @media(max-width: 1080px) {
       .trunk-grid { grid-template-columns: 1fr; }
       .master-bar { grid-template-columns: 1fr 1fr; }
@@ -869,6 +973,79 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     </div>
     <div class="trunk-grid" id="trunk-container"></div>
   </main>
+
+  <!-- Configuration Modal Dialog -->
+  <div id="config-modal-overlay" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="flag-badge" id="modal-flag">XX</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--brown);" id="modal-title">Configure Trunk</div>
+            <div style="font-size:11px;color:var(--muted);font-family:monospace;" id="modal-script">Engine Script</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="modal-status" class="trunk-status"></span>
+          <button type="button" class="modal-close" onclick="closeConfigModal()" title="Close">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <form id="modal-form" onsubmit="saveTrunkModal(event)">
+          <input type="hidden" id="modal-trunk-id" name="trunk">
+          
+          <div class="fields-grid">
+            <div class="field-group full">
+              <label>Route / Destination Name</label>
+              <input type="text" id="modal-name" name="name" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleModalNameChange(this.value)" required>
+            </div>
+            <div class="field-group">
+              <label>Target IP / Host</label>
+              <input type="text" id="modal-ip" name="target_ip" required pattern="[A-Za-z0-9.:-]+">
+            </div>
+            <div class="field-group">
+              <label>Country Code (CC)</label>
+              <input type="text" id="modal-cc" name="country_code" placeholder="e.g. 53, 221, 2237" oninput="handleModalPrefixCCChange()">
+            </div>
+            <div class="field-group">
+              <label>Prefix</label>
+              <input type="text" id="modal-prefix" name="prefix" placeholder="e.g. 4444, 619334" oninput="handleModalPrefixCCChange()">
+            </div>
+            <div class="field-group">
+              <label>Full Dialed Prefix (Prefix + CC)</label>
+              <input type="text" id="modal-prefix-cid" name="prefix_cid" placeholder="e.g. 444453">
+            </div>
+            <div class="field-group">
+              <label>Month Limit (Min)</label>
+              <input type="number" id="modal-limit" name="monthly_limit" min="1" required>
+            </div>
+            <div class="field-group">
+              <label>Max Channels</label>
+              <input type="number" id="modal-max" name="max_channels" min="1" max="2000" required>
+            </div>
+            <div class="field-group">
+              <label>Duration Cap (Sec)</label>
+              <input type="number" id="modal-dur" name="call_duration" min="1" max="86400" required>
+            </div>
+            <div class="field-group">
+              <label>Dialplan Context</label>
+              <input type="text" id="modal-ctx" name="context" required>
+            </div>
+          </div>
+
+          <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
+            <button type="button" class="btn btn-outline" style="padding:11px 20px;font-size:13px;" onclick="closeConfigModal()">
+              Cancel
+            </button>
+            <button type="submit" id="modal-save-btn" class="btn btn-sage" style="padding:11px 24px;font-size:14px;font-weight:700;">
+              💾 Save Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script>
     const TRUNK_META = {
@@ -916,79 +1093,167 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       return name.trim().slice(0, 2).toUpperCase();
     }
 
-    function switchTab(tabId) {
-      const allTabs = ['dashboard', 'mali', 'cuba', 'senegal'];
-      allTabs.forEach(t => {
-        const btn = document.getElementById('tab-btn-' + t);
-        const view = (t === 'dashboard')
-          ? document.getElementById('view-dashboard')
-          : document.getElementById('view-config-' + t);
+    let currentModalTrunkId = null;
 
-        if (btn) {
-          if (t === tabId) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
+    function openConfigModal(id) {
+      const t = trunksData[id];
+      if (!t) return;
+      currentModalTrunkId = id;
+
+      const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
+      const flagCode = getRouteFlag(routeName, id);
+      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
+
+      const idEl = document.getElementById('modal-trunk-id');
+      if (idEl) idEl.value = id;
+      const titleEl = document.getElementById('modal-title');
+      if (titleEl) titleEl.textContent = `${routeName} Configuration`;
+      const scriptEl = document.getElementById('modal-script');
+      if (scriptEl) scriptEl.textContent = `Engine Script: ${scriptName}`;
+      const flagEl = document.getElementById('modal-flag');
+      if (flagEl) flagEl.textContent = flagCode;
+
+      const modalStatus = document.getElementById('modal-status');
+      if (modalStatus) {
+        const isLimitReached = (t.used_minutes >= t.monthly_limit);
+        if (isLimitReached) {
+          modalStatus.className = 'trunk-status status-limit';
+          modalStatus.textContent = '⛔ LIMIT REACHED';
+        } else if (t.running) {
+          modalStatus.className = 'trunk-status status-running';
+          modalStatus.textContent = '● RUNNING';
+        } else {
+          modalStatus.className = 'trunk-status status-stopped';
+          modalStatus.textContent = '○ STOPPED';
         }
-        if (view) {
-          if (t === tabId) {
-            view.classList.remove('hidden');
-          } else {
-            view.classList.add('hidden');
-          }
-        }
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      const nameEl = document.getElementById('modal-name');
+      if (nameEl) nameEl.value = routeName;
+      const ipEl = document.getElementById('modal-ip');
+      if (ipEl) ipEl.value = t.target_ip || '';
+      const ccEl = document.getElementById('modal-cc');
+      if (ccEl) ccEl.value = t.country_code || '';
+      const pfxEl = document.getElementById('modal-prefix');
+      if (pfxEl) pfxEl.value = t.prefix || '';
+      const cidEl = document.getElementById('modal-prefix-cid');
+      if (cidEl) cidEl.value = t.prefix_cid || '';
+      const limEl = document.getElementById('modal-limit');
+      if (limEl) limEl.value = t.monthly_limit || '';
+      const maxEl = document.getElementById('modal-max');
+      if (maxEl) maxEl.value = t.max_channels || '';
+      const durEl = document.getElementById('modal-dur');
+      if (durEl) durEl.value = t.call_duration || '';
+      const ctxEl = document.getElementById('modal-ctx');
+      if (ctxEl) ctxEl.value = t.context || 'testcall';
+
+      const saveBtn = document.getElementById('modal-save-btn');
+      if (saveBtn) {
+        saveBtn.innerHTML = '💾 Save Settings';
+        saveBtn.style.background = '';
+        saveBtn.style.color = '';
+        saveBtn.disabled = false;
+      }
+
+      const overlay = document.getElementById('config-modal-overlay');
+      if (overlay) overlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
     }
 
-    function handlePrefixCCChange(id) {
-      const pfxEl = document.getElementById('input-prefix-' + id);
-      const ccEl = document.getElementById('input-cc-' + id);
-      const fullEl = document.getElementById('input-prefix-cid-' + id);
-      if (pfxEl && ccEl && fullEl) {
-        const p = (pfxEl.value || '').trim();
-        const c = (ccEl.value || '').trim();
-        fullEl.value = p + c;
+    function closeConfigModal() {
+      const overlay = document.getElementById('config-modal-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      document.body.style.overflow = '';
+      currentModalTrunkId = null;
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target && e.target.id === 'config-modal-overlay') {
+        closeConfigModal();
       }
     }
 
-    function handleNameChange(id, newName) {
-      const displayName = newName.trim() || (id.charAt(0).toUpperCase() + id.slice(1));
-      const flagCode = getRouteFlag(displayName, id);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeConfigModal();
+    });
 
-      const fieldInput = document.getElementById('input-name-' + id);
-      if (fieldInput) {
-        fieldInput.dataset.modified = 'true';
-        if (fieldInput.value !== newName) fieldInput.value = newName;
-      }
+    function handleModalPrefixCCChange() {
+      const pfx = (document.getElementById('modal-prefix').value || '').trim();
+      const cc = (document.getElementById('modal-cc').value || '').trim();
+      const cid = document.getElementById('modal-prefix-cid');
+      if (cid) cid.value = pfx + cc;
+    }
 
-      // Tab bar
-      const tabLabel = document.getElementById('tab-label-' + id);
-      if (tabLabel) tabLabel.textContent = displayName + ' Configuration';
-      const tabFlag = document.getElementById('tab-flag-' + id);
-      if (tabFlag) tabFlag.textContent = flagCode;
+    function handleModalNameChange(val) {
+      const displayName = val.trim() || 'Trunk';
+      const flagCode = getRouteFlag(displayName, currentModalTrunkId);
+      const titleEl = document.getElementById('modal-title');
+      if (titleEl) titleEl.textContent = `${displayName} Configuration`;
+      const flagEl = document.getElementById('modal-flag');
+      if (flagEl) flagEl.textContent = flagCode;
+    }
 
-      // Config view header & card
-      const cfgHdrTitle = document.getElementById('cfg-hdr-title-' + id);
-      if (cfgHdrTitle) cfgHdrTitle.textContent = displayName + ' Configuration';
-      const cfgHdrFlag = document.getElementById('cfg-hdr-flag-' + id);
-      if (cfgHdrFlag) cfgHdrFlag.textContent = flagCode;
-      const cfgCardFlag = document.getElementById('cfg-card-flag-' + id);
-      if (cfgCardFlag) cfgCardFlag.textContent = flagCode;
-      const cfgCardName = document.getElementById('cfg-card-name-' + id);
-      if (cfgCardName) cfgCardName.textContent = displayName + ' Parameters';
+    async function saveTrunkModal(e) {
+      e.preventDefault();
+      const id = currentModalTrunkId;
+      if (!id) return;
 
-      // Dashboard card
-      const dashName = document.getElementById('dash-name-' + id);
-      if (dashName) dashName.textContent = displayName;
-      const dashFlag = document.getElementById('flag-' + id);
-      if (dashFlag) dashFlag.textContent = flagCode;
-      const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
-      if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + displayName + ' Trunk';
+      const saveBtn = document.getElementById('modal-save-btn');
+      try {
+        if (saveBtn) {
+          saveBtn.innerHTML = '⏳ Saving...';
+          saveBtn.disabled = true;
+        }
 
-      if (trunksData[id]) {
-        trunksData[id].name = displayName;
+        const form = document.getElementById('modal-form');
+        const d = Object.fromEntries(new FormData(form));
+        d.trunk = id;
+        d.monthly_limit = Number(d.monthly_limit);
+        d.max_channels = Number(d.max_channels);
+        d.call_duration = Number(d.call_duration);
+
+        const res = await api('save', d);
+        addLog(`[${(d.name || id).toUpperCase()}] ${res.message}`);
+
+        if (saveBtn) {
+          saveBtn.innerHTML = '✓ Settings Saved!';
+          saveBtn.style.background = 'var(--green)';
+          saveBtn.style.color = '#FFFFFF';
+        }
+
+        // Instant local sync
+        if (trunksData[id]) {
+          trunksData[id] = { ...trunksData[id], ...d };
+          if (trunksData[id].used_minutes >= trunksData[id].monthly_limit) {
+            trunksData[id].running = false;
+            trunksData[id].active_calls = 0;
+            trunksData[id].limit_reached = true;
+          } else {
+            trunksData[id].limit_reached = false;
+          }
+        }
+        updateMetricsOnly(trunksData, false);
+
+        setTimeout(() => {
+          closeConfigModal();
+          refreshAll(true);
+        }, 600);
+
+      } catch (err) {
+        console.error("Save error:", err);
+        addLog(`[${id.toUpperCase()}] Save error: ${err.message}`);
+        if (saveBtn) {
+          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
+          saveBtn.style.background = "var(--red)";
+          saveBtn.style.color = "#FFFFFF";
+          setTimeout(() => {
+            saveBtn.innerHTML = "💾 Save Settings";
+            saveBtn.style.background = "";
+            saveBtn.style.color = "";
+            saveBtn.disabled = false;
+          }, 3000);
+        }
+        alert("Save Error: " + err.message);
       }
     }
 
@@ -1032,7 +1297,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           <div class="trunk-identity">
             <span class="flag-badge" id="flag-${id}">${flagCode}</span>
             <div>
-              <div class="trunk-name" id="dash-name-${id}">${routeName}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="trunk-name" id="dash-name-${id}">${routeName}</div>
+                <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')">⚙️</button>
+              </div>
               <div style="font-size:11px;color:var(--muted);font-family:monospace;">${scriptName}</div>
             </div>
           </div>
@@ -1068,6 +1336,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           <div class="config-summary-box">
             <div class="config-summary-header">
               <span>Overall Configuration</span>
+              <button type="button" class="btn-link-gear" onclick="openConfigModal('${id}')">⚙️ Configure</button>
             </div>
             <div class="config-summary-grid">
               <div class="summary-item">
@@ -1092,7 +1361,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Max Calls</span>
-                <span class="summary-val" id="disp-max-${id}">${t.max_channels}ch</span>
+                <span class="summary-val" id="disp-max-${id}">${t.max_channels}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Duration</span>
@@ -1106,80 +1375,9 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
 
           <div class="card-actions" id="actions-${id}"></div>
-        </div>
-      `;
-      return card;
-    }
-
-    function buildConfigCard(id, t) {
-      const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
-      const flagCode = getRouteFlag(routeName, id);
-      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
-      const card = document.createElement('div');
-      card.className = 'config-card-solo';
-      card.id = 'config-card-' + id;
-      card.innerHTML = `
-        <div class="trunk-header">
-          <div class="trunk-identity">
-            <span class="flag-badge" id="cfg-card-flag-${id}">${flagCode}</span>
-            <div>
-              <div style="font-weight:800;font-size:16px;color:var(--brown);" id="cfg-card-name-${id}">${routeName} Parameters</div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;">Engine Script: ${scriptName}</div>
-            </div>
-          </div>
-          <span id="config-badge-${id}" class="trunk-status"></span>
-        </div>
-
-        <div class="trunk-body">
-          <form id="form-${id}" onsubmit="saveTrunk(event, '${id}')">
-            <div class="fields-grid">
-              <div class="field-group full">
-                <label>Route / Destination Name</label>
-                <input type="text" id="input-name-${id}" name="name" value="${routeName}" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleNameChange('${id}', this.value)" required>
-              </div>
-              <div class="field-group">
-                <label>Target IP / Host</label>
-                <input type="text" id="input-ip-${id}" name="target_ip" value="${t.target_ip}" required pattern="[A-Za-z0-9.:-]+">
-              </div>
-              <div class="field-group">
-                <label>Country Code (CC)</label>
-                <input type="text" id="input-cc-${id}" name="country_code" value="${t.country_code || ''}" placeholder="e.g. 53, 221, 2237" oninput="handlePrefixCCChange('${id}')">
-              </div>
-              <div class="field-group">
-                <label>Prefix</label>
-                <input type="text" id="input-prefix-${id}" name="prefix" value="${t.prefix || ''}" placeholder="e.g. 4444, 619334" oninput="handlePrefixCCChange('${id}')">
-              </div>
-              <div class="field-group">
-                <label>Full Dialed Prefix (Prefix + CC)</label>
-                <input type="text" id="input-prefix-cid-${id}" name="prefix_cid" value="${t.prefix_cid || ''}" placeholder="e.g. 444453">
-              </div>
-              <div class="field-group">
-                <label>Month Limit (Min)</label>
-                <input type="number" id="input-limit-${id}" name="monthly_limit" value="${t.monthly_limit}" min="1" required>
-              </div>
-              <div class="field-group">
-                <label>Max Channels</label>
-                <input type="number" id="input-max-${id}" name="max_channels" value="${t.max_channels}" min="1" max="2000" required>
-              </div>
-              <div class="field-group">
-                <label>Duration Cap (Sec)</label>
-                <input type="number" id="input-dur-${id}" name="call_duration" value="${t.call_duration}" min="1" max="86400" required>
-              </div>
-              <div class="field-group">
-                <label>Dialplan Context</label>
-                <input type="text" id="input-ctx-${id}" name="context" value="${t.context || 'testcall'}" required>
-              </div>
-            </div>
-
-            <div style="margin-top:20px;display:flex;gap:12px;">
-              <button type="submit" id="btn-save-${id}" class="btn btn-sage flex-1" style="padding:12px;font-size:14px;font-weight:700;">
-                💾 Save Settings
-              </button>
-              <button type="button" class="btn btn-outline" style="padding:12px 20px;font-size:13px;" onclick="switchTab('dashboard')">
-                Cancel
-              </button>
-            </div>
-          </form>
+          <button class="btn btn-outline" id="dash-cfg-btn-${id}" style="width:100%;margin-top:8px;font-size:12px;padding:9px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="openConfigModal('${id}')">
+            ⚙️ Configure ${routeName} Trunk
+          </button>
         </div>
       `;
       return card;
@@ -1288,7 +1486,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const dispLimit = document.getElementById('disp-limit-' + id);
         if (dispLimit) dispLimit.textContent = `${Number(t.monthly_limit).toLocaleString()}m`;
         const dispMax = document.getElementById('disp-max-' + id);
-        if (dispMax) dispMax.textContent = `${t.max_channels}ch`;
+        if (dispMax) dispMax.textContent = `${t.max_channels}`;
         const dispDur = document.getElementById('disp-dur-' + id);
         if (dispDur) dispDur.textContent = `${t.call_duration}s`;
         const dispCtx = document.getElementById('disp-ctx-' + id);
@@ -1398,75 +1596,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       } catch (e) {
         addLog(`[${id.toUpperCase()}] Error: ${e.message}`);
         alert(e.message);
-      }
-    }
-
-    async function saveTrunk(e, id) {
-      e.preventDefault();
-      const saveBtn = document.getElementById('btn-save-' + id);
-
-      try {
-        if (saveBtn) {
-          saveBtn.innerHTML = '⏳ Saving...';
-          saveBtn.disabled = true;
-        }
-
-        const form = e.target;
-        const d = Object.fromEntries(new FormData(form));
-        d.trunk = id;
-        d.monthly_limit = Number(d.monthly_limit);
-        d.max_channels = Number(d.max_channels);
-        d.call_duration = Number(d.call_duration);
-
-        const res = await api('save', d);
-        addLog(`[${(d.name || id).toUpperCase()}] ${res.message}`);
-
-        const nameInput = document.getElementById('input-name-' + id);
-        if (nameInput) delete nameInput.dataset.modified;
-
-        if (saveBtn) {
-          saveBtn.innerHTML = '✓ Settings Saved!';
-          saveBtn.style.background = 'var(--green)';
-          saveBtn.style.color = '#FFFFFF';
-        }
-
-        // Instant local sync
-        if (trunksData[id]) {
-          trunksData[id] = { ...trunksData[id], ...d };
-          if (trunksData[id].used_minutes >= trunksData[id].monthly_limit) {
-            trunksData[id].running = false;
-            trunksData[id].active_calls = 0;
-            trunksData[id].limit_reached = true;
-          } else {
-            trunksData[id].limit_reached = false;
-          }
-        }
-        updateMetricsOnly(trunksData, false);
-
-        setTimeout(() => {
-          if (saveBtn) {
-            saveBtn.innerHTML = '💾 Save Settings';
-            saveBtn.style.background = '';
-            saveBtn.style.color = '';
-            saveBtn.disabled = false;
-          }
-        }, 2000);
-
-      } catch (err) {
-        console.error("Save error:", err);
-        addLog(`[${id.toUpperCase()}] Save error: ${err.message}`);
-        if (saveBtn) {
-          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
-          saveBtn.style.background = "var(--red)";
-          saveBtn.style.color = "#FFFFFF";
-          setTimeout(() => {
-            saveBtn.innerHTML = "💾 Save Settings";
-            saveBtn.style.background = "";
-            saveBtn.style.color = "";
-            saveBtn.disabled = false;
-          }, 4000);
-        }
-        alert("Save Error: " + err.message);
       }
     }
 
