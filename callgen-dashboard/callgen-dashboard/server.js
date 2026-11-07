@@ -1012,7 +1012,7 @@ const dashboardHtml = `<!doctype html>
         <div class="user-dot"></div>
         <span>Operator: <b>awais</b></span>
       </div>
-      <a href="/?logout=1" class="btn-logout">Sign Out</a>
+      <a href="?logout=1" class="btn-logout">Sign Out</a>
     </div>
   </header>
 
@@ -1214,7 +1214,8 @@ const dashboardHtml = `<!doctype html>
     let isInitialized = false;
 
     async function api(action, payload = {}) {
-      const res = await fetch('/api.php?action=' + action, {
+      const apiEndpoint = window.location.pathname.includes('/callgen') ? '/callgen/api.php' : 'api.php';
+      const res = await fetch(apiEndpoint + '?action=' + action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

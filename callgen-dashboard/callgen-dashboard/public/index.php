@@ -841,7 +841,7 @@ if (empty($_SESSION["m5_auth"])): ?>
         <div class="user-dot"></div>
         <span>Operator: <b><?= htmlspecialchars($_SESSION["operator"] ?? "awais") ?></b></span>
       </div>
-      <a href="index.php?logout=1" class="btn-logout">Sign Out</a>
+      <a href="?logout=1" class="btn-logout">Sign Out</a>
     </div>
   </header>
 
@@ -1043,7 +1043,8 @@ if (empty($_SESSION["m5_auth"])): ?>
     let isInitialized = false;
 
     async function api(action, payload = {}) {
-      const res = await fetch('/api.php?action=' + action, {
+      const apiEndpoint = window.location.pathname.includes('/callgen') ? '/callgen/api.php' : 'api.php';
+      const res = await fetch(apiEndpoint + '?action=' + action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
