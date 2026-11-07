@@ -65,7 +65,12 @@ if ($a === "save") {
 
     $name = trim($d["name"] ?? "");
     $ip = trim($d["target_ip"] ?? "");
+    $pfx = trim($d["prefix"] ?? "");
+    $cc = trim($d["country_code"] ?? "");
     $prefix = trim($d["prefix_cid"] ?? "");
+    if ($prefix === "" && ($pfx !== "" || $cc !== "")) {
+        $prefix = $pfx . $cc;
+    }
     $m = (int)($d["monthly_limit"] ?? 0);
     $n = (int)($d["max_channels"] ?? 0);
     $t = (int)($d["call_duration"] ?? 0);
@@ -80,6 +85,8 @@ if ($a === "save") {
         "id" => $trunk,
         "name" => $name ?: ucfirst($trunk),
         "target_ip" => $ip,
+        "prefix" => $pfx,
+        "country_code" => $cc,
         "prefix_cid" => $prefix,
         "monthly_limit" => $m,
         "max_channels" => $n,

@@ -484,8 +484,13 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
     .config-summary-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .config-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     .summary-item {
       display: flex;
@@ -853,14 +858,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">
         <span>📊</span> Live Traffic Dashboard
       </button>
+      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
+        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
+      </button>
       <button class="tab-btn" id="tab-btn-cuba" onclick="switchTab('cuba')">
         <span class="tab-flag" id="tab-flag-cuba">CU</span><span id="tab-label-cuba">Cuba Configuration</span>
       </button>
       <button class="tab-btn" id="tab-btn-senegal" onclick="switchTab('senegal')">
         <span class="tab-flag" id="tab-flag-senegal">SN</span><span id="tab-label-senegal">Senegal Configuration</span>
-      </button>
-      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
-        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
       </button>
     </div>
 
@@ -883,37 +888,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       <div class="trunk-grid" id="trunk-container"></div>
     </div>
 
-    <!-- TAB 2: Cuba Configuration View -->
-    <div id="view-config-cuba" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
-          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
-      </div>
-      <div class="config-single-wrap" id="config-box-cuba"></div>
-    </div>
-
-    <!-- TAB 3: Senegal Configuration View -->
-    <div id="view-config-senegal" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
-          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
-      </div>
-      <div class="config-single-wrap" id="config-box-senegal"></div>
-    </div>
-
-    <!-- TAB 4: Mali Configuration View -->
+    <!-- TAB 2: Mali Configuration View -->
     <div id="view-config-mali" class="tab-view hidden">
       <div class="section-header">
         <div class="section-title">
@@ -928,13 +903,43 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       <div class="config-single-wrap" id="config-box-mali"></div>
     </div>
 
+    <!-- TAB 3: Cuba Configuration View -->
+    <div id="view-config-cuba" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
+          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-cuba"></div>
+    </div>
+
+    <!-- TAB 4: Senegal Configuration View -->
+    <div id="view-config-senegal" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
+          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-senegal"></div>
+    </div>
+
     </main>
 
   <script>
     const TRUNK_META = {
-      cuba: { script: "asterisk_callgen.sh" },
-      senegal: { script: "asterisk_callgen2.sh" },
-      mali: { script: "asterisk_callgen3.sh" }
+      mali: { script: "asterisk_callgen.sh" },
+      cuba: { script: "asterisk_callgen2.sh" },
+      senegal: { script: "asterisk_callgen3.sh" }
     };
 
     const COUNTRY_CODES = {
@@ -977,7 +982,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     function switchTab(tabId) {
-      const allTabs = ['dashboard', 'cuba', 'senegal', 'mali'];
+      const allTabs = ['dashboard', 'mali', 'cuba', 'senegal'];
       allTabs.forEach(t => {
         const btn = document.getElementById('tab-btn-' + t);
         const view = (t === 'dashboard')
@@ -1000,6 +1005,17 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handlePrefixCCChange(id) {
+      const pfxEl = document.getElementById('input-prefix-' + id);
+      const ccEl = document.getElementById('input-cc-' + id);
+      const fullEl = document.getElementById('input-prefix-cid-' + id);
+      if (pfxEl && ccEl && fullEl) {
+        const p = (pfxEl.value || '').trim();
+        const c = (ccEl.value || '').trim();
+        fullEl.value = p + c;
+      }
     }
 
     function handleNameChange(id, newName) {
@@ -1125,8 +1141,16 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
                 <span class="summary-val" id="disp-ip-${id}">${t.target_ip || '-'}</span>
               </div>
               <div class="summary-item">
+                <span class="summary-lbl">CC</span>
+                <span class="summary-val" id="disp-cc-${id}">${t.country_code || '-'}</span>
+              </div>
+              <div class="summary-item">
                 <span class="summary-lbl">Prefix</span>
-                <span class="summary-val" id="disp-prefix-${id}">${t.prefix_cid || 'None'}</span>
+                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Dialed Prefix</span>
+                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage);font-weight:700;">${t.prefix_cid || '-'}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Month Limit</span>
@@ -1180,15 +1204,23 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div class="fields-grid">
               <div class="field-group full">
                 <label>Route / Destination Name</label>
-                <input type="text" id="input-name-${id}" name="name" value="${routeName}" placeholder="e.g. China, Cuba, Senegal, Mali" oninput="handleNameChange('${id}', this.value)" required>
+                <input type="text" id="input-name-${id}" name="name" value="${routeName}" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleNameChange('${id}', this.value)" required>
               </div>
               <div class="field-group">
                 <label>Target IP / Host</label>
                 <input type="text" id="input-ip-${id}" name="target_ip" value="${t.target_ip}" required pattern="[A-Za-z0-9.:-]+">
               </div>
               <div class="field-group">
+                <label>Country Code (CC)</label>
+                <input type="text" id="input-cc-${id}" name="country_code" value="${t.country_code || ''}" placeholder="e.g. 53, 221, 2237" oninput="handlePrefixCCChange('${id}')">
+              </div>
+              <div class="field-group">
                 <label>Prefix</label>
-                <input type="text" id="input-prefix-${id}" name="prefix_cid" value="${t.prefix_cid || ''}" placeholder="e.g. 444453">
+                <input type="text" id="input-prefix-${id}" name="prefix" value="${t.prefix || ''}" placeholder="e.g. 4444, 619334" oninput="handlePrefixCCChange('${id}')">
+              </div>
+              <div class="field-group">
+                <label>Full Dialed Prefix (Prefix + CC)</label>
+                <input type="text" id="input-prefix-cid-${id}" name="prefix_cid" value="${t.prefix_cid || ''}" placeholder="e.g. 444453">
               </div>
               <div class="field-group">
                 <label>Month Limit (Min)</label>
@@ -1316,8 +1348,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         // 4. Overall configuration display on Dashboard card
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = t.target_ip || '-';
+        const dispCc = document.getElementById('disp-cc-' + id);
+        if (dispCc) dispCc.textContent = t.country_code || '-';
         const dispPrefix = document.getElementById('disp-prefix-' + id);
-        if (dispPrefix) dispPrefix.textContent = t.prefix_cid || 'None';
+        if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
+        const dispDial = document.getElementById('disp-dial-' + id);
+        if (dispDial) dispDial.textContent = t.prefix_cid || '-';
         const dispLimit = document.getElementById('disp-limit-' + id);
         if (dispLimit) dispLimit.textContent = `${Number(t.monthly_limit).toLocaleString()}m`;
         const dispMax = document.getElementById('disp-max-' + id);
@@ -1355,8 +1391,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           const inputIp = document.getElementById('input-ip-' + id);
           if (inputIp && document.activeElement !== inputIp) inputIp.value = t.target_ip;
 
+          const inputCc = document.getElementById('input-cc-' + id);
+          if (inputCc && document.activeElement !== inputCc) inputCc.value = t.country_code || '';
+
           const inputPrefix = document.getElementById('input-prefix-' + id);
-          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix_cid || '';
+          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix || '';
+
+          const inputPrefixCid = document.getElementById('input-prefix-cid-' + id);
+          if (inputPrefixCid && document.activeElement !== inputPrefixCid) inputPrefixCid.value = t.prefix_cid || '';
 
           const inputLimit = document.getElementById('input-limit-' + id);
           if (inputLimit && document.activeElement !== inputLimit) inputLimit.value = t.monthly_limit;

@@ -1,3 +1,145 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>M5-Traffic Controller | Sign In</title>
+  <style>
+    :root {
+      --sage: #7C8E76;
+      --sage-dark: #65755F;
+      --brown: #4B3830;
+      --brown-dark: #372822;
+      --bg: #F5F6F4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #2E231E;
+    }
+    .login-container {
+      background: #FFFFFF;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(75, 56, 48, 0.08);
+      border: 1px solid #E2E5DF;
+      width: 380px;
+      overflow: hidden;
+    }
+    .header {
+      background: var(--brown);
+      color: #FFFFFF;
+      padding: 28px 24px 24px;
+      text-align: center;
+      border-bottom: 3px solid var(--sage);
+    }
+    .header .badge {
+      display: inline-block;
+      background: var(--sage);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header p {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 4px;
+      color: #EADCD6;
+    }
+    .form-wrap {
+      padding: 28px 24px;
+    }
+    .field {
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #CCD2C8;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(124, 142, 118, 0.25);
+    }
+    button {
+      width: 100%;
+      background: var(--sage);
+      color: #FFFFFF;
+      border: 0;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover {
+      background: var(--sage-dark);
+    }
+    .error-msg {
+      background: #FDF0F0;
+      border: 1px solid #F6D3D3;
+      color: #A62B2B;
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="header">
+      <span class="badge">VoIP Smart Switch</span>
+      <h1>M5-Traffic Controller</h1>
+      <p>Trunk Routing & Call Flow Administration</p>
+    </div>
+    <div class="form-wrap">
+      <?php if (!empty($err)): ?>
+        <div class="error-msg"><?= htmlspecialchars($err) ?></div>
+      <?php endif; ?>
+      <form method="post">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" type="text" name="username" value="awais" required autofocus autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" value="dancom" required autocomplete="current-password">
+        </div>
+        <button type="submit" name="login" value="1">Access Controller</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
+<?php exit; endif; ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -315,8 +457,13 @@
     }
     .config-summary-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .config-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     .summary-item {
       display: flex;
@@ -682,16 +829,16 @@
     <!-- Tabs Navigation -->
     <div class="tabs-nav">
       <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">
-        <span>📊</span> Live Traffic Dashboard
+        <span>ðŸ“Š</span> Live Traffic Dashboard
+      </button>
+      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
+        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
       </button>
       <button class="tab-btn" id="tab-btn-cuba" onclick="switchTab('cuba')">
         <span class="tab-flag" id="tab-flag-cuba">CU</span><span id="tab-label-cuba">Cuba Configuration</span>
       </button>
       <button class="tab-btn" id="tab-btn-senegal" onclick="switchTab('senegal')">
         <span class="tab-flag" id="tab-flag-senegal">SN</span><span id="tab-label-senegal">Senegal Configuration</span>
-      </button>
-      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
-        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
       </button>
     </div>
 
@@ -707,44 +854,14 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
-          <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
+          <button class="btn btn-sage btn-sm" onclick="startAll()">â–¶ Start All Trunks</button>
+          <button class="btn btn-red btn-sm" onclick="stopAll()">â¹ Stop All Trunks</button>
         </div>
       </div>
       <div class="trunk-grid" id="trunk-container"></div>
     </div>
 
-    <!-- TAB 2: Cuba Configuration View -->
-    <div id="view-config-cuba" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
-          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
-      </div>
-      <div class="config-single-wrap" id="config-box-cuba"></div>
-    </div>
-
-    <!-- TAB 3: Senegal Configuration View -->
-    <div id="view-config-senegal" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
-          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
-      </div>
-      <div class="config-single-wrap" id="config-box-senegal"></div>
-    </div>
-
-    <!-- TAB 4: Mali Configuration View -->
+    <!-- TAB 2: Mali Configuration View -->
     <div id="view-config-mali" class="tab-view hidden">
       <div class="section-header">
         <div class="section-title">
@@ -753,19 +870,49 @@
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <span id="cfg-hdr-status-mali" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">â† Back to Dashboard</button>
         </div>
       </div>
       <div class="config-single-wrap" id="config-box-mali"></div>
+    </div>
+
+    <!-- TAB 3: Cuba Configuration View -->
+    <div id="view-config-cuba" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
+          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">â† Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-cuba"></div>
+    </div>
+
+    <!-- TAB 4: Senegal Configuration View -->
+    <div id="view-config-senegal" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
+          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">â† Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-senegal"></div>
     </div>
 
     </main>
 
   <script>
     const TRUNK_META = {
-      cuba: { script: "asterisk_callgen.sh" },
-      senegal: { script: "asterisk_callgen2.sh" },
-      mali: { script: "asterisk_callgen3.sh" }
+      mali: { script: "asterisk_callgen.sh" },
+      cuba: { script: "asterisk_callgen2.sh" },
+      senegal: { script: "asterisk_callgen3.sh" }
     };
 
     const COUNTRY_CODES = {
@@ -808,7 +955,7 @@
     }
 
     function switchTab(tabId) {
-      const allTabs = ['dashboard', 'cuba', 'senegal', 'mali'];
+      const allTabs = ['dashboard', 'mali', 'cuba', 'senegal'];
       allTabs.forEach(t => {
         const btn = document.getElementById('tab-btn-' + t);
         const view = (t === 'dashboard')
@@ -831,6 +978,17 @@
         }
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handlePrefixCCChange(id) {
+      const pfxEl = document.getElementById('input-prefix-' + id);
+      const ccEl = document.getElementById('input-cc-' + id);
+      const fullEl = document.getElementById('input-prefix-cid-' + id);
+      if (pfxEl && ccEl && fullEl) {
+        const p = (pfxEl.value || '').trim();
+        const c = (ccEl.value || '').trim();
+        fullEl.value = p + c;
+      }
     }
 
     function handleNameChange(id, newName) {
@@ -865,7 +1023,7 @@
       const dashFlag = document.getElementById('flag-' + id);
       if (dashFlag) dashFlag.textContent = flagCode;
       const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
-      if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + displayName + ' Trunk';
+      if (dashCfgBtn) dashCfgBtn.textContent = 'âš™ï¸ Configure ' + displayName + ' Trunk';
 
       if (trunksData[id]) {
         trunksData[id].name = displayName;
@@ -948,7 +1106,7 @@
           <div class="config-summary-box">
             <div class="config-summary-header">
               <span>Overall Configuration</span>
-              <span style="font-size:11px;cursor:pointer;color:var(--sage);font-weight:700;" onclick="switchTab('${id}')">Configure ⚙️</span>
+              <span style="font-size:11px;cursor:pointer;color:var(--sage);font-weight:700;" onclick="switchTab('${id}')">Configure âš™ï¸</span>
             </div>
             <div class="config-summary-grid">
               <div class="summary-item">
@@ -956,8 +1114,16 @@
                 <span class="summary-val" id="disp-ip-${id}">${t.target_ip || '-'}</span>
               </div>
               <div class="summary-item">
+                <span class="summary-lbl">CC</span>
+                <span class="summary-val" id="disp-cc-${id}">${t.country_code || '-'}</span>
+              </div>
+              <div class="summary-item">
                 <span class="summary-lbl">Prefix</span>
-                <span class="summary-val" id="disp-prefix-${id}">${t.prefix_cid || 'None'}</span>
+                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Dialed Prefix</span>
+                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage);font-weight:700;">${t.prefix_cid || '-'}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Month Limit</span>
@@ -980,7 +1146,7 @@
 
           <div class="card-actions" id="actions-${id}"></div>
           <button class="btn btn-outline" id="dash-cfg-btn-${id}" style="width:100%;margin-top:8px;font-size:12px;padding:8px;font-weight:600;" onclick="switchTab('${id}')">
-            ⚙️ Configure ${routeName} Trunk
+            âš™ï¸ Configure ${routeName} Trunk
           </button>
         </div>
       `;
@@ -1011,15 +1177,23 @@
             <div class="fields-grid">
               <div class="field-group full">
                 <label>Route / Destination Name</label>
-                <input type="text" id="input-name-${id}" name="name" value="${routeName}" placeholder="e.g. China, Cuba, Senegal, Mali" oninput="handleNameChange('${id}', this.value)" required>
+                <input type="text" id="input-name-${id}" name="name" value="${routeName}" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleNameChange('${id}', this.value)" required>
               </div>
               <div class="field-group">
                 <label>Target IP / Host</label>
                 <input type="text" id="input-ip-${id}" name="target_ip" value="${t.target_ip}" required pattern="[A-Za-z0-9.:-]+">
               </div>
               <div class="field-group">
+                <label>Country Code (CC)</label>
+                <input type="text" id="input-cc-${id}" name="country_code" value="${t.country_code || ''}" placeholder="e.g. 53, 221, 2237" oninput="handlePrefixCCChange('${id}')">
+              </div>
+              <div class="field-group">
                 <label>Prefix</label>
-                <input type="text" id="input-prefix-${id}" name="prefix_cid" value="${t.prefix_cid || ''}" placeholder="e.g. 444453">
+                <input type="text" id="input-prefix-${id}" name="prefix" value="${t.prefix || ''}" placeholder="e.g. 4444, 619334" oninput="handlePrefixCCChange('${id}')">
+              </div>
+              <div class="field-group">
+                <label>Full Dialed Prefix (Prefix + CC)</label>
+                <input type="text" id="input-prefix-cid-${id}" name="prefix_cid" value="${t.prefix_cid || ''}" placeholder="e.g. 444453">
               </div>
               <div class="field-group">
                 <label>Month Limit (Min)</label>
@@ -1041,7 +1215,7 @@
 
             <div style="margin-top:20px;display:flex;gap:12px;">
               <button type="submit" id="btn-save-${id}" class="btn btn-sage flex-1" style="padding:12px;font-size:14px;font-weight:700;">
-                💾 Save Settings
+                ðŸ’¾ Save Settings
               </button>
               <button type="button" class="btn btn-outline" style="padding:12px 20px;font-size:13px;" onclick="switchTab('dashboard')">
                 Cancel
@@ -1088,7 +1262,7 @@
         const flagEl = document.getElementById('flag-' + id);
         if (flagEl) flagEl.textContent = flagCode;
         const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
-        if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + curName + ' Trunk';
+        if (dashCfgBtn) dashCfgBtn.textContent = 'âš™ï¸ Configure ' + curName + ' Trunk';
 
         // Config Card field input update
         const nameInput = document.getElementById('input-name-' + id);
@@ -1101,13 +1275,13 @@
           if (!badgeEl) return;
           if (isLimitReached) {
             badgeEl.className = 'trunk-status status-limit';
-            badgeEl.textContent = '⛔ LIMIT REACHED';
+            badgeEl.textContent = 'â›” LIMIT REACHED';
           } else if (t.running) {
             badgeEl.className = 'trunk-status status-running';
-            badgeEl.textContent = '● RUNNING';
+            badgeEl.textContent = 'â— RUNNING';
           } else {
             badgeEl.className = 'trunk-status status-stopped';
-            badgeEl.textContent = '○ STOPPED';
+            badgeEl.textContent = 'â—‹ STOPPED';
           }
         };
         updateBadge(document.getElementById('badge-' + id));
@@ -1147,8 +1321,12 @@
         // 4. Overall configuration display on Dashboard card
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = t.target_ip || '-';
+        const dispCc = document.getElementById('disp-cc-' + id);
+        if (dispCc) dispCc.textContent = t.country_code || '-';
         const dispPrefix = document.getElementById('disp-prefix-' + id);
-        if (dispPrefix) dispPrefix.textContent = t.prefix_cid || 'None';
+        if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
+        const dispDial = document.getElementById('disp-dial-' + id);
+        if (dispDial) dispDial.textContent = t.prefix_cid || '-';
         const dispLimit = document.getElementById('disp-limit-' + id);
         if (dispLimit) dispLimit.textContent = `${Number(t.monthly_limit).toLocaleString()}m`;
         const dispMax = document.getElementById('disp-max-' + id);
@@ -1164,19 +1342,19 @@
           if (isLimitReached) {
             actionsDiv.innerHTML = `
               <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for ${curName}. Please increase Monthly Limit (Min) on ${curName} Configuration tab to restart.')">
-                ⛔ Limit Reached (Increase Limit)
+                â›” Limit Reached (Increase Limit)
               </button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
+              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">ðŸ”„</button>
             `;
           } else if (t.running) {
             actionsDiv.innerHTML = `
-              <button class="btn btn-red flex-1" onclick="toggleTrunk('${id}', 'stop')">⏹ Stop Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
+              <button class="btn btn-red flex-1" onclick="toggleTrunk('${id}', 'stop')">â¹ Stop Route</button>
+              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">ðŸ”„</button>
             `;
           } else {
             actionsDiv.innerHTML = `
-              <button class="btn btn-sage flex-1" onclick="toggleTrunk('${id}', 'start')">▶ Start Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
+              <button class="btn btn-sage flex-1" onclick="toggleTrunk('${id}', 'start')">â–¶ Start Route</button>
+              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">ðŸ”„</button>
             `;
           }
         }
@@ -1186,8 +1364,14 @@
           const inputIp = document.getElementById('input-ip-' + id);
           if (inputIp && document.activeElement !== inputIp) inputIp.value = t.target_ip;
 
+          const inputCc = document.getElementById('input-cc-' + id);
+          if (inputCc && document.activeElement !== inputCc) inputCc.value = t.country_code || '';
+
           const inputPrefix = document.getElementById('input-prefix-' + id);
-          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix_cid || '';
+          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix || '';
+
+          const inputPrefixCid = document.getElementById('input-prefix-cid-' + id);
+          if (inputPrefixCid && document.activeElement !== inputPrefixCid) inputPrefixCid.value = t.prefix_cid || '';
 
           const inputLimit = document.getElementById('input-limit-' + id);
           if (inputLimit && document.activeElement !== inputLimit) inputLimit.value = t.monthly_limit;
@@ -1270,7 +1454,7 @@
 
       try {
         if (saveBtn) {
-          saveBtn.innerHTML = '⏳ Saving...';
+          saveBtn.innerHTML = 'â³ Saving...';
           saveBtn.disabled = true;
         }
 
@@ -1288,7 +1472,7 @@
         if (nameInput) delete nameInput.dataset.modified;
 
         if (saveBtn) {
-          saveBtn.innerHTML = '✓ Settings Saved!';
+          saveBtn.innerHTML = 'âœ“ Settings Saved!';
           saveBtn.style.background = 'var(--green)';
           saveBtn.style.color = '#FFFFFF';
         }
@@ -1308,7 +1492,7 @@
 
         setTimeout(() => {
           if (saveBtn) {
-            saveBtn.innerHTML = '💾 Save Settings';
+            saveBtn.innerHTML = 'ðŸ’¾ Save Settings';
             saveBtn.style.background = '';
             saveBtn.style.color = '';
             saveBtn.disabled = false;
@@ -1319,11 +1503,11 @@
         console.error("Save error:", err);
         addLog(`[${id.toUpperCase()}] Save error: ${err.message}`);
         if (saveBtn) {
-          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
+          saveBtn.innerHTML = "âŒ " + (err.message || "Save Failed");
           saveBtn.style.background = "var(--red)";
           saveBtn.style.color = "#FFFFFF";
           setTimeout(() => {
-            saveBtn.innerHTML = "💾 Save Settings";
+            saveBtn.innerHTML = "ðŸ’¾ Save Settings";
             saveBtn.style.background = "";
             saveBtn.style.color = "";
             saveBtn.disabled = false;

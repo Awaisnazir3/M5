@@ -1,18 +1,19 @@
 #!/bin/bash
 # ==============================================================================
-# M5-Traffic Controller: Cuba Destination Engine (asterisk_callgen.sh) - PJSIP
-# Dynamic config from /etc/callgen-cuba.json
+# M5-Traffic Controller: Mali Destination Engine (asterisk_callgen.sh) - PJSIP
+# Dynamic config from /etc/callgen-mali.json
+# Destination: Mali | CC: 2237 | Target IP: 202.125.153.97
 # ==============================================================================
 
 set -u
-exec 200>/var/run/callgen_cuba.lock
+exec 200>/var/run/callgen_mali.lock
 flock -n 200 || exit 0
 
 AST="/usr/sbin/asterisk"
 SPOOL="/var/spool/asterisk/outgoing"
-TMP_DIR="/tmp/asterisk_calls_cuba"
-CONF="/etc/callgen-cuba.json"
-TRUNK="cuba"
+TMP_DIR="/tmp/asterisk_calls_mali"
+CONF="/etc/callgen-mali.json"
+TRUNK="mali"
 
 mkdir -p "$TMP_DIR"
 
@@ -23,12 +24,13 @@ while true; do
 import json, sys
 try:
     c = json.load(open(sys.argv[1]))
+    pfx = c.get('prefix_cid') or ((c.get('prefix') or '') + (c.get('country_code') or '')) or '2237'
     print(c.get('target_ip', '202.125.153.97'))
     print(c.get('monthly_limit', 100000))
     print(c.get('max_channels', 150))
     print(c.get('call_duration', 600))
     print(c.get('context', 'testcall2'))
-    print(c.get('prefix_cid', '2237'))
+    print(pfx)
 except Exception:
     print("202.125.153.97\n100000\n150\n600\ntestcall2\n2237")
 PY
@@ -75,7 +77,7 @@ PY
     ACTIVE=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
     case "$ACTIVE" in ''|*[!0-9]*) ACTIVE=0 ;; esac
 
-    PENDING=$(find "$SPOOL" -maxdepth 1 -type f -name 'cuba_*.call' 2>/dev/null | wc -l)
+    PENDING=$(find "$SPOOL" -maxdepth 1 -type f -name 'mali_*.call' 2>/dev/null | wc -l)
     case "$PENDING" in ''|*[!0-9]*) PENDING=0 ;; esac
 
     # Enforce strict monthly minute cutoff
@@ -97,17 +99,17 @@ PY
             for ((i = 0; i < NEED; i++)); do
                 CURR=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
                 case "$CURR" in ''|*[!0-9]*) CURR=0 ;; esac
-                PEND=$(find "$SPOOL" -maxdepth 1 -type f -name 'cuba_*.call' 2>/dev/null | wc -l)
+                PEND=$(find "$SPOOL" -maxdepth 1 -type f -name 'mali_*.call' 2>/dev/null | wc -l)
                 case "$PEND" in ''|*[!0-9]*) PEND=0 ;; esac
 
                 [ "$((CURR + PEND))" -ge "$MAXCALLS" ] && break
 
-                # Exact callerid and ANI pattern for Cuba
+                # Exact callerid and ANI pattern for Mali (CC 2237)
                 CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom | /usr/bin/head -c 8)"
                 TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
-                ANI="96655$((RANDOM % 9000000 + 1000000))"
+                ANI="442$(tr -dc '1-9' < /dev/urandom | head -c 9)"
 
-                CALLFILE="cuba_$(date +%s%N).call"
+                CALLFILE="mali_$(date +%s%N).call"
                 TMP_FILE="$TMP_DIR/$CALLFILE"
 
                 cat <<EOF > "$TMP_FILE"
@@ -119,15 +121,14 @@ Priority: 1
 MaxRetries: 0
 RetryTime: 60
 WaitTime: 45
+Archive: yes
+Set: CDR(userfield)=callgen-mali
 EOF
-
-                chmod 640 "$TMP_FILE"
-                chown asterisk:asterisk "$TMP_FILE" 2>/dev/null || true
+                touch -t $(date +%Y%m%d%H%M.%S) "$TMP_FILE"
                 mv "$TMP_FILE" "$SPOOL/"
-                sleep 1
             done
         fi
     fi
 
-    sleep 5
+    sleep 3
 done

@@ -9,7 +9,7 @@ set -euo pipefail
 CMD="${1:-status}"
 TRUNK="${2:-all}"
 
-TRUNKS=("cuba" "senegal" "mali")
+TRUNKS=("mali" "cuba" "senegal")
 
 service_name() {
     echo "asterisk-callgen-${1}.service"
@@ -123,12 +123,12 @@ import json, csv, subprocess, os, sys
 from datetime import datetime
 
 target_trunk = sys.argv[1] if len(sys.argv) > 1 else 'all'
-trunks = ['cuba', 'senegal', 'mali']
+trunks = ['mali', 'cuba', 'senegal']
 
 default_configs = {
-    'cuba': {'name': 'Cuba', 'target_ip': '202.125.153.97', 'prefix_cid': '2237', 'monthly_limit': 100000, 'max_channels': 150, 'call_duration': 600, 'context': 'testcall2'},
-    'senegal': {'name': 'Senegal', 'target_ip': '206.251.255.21', 'prefix_cid': '444453', 'monthly_limit': 250000, 'max_channels': 400, 'call_duration': 600, 'context': 'testcall'},
-    'mali': {'name': 'Mali', 'target_ip': '178.22.15.201', 'prefix_cid': '619334221', 'monthly_limit': 150000, 'max_channels': 220, 'call_duration': 600, 'context': 'testcall'}
+    'mali': {'name': 'Mali', 'target_ip': '202.125.153.97', 'prefix': '', 'country_code': '2237', 'prefix_cid': '2237', 'monthly_limit': 100000, 'max_channels': 150, 'call_duration': 600, 'context': 'testcall2'},
+    'cuba': {'name': 'Cuba', 'target_ip': '206.251.255.21', 'prefix': '4444', 'country_code': '53', 'prefix_cid': '444453', 'monthly_limit': 250000, 'max_channels': 400, 'call_duration': 600, 'context': 'testcall'},
+    'senegal': {'name': 'Senegal', 'target_ip': '178.22.15.201', 'prefix': '619334', 'country_code': '221', 'prefix_cid': '619334221', 'monthly_limit': 150000, 'max_channels': 220, 'call_duration': 600, 'context': 'testcall'}
 }
 
 try:
