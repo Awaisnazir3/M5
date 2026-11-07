@@ -1028,87 +1028,22 @@ const dashboardHtml = `<!doctype html>
   </header>
 
   <main class="container">
-    <!-- Tabs Navigation -->
-    <div class="tabs-nav">
-      <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">
-        <span>📊</span> Live Traffic Dashboard
-      </button>
-      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
-        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
-      </button>
-      <button class="tab-btn" id="tab-btn-cuba" onclick="switchTab('cuba')">
-        <span class="tab-flag" id="tab-flag-cuba">CU</span><span id="tab-label-cuba">Cuba Configuration</span>
-      </button>
-      <button class="tab-btn" id="tab-btn-senegal" onclick="switchTab('senegal')">
-        <span class="tab-flag" id="tab-flag-senegal">SN</span><span id="tab-label-senegal">Senegal Configuration</span>
-      </button>
-    </div>
-
-    <!-- TAB 1: Live Dashboard View -->
-    <div id="view-dashboard" class="tab-view">
-      <div class="section-header">
-        <div>
-          <div class="section-title">
-            <span>Destination Traffic Routes</span>
-          </div>
-          <div style="font-size:12px; color:var(--muted); margin-top:2px;">
-            Live Asterisk channels & quota monitoring
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
-          <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
-        </div>
-      </div>
-      <div class="trunk-grid" id="trunk-container"></div>
-    </div>
-
-    <!-- TAB 2: Mali Configuration View -->
-    <div id="view-config-mali" class="tab-view hidden">
-      <div class="section-header">
+    <div class="section-header">
+      <div>
         <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-mali">ML</span>
-          <span id="cfg-hdr-title-mali">Mali Configuration</span>
+          <span>Destination Traffic Routes</span>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-mali" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+          Live Asterisk channels & quota monitoring
         </div>
       </div>
-      <div class="config-single-wrap" id="config-box-mali"></div>
-    </div>
-
-    <!-- TAB 3: Cuba Configuration View -->
-    <div id="view-config-cuba" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
-          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
+        <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
       </div>
-      <div class="config-single-wrap" id="config-box-cuba"></div>
     </div>
-
-    <!-- TAB 4: Senegal Configuration View -->
-    <div id="view-config-senegal" class="tab-view hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
-          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
-        </div>
-      </div>
-      <div class="config-single-wrap" id="config-box-senegal"></div>
-    </div>
-
-    </main>
+    <div class="trunk-grid" id="trunk-container"></div>
+  </main>
 
   <script>
     const TRUNK_META = {
@@ -1308,7 +1243,6 @@ const dashboardHtml = `<!doctype html>
           <div class="config-summary-box">
             <div class="config-summary-header">
               <span>Overall Configuration</span>
-              <span style="font-size:11px;cursor:pointer;color:var(--sage);font-weight:700;" onclick="switchTab('\${id}')">Configure ⚙️</span>
             </div>
             <div class="config-summary-grid">
               <div class="summary-item">
@@ -1347,9 +1281,6 @@ const dashboardHtml = `<!doctype html>
           </div>
 
           <div class="card-actions" id="actions-\${id}"></div>
-          <button class="btn btn-outline" id="dash-cfg-btn-\${id}" style="width:100%;margin-top:8px;font-size:12px;padding:8px;font-weight:600;" onclick="switchTab('\${id}')">
-            ⚙️ Configure \${routeName} Trunk
-          </button>
         </div>
       \`;
       return card;
@@ -1623,11 +1554,6 @@ const dashboardHtml = `<!doctype html>
 
           for (const [id, t] of Object.entries(trunksData)) {
             dashContainer.appendChild(buildDashboardCard(id, t));
-            const cfgBox = document.getElementById('config-box-' + id);
-            if (cfgBox) {
-              cfgBox.innerHTML = '';
-              cfgBox.appendChild(buildConfigCard(id, t));
-            }
           }
           isInitialized = true;
           updateMetricsOnly(trunksData, true);

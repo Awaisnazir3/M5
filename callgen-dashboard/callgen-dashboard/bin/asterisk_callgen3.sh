@@ -16,6 +16,8 @@ CONF="/etc/callgen-senegal.json"
 TRUNK="senegal"
 
 mkdir -p "$TMP_DIR"
+chown -R asterisk:asterisk "$TMP_DIR" 2>/dev/null || true
+chmod 775 "$TMP_DIR" 2>/dev/null || true
 
 while true; do
     # 1. Read dynamic parameters from JSON config or fallback to defaults
@@ -125,6 +127,8 @@ Archive: yes
 Set: CDR(userfield)=callgen-senegal
 EOF
                 touch -t $(date +%Y%m%d%H%M.%S) "$TMP_FILE"
+                chown -f asterisk:asterisk "$TMP_FILE" 2>/dev/null || true
+                chmod 664 "$TMP_FILE" 2>/dev/null || true
                 mv "$TMP_FILE" "$SPOOL/"
             done
         fi
