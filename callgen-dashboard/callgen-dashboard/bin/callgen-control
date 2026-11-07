@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# M5-Traffic Controller Control Utility
+# M5-Traffic Controller Control Utility - Asterisk 23 / PJSIP
 # Manages systemd services, live CDR usage & active channels for all 3 trunks
 # ==============================================================================
 
@@ -20,11 +20,12 @@ check_limit() {
     local conf="/etc/callgen-${t}.json"
     [ -f "$conf" ] || return 0
     local reached
-    reached=$(python3 - "$conf" <<'PY'
+    reached=$(python3 - "$conf" "$t" <<'PY'
 import json, csv, os, sys
 from datetime import datetime
 try:
     c = json.load(open(sys.argv[1]))
+    t = sys.argv[2]
     ip = c['target_ip']
     limit_sec = int(c['monthly_limit']) * 60
     f = '/var/log/asterisk/cdr-csv/Master.csv'
@@ -34,7 +35,7 @@ try:
         with open(f, newline='') as h:
             for r in csv.reader(h):
                 if len(r) >= 15 and r[14] == 'ANSWERED' and r[9].startswith(m):
-                    if ip in r[5] or ip in r[6]:
+                    if ip in r[5] or ip in r[6] or f'{t}-trunk' in r[5] or f'{t}-trunk' in r[6]:
                         try: sec += int(r[13])
                         except: pass
     print("1" if sec >= limit_sec else "0")
@@ -161,11 +162,11 @@ for t in trunks:
     ip = cfg['target_ip']
     srv = f'asterisk-callgen-{t}.service'
     raw_running = subprocess.run(['systemctl', 'is-active', '--quiet', srv]).returncode == 0
-    active = sum(ip in x and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines())
+    active = sum((ip in x or f'{t}-trunk' in x) and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines())
 
     sec = 0
     for r in cdr_rows:
-        if ip in r[5] or ip in r[6]:
+        if ip in r[5] or ip in r[6] or f'{t}-trunk' in r[5] or f'{t}-trunk' in r[6]:
             try:
                 sec += int(r[13])
             except Exception:

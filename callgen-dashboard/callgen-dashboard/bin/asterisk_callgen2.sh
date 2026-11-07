@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# M5-Traffic Controller: Senegal Destination Engine (asterisk_callgen2.sh)
+# M5-Traffic Controller: Senegal Destination Engine (asterisk_callgen2.sh) - PJSIP
 # Dynamic config from /etc/callgen-senegal.json
 # ==============================================================================
 
@@ -12,6 +12,7 @@ AST="/usr/sbin/asterisk"
 SPOOL="/var/spool/asterisk/outgoing"
 TMP_DIR="/tmp/asterisk_calls_senegal"
 CONF="/etc/callgen-senegal.json"
+TRUNK="senegal"
 
 mkdir -p "$TMP_DIR"
 
@@ -50,18 +51,20 @@ PY
     LIMITSEC=$((LIMIT * 60))
 
     # 2. Check answered CDR usage for this month
-    USED=$(python3 - "$TARGET_IP" <<'PY'
+    USED=$(python3 - "$TARGET_IP" "$TRUNK" <<'PY'
 import csv, sys, os
 from datetime import datetime
 ip = sys.argv[1]
+t = sys.argv[2]
 f = '/var/log/asterisk/cdr-csv/Master.csv'
 m = datetime.now().strftime('%Y-%m')
 sec = 0
 if os.path.exists(f):
     with open(f, newline='') as h:
         for r in csv.reader(h):
-            if len(r) < 15 or (ip not in r[5] and ip not in r[6]): continue
-            if r[14] == 'ANSWERED' and r[9].startswith(m):
+            if len(r) < 15: continue
+            matched = (ip in r[5] or ip in r[6] or f'{t}-trunk' in r[5] or f'{t}-trunk' in r[6])
+            if matched and r[14] == 'ANSWERED' and r[9].startswith(m):
                 try: sec += int(r[13])
                 except: pass
 print(sec)
@@ -69,7 +72,7 @@ PY
     )
 
     # 3. Channel counting
-    ACTIVE=$("$AST" -rx "core show channels" 2>/dev/null | grep -c "SIP/$TARGET_IP" || true)
+    ACTIVE=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
     case "$ACTIVE" in ''|*[!0-9]*) ACTIVE=0 ;; esac
 
     PENDING=$(find "$SPOOL" -maxdepth 1 -type f -name 'senegal_*.call' 2>/dev/null | wc -l)
@@ -92,7 +95,7 @@ PY
 
         if [ "$NEED" -gt 0 ]; then
             for ((i = 0; i < NEED; i++)); do
-                CURR=$("$AST" -rx "core show channels" 2>/dev/null | grep -c "SIP/$TARGET_IP" || true)
+                CURR=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
                 case "$CURR" in ''|*[!0-9]*) CURR=0 ;; esac
                 PEND=$(find "$SPOOL" -maxdepth 1 -type f -name 'senegal_*.call' 2>/dev/null | wc -l)
                 case "$PEND" in ''|*[!0-9]*) PEND=0 ;; esac
@@ -101,7 +104,7 @@ PY
 
                 # Exact callerid and ANI pattern for Senegal
                 CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom | /usr/bin/head -c 9)"
-                TARGET="SIP/$CALLERID@$TARGET_IP"
+                TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
                 ANI="+442$((RANDOM % 900000000 + 100000000))"
 
                 CALLFILE="senegal_$(date +%s%N).call"
@@ -128,4 +131,3 @@ EOF
 
     sleep 3
 done
-

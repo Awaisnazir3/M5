@@ -458,44 +458,223 @@ const dashboardHtml = `<!doctype html>
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr) 1.5fr;
-      gap: 18px;
+      padding: 16px 20px;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 8px rgba(75, 56, 48, 0.04);
+      display: flex;
+      justify-content: space-between;
       align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .stat-box {
-      border-right: 1px solid var(--border);
-      padding-right: 15px;
+    .master-stats {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      flex: 1;
     }
-    .stat-box:last-of-type {
-      border-right: none;
+    .stat-card {
+      background: #F8FAF7;
+      border: 1px solid #E4E8E2;
+      border-radius: 10px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 185px;
+      transition: all 0.15s ease;
+    }
+    .stat-card:hover {
+      border-color: #CFD7CC;
+      background: #F3F7F1;
+    }
+    .stat-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: #EAF0E8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .stat-details {
+      display: flex;
+      flex-direction: column;
     }
     .stat-label {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 10.5px;
+      font-weight: 750;
       text-transform: uppercase;
       color: var(--muted);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
     .stat-val {
-      font-size: 26px;
+      font-size: 21px;
       font-weight: 800;
       color: var(--brown);
-      margin-top: 4px;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .stat-val-status {
+      font-size: 13.5px;
+      font-weight: 750;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9AA096;
+      display: inline-block;
+    }
+    .stat-val-status.active {
+      color: var(--green);
+    }
+    .stat-val-status.active .badge-dot {
+      background: #16B364;
+      box-shadow: 0 0 0 3px rgba(22, 179, 100, 0.2);
     }
     .stat-sub {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
       margin-top: 2px;
     }
     .master-actions {
       display: flex;
       gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-lg {
+      padding: 11px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    }
+
+    /* Tabs Navigation - Small Tab Buttons */
+    .tabs-nav {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #DFE3DD;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: #F4F6F3;
+      border: 1px solid #DFE3DD;
+      border-bottom: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: var(--brown);
+      background: #EAEFE8;
+    }
+    .tab-btn.active {
+      color: var(--brown);
+      background: #FFFFFF;
+      font-weight: 700;
+      box-shadow: 0 -2px 6px rgba(75, 56, 48, 0.04);
+      border-color: #DFE3DD;
+      border-top: 2px solid var(--sage);
+      border-bottom: 2px solid #FFFFFF;
+      margin-bottom: -2px;
+    }
+    .tab-view {
+      display: block;
+    }
+    .tab-view.hidden {
+      display: none;
+    }
+    .tab-flag {
+      background: var(--brown-light);
+      color: var(--brown);
+      font-weight: 800;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #DBCFC9;
+      display: inline-block;
+      line-height: 1.3;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 650;
+      border-radius: 6px;
+    }
+    .config-single-wrap {
+      max-width: 680px;
+      margin: 0 auto 24px auto;
+    }
+    .config-card-solo {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    }
+
+    /* Config Summary Grid on Dashboard Cards */
+    .config-summary-box {
+      background: #F8F9F7;
+      border: 1px solid #E6EAE3;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .config-summary-header {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .config-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .summary-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .summary-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brown);
+      font-family: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Section Title */
@@ -777,32 +956,35 @@ const dashboardHtml = `<!doctype html>
 
     /* Bottom Console */
     .console-card {
-      background: #1E1916;
-      border-radius: 12px;
-      border: 1px solid #382D28;
-      padding: 16px 20px;
+      background: #1B1815;
+      border-radius: 10px;
+      border: 1px solid #2F2A25;
+      padding: 12px 18px;
       color: #D6DDD3;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     }
     .console-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
     }
     .console-title {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 750;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: var(--sage);
+      color: #9AB094;
     }
     .console-logs {
-      font-family: "Courier New", Courier, monospace;
-      font-size: 12px;
-      height: 120px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11.5px;
+      height: 80px;
       overflow-y: auto;
-      line-height: 1.6;
-      color: #92DD96;
+      line-height: 1.55;
+      color: #A3E6A1;
     }
     .console-logs div {
       white-space: pre-wrap;
@@ -822,7 +1004,7 @@ const dashboardHtml = `<!doctype html>
       <div class="brand-icon">M5</div>
       <div class="brand-text">
         <h1>M5-Traffic Controller</h1>
-        <span>VoIP Smart Switch &bull; Multi-Trunk Engine</span>
+        <span>VoIP Smart Switch</span>
       </div>
     </div>
     <div class="nav-actions">
@@ -830,66 +1012,92 @@ const dashboardHtml = `<!doctype html>
         <div class="user-dot"></div>
         <span>Operator: <b>awais</b></span>
       </div>
-      <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);background:transparent;" onclick="refreshAll(true)">Sync Config</button>
       <a href="/?logout=1" class="btn-logout">Sign Out</a>
     </div>
   </header>
 
   <main class="container">
-    <!-- Master Overview Bar -->
-    <div class="master-bar">
-      <div class="stat-box">
-        <div class="stat-label">Active Channels</div>
-        <div class="stat-val" id="total-active">0</div>
-        <div class="stat-sub">Across 3 active routes</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Total Minutes Used</div>
-        <div class="stat-val" id="total-minutes">0</div>
-        <div class="stat-sub">Current month total</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Total Monthly Cap</div>
-        <div class="stat-val" id="total-cap">0</div>
-        <div class="stat-sub">Cumulative allocation</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Running Trunks</div>
-        <div class="stat-val" id="running-count">0 / 3</div>
-        <div class="stat-sub" id="switch-state">Standby</div>
-      </div>
-      <div class="master-actions">
-        <button class="btn btn-sage" onclick="startAll()">▶ Start All Trunks</button>
-        <button class="btn btn-red" onclick="stopAll()">⏹ Stop All Trunks</button>
-      </div>
+    <!-- Tabs Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">
+        <span>📊</span> Live Traffic Dashboard
+      </button>
+      <button class="tab-btn" id="tab-btn-cuba" onclick="switchTab('cuba')">
+        <span class="tab-flag" id="tab-flag-cuba">CU</span><span id="tab-label-cuba">Cuba Configuration</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-senegal" onclick="switchTab('senegal')">
+        <span class="tab-flag" id="tab-flag-senegal">SN</span><span id="tab-label-senegal">Senegal Configuration</span>
+      </button>
+      <button class="tab-btn" id="tab-btn-mali" onclick="switchTab('mali')">
+        <span class="tab-flag" id="tab-flag-mali">ML</span><span id="tab-label-mali">Mali Configuration</span>
+      </button>
     </div>
 
-    <!-- Section Title -->
-    <div class="section-header">
-      <div class="section-title">
-        <span>Destination Traffic Routes</span>
+    <!-- TAB 1: Live Dashboard View -->
+    <div id="view-dashboard" class="tab-view">
+      <div class="section-header">
+        <div>
+          <div class="section-title">
+            <span>Destination Traffic Routes</span>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">
+            Live Asterisk channels & quota monitoring
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
+          <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
+        </div>
       </div>
-      <div style="font-size:12px; color:var(--muted);">
-        Strict quota cutoff enforced &bull; Auto-stops when limit reached
-      </div>
+      <div class="trunk-grid" id="trunk-container"></div>
     </div>
 
-    <!-- 3 Trunk Cards Grid -->
-    <div class="trunk-grid" id="trunk-container">
-      <!-- Cards rendered once, then updated in-place -->
+    <!-- TAB 2: Cuba Configuration View -->
+    <div id="view-config-cuba" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-cuba">CU</span>
+          <span id="cfg-hdr-title-cuba">Cuba Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-cuba" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-cuba"></div>
     </div>
 
-    <!-- Switch Event & Operation Log -->
-    <div class="console-card">
-      <div class="console-header">
-        <span class="console-title">Live Switch Activity Log</span>
-        <span id="log-time" style="font-size:12px;color:#A8B0A5;">Ready</span>
+    <!-- TAB 3: Senegal Configuration View -->
+    <div id="view-config-senegal" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-senegal">SN</span>
+          <span id="cfg-hdr-title-senegal">Senegal Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-senegal" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        </div>
       </div>
-      <div class="console-logs" id="console-logs">
-        <div>Initializing M5-Traffic Controller core...</div>
-      </div>
+      <div class="config-single-wrap" id="config-box-senegal"></div>
     </div>
-  </main>
+
+    <!-- TAB 4: Mali Configuration View -->
+    <div id="view-config-mali" class="tab-view hidden">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="flag-badge" id="cfg-hdr-flag-mali">ML</span>
+          <span id="cfg-hdr-title-mali">Mali Configuration</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span id="cfg-hdr-status-mali" class="trunk-status"></span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+        </div>
+      </div>
+      <div class="config-single-wrap" id="config-box-mali"></div>
+    </div>
+
+    </main>
 
   <script>
     const TRUNK_META = {
@@ -937,14 +1145,35 @@ const dashboardHtml = `<!doctype html>
       return name.trim().slice(0, 2).toUpperCase();
     }
 
-    function handleNameChange(id, newName) {
-      const displayName = newName.trim() || id;
+    function switchTab(tabId) {
+      const allTabs = ['dashboard', 'cuba', 'senegal', 'mali'];
+      allTabs.forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        const view = (t === 'dashboard')
+          ? document.getElementById('view-dashboard')
+          : document.getElementById('view-config-' + t);
 
-      const titleInput = document.getElementById('title-name-' + id);
-      if (titleInput) {
-        titleInput.dataset.modified = 'true';
-        if (titleInput.value !== newName) titleInput.value = newName;
-      }
+        if (btn) {
+          if (t === tabId) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+        if (view) {
+          if (t === tabId) {
+            view.classList.remove('hidden');
+          } else {
+            view.classList.add('hidden');
+          }
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleNameChange(id, newName) {
+      const displayName = newName.trim() || (id.charAt(0).toUpperCase() + id.slice(1));
+      const flagCode = getRouteFlag(displayName, id);
 
       const fieldInput = document.getElementById('input-name-' + id);
       if (fieldInput) {
@@ -952,15 +1181,29 @@ const dashboardHtml = `<!doctype html>
         if (fieldInput.value !== newName) fieldInput.value = newName;
       }
 
-      const flagEl = document.getElementById('flag-' + id);
-      if (flagEl) {
-        flagEl.textContent = getRouteFlag(displayName, id);
-      }
+      // Tab bar
+      const tabLabel = document.getElementById('tab-label-' + id);
+      if (tabLabel) tabLabel.textContent = displayName + ' Configuration';
+      const tabFlag = document.getElementById('tab-flag-' + id);
+      if (tabFlag) tabFlag.textContent = flagCode;
 
-      const saveBtn = document.getElementById('btn-save-' + id);
-      if (saveBtn && !saveBtn.disabled) {
-        saveBtn.innerHTML = \`💾 Save \${displayName} Settings\`;
-      }
+      // Config view header & card
+      const cfgHdrTitle = document.getElementById('cfg-hdr-title-' + id);
+      if (cfgHdrTitle) cfgHdrTitle.textContent = displayName + ' Configuration';
+      const cfgHdrFlag = document.getElementById('cfg-hdr-flag-' + id);
+      if (cfgHdrFlag) cfgHdrFlag.textContent = flagCode;
+      const cfgCardFlag = document.getElementById('cfg-card-flag-' + id);
+      if (cfgCardFlag) cfgCardFlag.textContent = flagCode;
+      const cfgCardName = document.getElementById('cfg-card-name-' + id);
+      if (cfgCardName) cfgCardName.textContent = displayName + ' Parameters';
+
+      // Dashboard card
+      const dashName = document.getElementById('dash-name-' + id);
+      if (dashName) dashName.textContent = displayName;
+      const dashFlag = document.getElementById('flag-' + id);
+      if (dashFlag) dashFlag.textContent = flagCode;
+      const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
+      if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + displayName + ' Trunk';
 
       if (trunksData[id]) {
         trunksData[id].name = displayName;
@@ -982,31 +1225,32 @@ const dashboardHtml = `<!doctype html>
     }
 
     function addLog(msg) {
+      console.log(msg);
       const el = document.getElementById('console-logs');
-      const time = new Date().toLocaleTimeString();
-      const div = document.createElement('div');
-      div.textContent = \`[\${time}] \${msg}\`;
-      el.insertBefore(div, el.firstChild);
-      document.getElementById('log-time').textContent = 'Last event: ' + time;
+      if (el) {
+        const time = new Date().toLocaleTimeString();
+        const div = document.createElement('div');
+        div.textContent = \`[\${time}] \${msg}\`;
+        el.insertBefore(div, el.firstChild);
+        const logTime = document.getElementById('log-time');
+        if (logTime) logTime.textContent = 'Last event: ' + time;
+      }
     }
 
-    function buildCardSkeleton(id, t) {
+    function buildDashboardCard(id, t) {
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
       const flagCode = getRouteFlag(routeName, id);
       const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || \`\${id}_callgen.sh\`;
       const card = document.createElement('div');
       card.className = 'trunk-card';
-      card.id = 'card-' + id;
+      card.id = 'dash-card-' + id;
       card.innerHTML = \`
         <div class="trunk-header">
           <div class="trunk-identity">
             <span class="flag-badge" id="flag-\${id}">\${flagCode}</span>
             <div>
-              <div class="trunk-title-wrap">
-                <input type="text" class="trunk-title-input" id="title-name-\${id}" value="\${routeName}" title="Click to edit destination name" oninput="handleNameChange('\${id}', this.value)">
-                <span class="title-edit-icon" onclick="document.getElementById('title-name-\${id}').focus()" title="Edit name">✏️</span>
-              </div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;padding-left:6px;">\${scriptName}</div>
+              <div class="trunk-name" id="dash-name-\${id}">\${routeName}</div>
+              <div style="font-size:11px;color:var(--muted);font-family:monospace;">\${scriptName}</div>
             </div>
           </div>
           <span id="badge-\${id}" class="trunk-status"></span>
@@ -1021,7 +1265,7 @@ const dashboardHtml = `<!doctype html>
               </div>
             </div>
             <div>
-              <div class="metric-item-lbl">Month Usage</div>
+              <div class="metric-item-lbl">Minutes Usage</div>
               <div class="metric-item-val" id="used-txt-\${id}">
                 \${Number(t.used_minutes).toLocaleString()} <span style="font-size:12px;font-weight:500;color:var(--muted);">min</span>
               </div>
@@ -1038,11 +1282,73 @@ const dashboardHtml = `<!doctype html>
             </div>
           </div>
 
+          <div class="config-summary-box">
+            <div class="config-summary-header">
+              <span>Overall Configuration</span>
+              <span style="font-size:11px;cursor:pointer;color:var(--sage);font-weight:700;" onclick="switchTab('\${id}')">Configure ⚙️</span>
+            </div>
+            <div class="config-summary-grid">
+              <div class="summary-item">
+                <span class="summary-lbl">Target IP</span>
+                <span class="summary-val" id="disp-ip-\${id}">\${t.target_ip || '-'}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Prefix</span>
+                <span class="summary-val" id="disp-prefix-\${id}">\${t.prefix_cid || 'None'}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Month Limit</span>
+                <span class="summary-val" id="disp-limit-\${id}">\${Number(t.monthly_limit).toLocaleString()}m</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Max Calls</span>
+                <span class="summary-val" id="disp-max-\${id}">\${t.max_channels}ch</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Duration</span>
+                <span class="summary-val" id="disp-dur-\${id}">\${t.call_duration}s</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Context</span>
+                <span class="summary-val" id="disp-ctx-\${id}">\${t.context || 'testcall'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions" id="actions-\${id}"></div>
+          <button class="btn btn-outline" id="dash-cfg-btn-\${id}" style="width:100%;margin-top:8px;font-size:12px;padding:8px;font-weight:600;" onclick="switchTab('\${id}')">
+            ⚙️ Configure \${routeName} Trunk
+          </button>
+        </div>
+      \`;
+      return card;
+    }
+
+    function buildConfigCard(id, t) {
+      const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
+      const flagCode = getRouteFlag(routeName, id);
+      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || \`\${id}_callgen.sh\`;
+      const card = document.createElement('div');
+      card.className = 'config-card-solo';
+      card.id = 'config-card-' + id;
+      card.innerHTML = \`
+        <div class="trunk-header">
+          <div class="trunk-identity">
+            <span class="flag-badge" id="cfg-card-flag-\${id}">\${flagCode}</span>
+            <div>
+              <div style="font-weight:800;font-size:16px;color:var(--brown);" id="cfg-card-name-\${id}">\${routeName} Parameters</div>
+              <div style="font-size:11px;color:var(--muted);font-family:monospace;">Engine Script: \${scriptName}</div>
+            </div>
+          </div>
+          <span id="config-badge-\${id}" class="trunk-status"></span>
+        </div>
+
+        <div class="trunk-body">
           <form id="form-\${id}" onsubmit="saveTrunk(event, '\${id}')">
             <div class="fields-grid">
               <div class="field-group full">
                 <label>Route / Destination Name</label>
-                <input type="text" id="input-name-\${id}" name="name" value="\${routeName}" placeholder="e.g. China, Cuba, Senegal, UK" oninput="handleNameChange('\${id}', this.value)" required>
+                <input type="text" id="input-name-\${id}" name="name" value="\${routeName}" placeholder="e.g. China, Cuba, Senegal, Mali" oninput="handleNameChange('\${id}', this.value)" required>
               </div>
               <div class="field-group">
                 <label>Target IP / Host</label>
@@ -1070,14 +1376,15 @@ const dashboardHtml = `<!doctype html>
               </div>
             </div>
 
-            <div style="margin-top:12px;">
-              <button type="submit" id="btn-save-\${id}" class="btn btn-outline" style="width:100%;padding:7px;font-size:12px;">
-                💾 Save \${routeName} Settings
+            <div style="margin-top:20px;display:flex;gap:12px;">
+              <button type="submit" id="btn-save-\${id}" class="btn btn-sage flex-1" style="padding:12px;font-size:14px;font-weight:700;">
+                💾 Save Settings
+              </button>
+              <button type="button" class="btn btn-outline" style="padding:12px 20px;font-size:13px;" onclick="switchTab('dashboard')">
+                Cancel
               </button>
             </div>
           </form>
-
-          <div class="card-actions" id="actions-\${id}"></div>
         </div>
       \`;
       return card;
@@ -1085,57 +1392,69 @@ const dashboardHtml = `<!doctype html>
 
     function updateMetricsOnly(trunks, forceSyncInputs = false) {
       let totalActive = 0;
-      let totalMinutes = 0;
-      let totalCap = 0;
       let runningCount = 0;
 
       for (const [id, t] of Object.entries(trunks)) {
         totalActive += (t.active_calls || 0);
-        totalMinutes += (t.used_minutes || 0);
-        totalCap += (t.monthly_limit || 0);
         if (t.running) runningCount++;
 
         const isLimitReached = (t.used_minutes >= t.monthly_limit);
         const percent = t.monthly_limit > 0 ? Math.min(100, Math.round((t.used_minutes / t.monthly_limit) * 100)) : 0;
         const curName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
+        const flagCode = getRouteFlag(curName, id);
 
-        const titleInput = document.getElementById('title-name-' + id);
+        // Tab and Heading updates
+        const tabLabel = document.getElementById('tab-label-' + id);
+        if (tabLabel) tabLabel.textContent = curName + ' Configuration';
+        const tabFlag = document.getElementById('tab-flag-' + id);
+        if (tabFlag) tabFlag.textContent = flagCode;
+
+        const cfgHdr = document.getElementById('cfg-hdr-title-' + id);
+        if (cfgHdr) cfgHdr.textContent = curName + ' Configuration';
+        const cfgFlag = document.getElementById('cfg-hdr-flag-' + id);
+        if (cfgFlag) cfgFlag.textContent = flagCode;
+
+        const cfgCardFlag = document.getElementById('cfg-card-flag-' + id);
+        if (cfgCardFlag) cfgCardFlag.textContent = flagCode;
+        const cfgCardName = document.getElementById('cfg-card-name-' + id);
+        if (cfgCardName) cfgCardName.textContent = curName + ' Parameters';
+
+        // Dashboard Card updates
+        const dashName = document.getElementById('dash-name-' + id);
+        if (dashName) dashName.textContent = curName;
+        const flagEl = document.getElementById('flag-' + id);
+        if (flagEl) flagEl.textContent = flagCode;
+        const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
+        if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + curName + ' Trunk';
+
+        // Config Card field input update
         const nameInput = document.getElementById('input-name-' + id);
-
-        if (titleInput && document.activeElement !== titleInput && (forceSyncInputs || !titleInput.dataset.modified)) {
-          titleInput.value = curName;
-        }
         if (nameInput && document.activeElement !== nameInput && (forceSyncInputs || !nameInput.dataset.modified)) {
           nameInput.value = curName;
         }
-        const flagEl = document.getElementById('flag-' + id);
-        if (flagEl && (forceSyncInputs || (!titleInput?.dataset.modified && !nameInput?.dataset.modified))) {
-          flagEl.textContent = getRouteFlag(curName, id);
-        }
-        const saveBtn = document.getElementById('btn-save-' + id);
-        if (saveBtn && !saveBtn.disabled && document.activeElement !== titleInput && document.activeElement !== nameInput && !titleInput?.dataset.modified) {
-          saveBtn.innerHTML = \`💾 Save \${curName} Settings\`;
-        }
 
-        // 1. Badge logic with LIMIT REACHED state
-        const badge = document.getElementById('badge-' + id);
-        if (badge) {
+        // 1. Status badges
+        const updateBadge = (badgeEl) => {
+          if (!badgeEl) return;
           if (isLimitReached) {
-            badge.className = 'trunk-status status-limit';
-            badge.textContent = '⛔ LIMIT REACHED';
+            badgeEl.className = 'trunk-status status-limit';
+            badgeEl.textContent = '⛔ LIMIT REACHED';
           } else if (t.running) {
-            badge.className = 'trunk-status status-running';
-            badge.textContent = '● RUNNING';
+            badgeEl.className = 'trunk-status status-running';
+            badgeEl.textContent = '● RUNNING';
           } else {
-            badge.className = 'trunk-status status-stopped';
-            badge.textContent = '○ STOPPED';
+            badgeEl.className = 'trunk-status status-stopped';
+            badgeEl.textContent = '○ STOPPED';
           }
-        }
+        };
+        updateBadge(document.getElementById('badge-' + id));
+        updateBadge(document.getElementById('config-badge-' + id));
+        updateBadge(document.getElementById('cfg-hdr-status-' + id));
 
-        // 2. Active calls count & month usage
+        // 2. Active calls count & minutes usage (strictly MINUTES USAGE)
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          const maxChan = document.getElementById('input-max-' + id)?.value || t.max_channels;
+          const maxChan = t.max_channels;
           activeTxt.innerHTML = \`\${t.active_calls} <span style="font-size:13px;font-weight:500;color:var(--muted);">/ \${maxChan}</span>\`;
           activeTxt.style.color = (t.running && !isLimitReached) ? 'var(--green)' : 'var(--muted)';
         }
@@ -1162,12 +1481,26 @@ const dashboardHtml = `<!doctype html>
           progressFill.style.background = isLimitReached ? '#B42318' : (percent > 85 ? 'var(--amber)' : 'var(--sage)');
         }
 
-        // 4. Start/Stop Action buttons
+        // 4. Overall configuration display on Dashboard card
+        const dispIp = document.getElementById('disp-ip-' + id);
+        if (dispIp) dispIp.textContent = t.target_ip || '-';
+        const dispPrefix = document.getElementById('disp-prefix-' + id);
+        if (dispPrefix) dispPrefix.textContent = t.prefix_cid || 'None';
+        const dispLimit = document.getElementById('disp-limit-' + id);
+        if (dispLimit) dispLimit.textContent = \`\${Number(t.monthly_limit).toLocaleString()}m\`;
+        const dispMax = document.getElementById('disp-max-' + id);
+        if (dispMax) dispMax.textContent = \`\${t.max_channels}ch\`;
+        const dispDur = document.getElementById('disp-dur-' + id);
+        if (dispDur) dispDur.textContent = \`\${t.call_duration}s\`;
+        const dispCtx = document.getElementById('disp-ctx-' + id);
+        if (dispCtx) dispCtx.textContent = t.context || 'testcall';
+
+        // 5. Start/Stop Action buttons
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
           if (isLimitReached) {
             actionsDiv.innerHTML = \`
-              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for \${curName}. Please increase Monthly Limit (Min) and click Save to restart.')">
+              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for \${curName}. Please increase Monthly Limit (Min) on \${curName} Configuration tab to restart.')">
                 ⛔ Limit Reached (Increase Limit)
               </button>
               <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
@@ -1185,7 +1518,7 @@ const dashboardHtml = `<!doctype html>
           }
         }
 
-        // 5. Input sync only if explicitly requested
+        // 6. Input sync only if explicitly requested
         if (forceSyncInputs) {
           const inputIp = document.getElementById('input-ip-' + id);
           if (inputIp && document.activeElement !== inputIp) inputIp.value = t.target_ip;
@@ -1209,10 +1542,22 @@ const dashboardHtml = `<!doctype html>
 
       // Master bar update
       document.getElementById('total-active').textContent = totalActive;
-      document.getElementById('total-minutes').textContent = Number(totalMinutes.toFixed(1)).toLocaleString();
-      document.getElementById('total-cap').textContent = Number(totalCap).toLocaleString();
       document.getElementById('running-count').textContent = \`\${runningCount} / \${Object.keys(trunks).length}\`;
-      document.getElementById('switch-state').textContent = runningCount > 0 ? \`Switch Active (\${runningCount} Online)\` : 'All Routes Standby';
+      document.getElementById('switch-state').textContent = runningCount > 0 ? \`\${runningCount} Routes Online\` : 'All Routes Standby';
+
+      const modeBadge = document.getElementById('system-mode-badge');
+      if (modeBadge) {
+        if (runningCount === Object.keys(trunks).length && runningCount > 0) {
+          modeBadge.className = 'stat-val-status active';
+          modeBadge.innerHTML = '<span class="badge-dot"></span> All Trunks Live';
+        } else if (runningCount > 0) {
+          modeBadge.className = 'stat-val-status active';
+          modeBadge.innerHTML = \`<span class="badge-dot"></span> Partial (\${runningCount}/\${Object.keys(trunks).length})\`;
+        } else {
+          modeBadge.className = 'stat-val-status';
+          modeBadge.innerHTML = '<span class="badge-dot"></span> All Standby';
+        }
+      }
     }
 
     async function refreshAll(forceSync = false) {
@@ -1221,10 +1566,16 @@ const dashboardHtml = `<!doctype html>
         trunksData = res.trunks;
 
         if (!isInitialized) {
-          const container = document.getElementById('trunk-container');
-          container.innerHTML = '';
+          const dashContainer = document.getElementById('trunk-container');
+          dashContainer.innerHTML = '';
+
           for (const [id, t] of Object.entries(trunksData)) {
-            container.appendChild(buildCardSkeleton(id, t));
+            dashContainer.appendChild(buildDashboardCard(id, t));
+            const cfgBox = document.getElementById('config-box-' + id);
+            if (cfgBox) {
+              cfgBox.innerHTML = '';
+              cfgBox.appendChild(buildConfigCard(id, t));
+            }
           }
           isInitialized = true;
           updateMetricsOnly(trunksData, true);
@@ -1250,7 +1601,6 @@ const dashboardHtml = `<!doctype html>
     async function saveTrunk(e, id) {
       e.preventDefault();
       const saveBtn = document.getElementById('btn-save-' + id);
-      const originalText = saveBtn ? saveBtn.innerHTML : '';
 
       try {
         if (saveBtn) {
@@ -1268,8 +1618,6 @@ const dashboardHtml = `<!doctype html>
         const res = await api('save', d);
         addLog(\`[\${(d.name || id).toUpperCase()}] \${res.message}\`);
 
-        const titleInput = document.getElementById('title-name-' + id);
-        if (titleInput) delete titleInput.dataset.modified;
         const nameInput = document.getElementById('input-name-' + id);
         if (nameInput) delete nameInput.dataset.modified;
 
@@ -1277,7 +1625,6 @@ const dashboardHtml = `<!doctype html>
           saveBtn.innerHTML = '✓ Settings Saved!';
           saveBtn.style.background = 'var(--green)';
           saveBtn.style.color = '#FFFFFF';
-          saveBtn.style.borderColor = 'var(--green)';
         }
 
         // Instant local sync
@@ -1295,10 +1642,9 @@ const dashboardHtml = `<!doctype html>
 
         setTimeout(() => {
           if (saveBtn) {
-            saveBtn.innerHTML = originalText || \`💾 Save \${trunksData[id]?.name || id} Settings\`;
+            saveBtn.innerHTML = '💾 Save Settings';
             saveBtn.style.background = '';
             saveBtn.style.color = '';
-            saveBtn.style.borderColor = '';
             saveBtn.disabled = false;
           }
         }, 2000);
@@ -1310,7 +1656,7 @@ const dashboardHtml = `<!doctype html>
           saveBtn.style.background = 'var(--red)';
           saveBtn.style.color = '#FFFFFF';
           setTimeout(() => {
-            saveBtn.innerHTML = originalText;
+            saveBtn.innerHTML = '💾 Save Settings';
             saveBtn.style.background = '';
             saveBtn.style.color = '';
             saveBtn.disabled = false;
