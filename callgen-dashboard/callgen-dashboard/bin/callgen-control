@@ -1,0 +1,175 @@
+#!/bin/bash
+# ==============================================================================
+# M5-Traffic Controller Control Utility
+# Manages systemd services, live CDR usage & active channels for all 3 trunks
+# ==============================================================================
+
+set -euo pipefail
+
+CMD="${1:-status}"
+TRUNK="${2:-all}"
+
+TRUNKS=("cuba" "senegal" "mali")
+
+service_name() {
+    echo "asterisk-callgen-${1}.service"
+}
+
+check_limit() {
+    local t="$1"
+    local conf="/etc/callgen-${t}.json"
+    [ -f "$conf" ] || return 0
+    local reached
+    reached=$(python3 - "$conf" <<'PY'
+import json, csv, os, sys
+from datetime import datetime
+try:
+    c = json.load(open(sys.argv[1]))
+    ip = c['target_ip']
+    limit_sec = int(c['monthly_limit']) * 60
+    f = '/var/log/asterisk/cdr-csv/Master.csv'
+    m = datetime.now().strftime('%Y-%m')
+    sec = 0
+    if os.path.exists(f):
+        with open(f, newline='') as h:
+            for r in csv.reader(h):
+                if len(r) >= 15 and r[14] == 'ANSWERED' and r[9].startswith(m):
+                    if ip in r[5] or ip in r[6]:
+                        try: sec += int(r[13])
+                        except: pass
+    print("1" if sec >= limit_sec else "0")
+except Exception:
+    print("0")
+PY
+    )
+    [ "$reached" = "1" ] && return 1 || return 0
+}
+
+case "$CMD" in
+    start)
+        if [ "$TRUNK" = "all" ]; then
+            started=0
+            blocked=0
+            for t in "${TRUNKS[@]}"; do
+                if check_limit "$t"; then
+                    systemctl start "$(service_name "$t")"
+                    started=$((started + 1))
+                else
+                    echo "Notice: ${t} quota is maxed out; route remains stopped." >&2
+                    blocked=$((blocked + 1))
+                fi
+            done
+            if [ "$started" -gt 0 ]; then
+                echo "Started ${started} active route(s)."
+            else
+                echo "Cannot start routes: monthly limits are reached." >&2
+                exit 1
+            fi
+        else
+            if ! check_limit "$TRUNK"; then
+                echo "Error: Cannot start ${TRUNK}: Monthly minute limit is reached. Increase limit first." >&2
+                exit 1
+            fi
+            systemctl start "$(service_name "$TRUNK")"
+            echo "Started ${TRUNK} route."
+        fi
+        ;;
+
+    stop)
+        if [ "$TRUNK" = "all" ]; then
+            for t in "${TRUNKS[@]}"; do
+                systemctl stop "$(service_name "$t")" || true
+            done
+            echo "Stopped all 3 call generation routes."
+        else
+            systemctl stop "$(service_name "$TRUNK")"
+            echo "Stopped ${TRUNK} route."
+        fi
+        ;;
+
+    reload)
+        echo "Configuration reloaded. Engine updates within 5s."
+        ;;
+
+    status)
+        python3 - "$TRUNK" <<'PY'
+import json, csv, subprocess, os, sys
+from datetime import datetime
+
+target_trunk = sys.argv[1] if len(sys.argv) > 1 else 'all'
+trunks = ['cuba', 'senegal', 'mali']
+
+default_configs = {
+    'cuba': {'name': 'Cuba', 'target_ip': '202.125.153.97', 'prefix_cid': '2237', 'monthly_limit': 100000, 'max_channels': 150, 'call_duration': 600, 'context': 'testcall2'},
+    'senegal': {'name': 'Senegal', 'target_ip': '206.251.255.21', 'prefix_cid': '444453', 'monthly_limit': 250000, 'max_channels': 400, 'call_duration': 600, 'context': 'testcall'},
+    'mali': {'name': 'Mali', 'target_ip': '178.22.15.201', 'prefix_cid': '619334221', 'monthly_limit': 150000, 'max_channels': 220, 'call_duration': 600, 'context': 'testcall'}
+}
+
+try:
+    s = subprocess.run(['/usr/sbin/asterisk', '-rx', 'core show channels'], capture_output=True, text=True).stdout
+except Exception:
+    s = ""
+
+cdr_file = '/var/log/asterisk/cdr-csv/Master.csv'
+current_month = datetime.now().strftime('%Y-%m')
+cdr_rows = []
+if os.path.exists(cdr_file):
+    try:
+        with open(cdr_file, newline='') as h:
+            for r in csv.reader(h):
+                if len(r) >= 15 and r[14] == 'ANSWERED' and r[9].startswith(current_month):
+                    cdr_rows.append(r)
+    except Exception:
+        pass
+
+result = {}
+
+for t in trunks:
+    cfg = dict(default_configs[t])
+    conf_path = f'/etc/callgen-{t}.json'
+    if os.path.exists(conf_path):
+        try:
+            cfg.update(json.load(open(conf_path)))
+        except Exception:
+            pass
+
+    ip = cfg['target_ip']
+    srv = f'asterisk-callgen-{t}.service'
+    raw_running = subprocess.run(['systemctl', 'is-active', '--quiet', srv]).returncode == 0
+    active = sum(ip in x and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines())
+
+    sec = 0
+    for r in cdr_rows:
+        if ip in r[5] or ip in r[6]:
+            try:
+                sec += int(r[13])
+            except Exception:
+                pass
+
+    limit_sec = int(cfg['monthly_limit']) * 60
+    limit_reached = sec >= limit_sec
+
+    # If limit reached, auto-stop service if still running
+    if limit_reached and raw_running:
+        subprocess.run(['systemctl', 'stop', srv])
+        raw_running = False
+
+    cfg['id'] = t
+    cfg['running'] = raw_running and not limit_reached
+    cfg['limit_reached'] = limit_reached
+    cfg['active_calls'] = active if not limit_reached else 0
+    cfg['used_minutes'] = round(sec / 60, 2)
+    result[t] = cfg
+
+if target_trunk in result:
+    print(json.dumps({'trunk': result[target_trunk]}))
+else:
+    print(json.dumps({'trunks': result}))
+PY
+        ;;
+
+    *)
+        echo "Usage: callgen-control {start|stop|reload|status} [cuba|senegal|mali|all]" >&2
+        exit 2
+        ;;
+esac

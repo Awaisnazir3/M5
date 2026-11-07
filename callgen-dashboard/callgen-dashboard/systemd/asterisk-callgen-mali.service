@@ -1,0 +1,17 @@
+[Unit]
+Description=Asterisk Call Generator - Mali Route
+After=asterisk.service
+Wants=asterisk.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/asterisk_callgen3.sh
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

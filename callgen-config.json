@@ -1,0 +1,53 @@
+{
+  "cuba": {
+    "id": "cuba",
+    "name": "Cuba",
+    "country_code": "CU",
+    "target_ip": "202.125.153.97",
+    "monthly_limit": 1300,
+    "max_channels": 160,
+    "call_duration": 550,
+    "context": "testcall2",
+    "prefix_cid": "444453",
+    "ani_prefix": "96655",
+    "running": true,
+    "used_minutes": 1280.7,
+    "active_calls": 1,
+    "limit_reached": false,
+    "last_action": "Settings updated at 2:36:26 PM"
+  },
+  "senegal": {
+    "id": "senegal",
+    "name": "Senegal",
+    "country_code": "SN",
+    "target_ip": "206.251.255.21",
+    "monthly_limit": 5000,
+    "max_channels": 400,
+    "call_duration": 600,
+    "context": "testcall",
+    "prefix_cid": "619334221",
+    "ani_prefix": "+442",
+    "running": true,
+    "used_minutes": 4497.6,
+    "active_calls": 12,
+    "limit_reached": false,
+    "last_action": "Settings updated at 2:46:44 PM"
+  },
+  "mali": {
+    "id": "mali",
+    "name": "Mali",
+    "country_code": "ML",
+    "target_ip": "178.22.15.201",
+    "monthly_limit": 950,
+    "max_channels": 220,
+    "call_duration": 600,
+    "context": "testcall",
+    "prefix_cid": "223",
+    "ani_prefix": "442",
+    "running": true,
+    "used_minutes": 918.5,
+    "active_calls": 1,
+    "limit_reached": false,
+    "last_action": "Settings updated at 2:42:57 PM"
+  }
+}

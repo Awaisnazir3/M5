@@ -1,0 +1,21 @@
+# Asterisk temporary call files
+*.call
+*.lock
+*.tmp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node modules
+node_modules/
+
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE configs
+.vscode/
+.idea/
+

@@ -1,0 +1,2 @@
+# Change apache to the actual PHP web-server user if different.
+apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control start, /usr/local/sbin/callgen-control stop, /usr/local/sbin/callgen-control status, /usr/local/sbin/callgen-control reload
