@@ -184,3 +184,4 @@ echo "Web Portal       : http://$(hostname -I 2>/dev/null | awk '{print $1}')/ca
 echo "Portal User      : awais"
 echo "Portal Pass      : dancom"
 echo "=================================================================="
+
