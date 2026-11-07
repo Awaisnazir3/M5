@@ -105,9 +105,9 @@ PY
                 [ "$((CURR + PEND))" -ge "$MAXCALLS" ] && break
 
                 # Exact callerid and ANI pattern for Mali (CC 2237)
-                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom | /usr/bin/head -c 8)"
+                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
                 TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
-                ANI="442$(tr -dc '1-9' < /dev/urandom | head -c 9)"
+                ANI="442$(tr -dc '1-9' < /dev/urandom 2>/dev/null | head -c 9)"
 
                 CALLFILE="mali_$(date +%s%N).call"
                 TMP_FILE="$TMP_DIR/$CALLFILE"

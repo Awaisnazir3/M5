@@ -105,7 +105,7 @@ PY
                 [ "$((CURR + PEND))" -ge "$MAXCALLS" ] && break
 
                 # Exact callerid and ANI pattern for Cuba (Prefix 4444 + CC 53)
-                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom | /usr/bin/head -c 8)"
+                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
                 TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
                 ANI="96655$((RANDOM % 9000000 + 1000000))"
 

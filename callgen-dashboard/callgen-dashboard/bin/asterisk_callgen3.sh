@@ -105,7 +105,7 @@ PY
                 [ "$((CURR + PEND))" -ge "$MAXCALLS" ] && break
 
                 # Exact callerid and ANI pattern for Senegal (Prefix 619334 + CC 221)
-                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom | /usr/bin/head -c 9)"
+                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 9)"
                 TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
                 ANI="+442$((RANDOM % 900000000 + 100000000))"
 
