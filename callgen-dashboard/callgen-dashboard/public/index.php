@@ -1372,10 +1372,13 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       }
 
-      // Master bar update
-      document.getElementById('total-active').textContent = totalActive;
-      document.getElementById('running-count').textContent = `${runningCount} / ${Object.keys(trunks).length}`;
-      document.getElementById('switch-state').textContent = runningCount > 0 ? `${runningCount} Routes Online` : 'All Routes Standby';
+      // Master bar update (if elements exist)
+      const totalActiveEl = document.getElementById('total-active');
+      if (totalActiveEl) totalActiveEl.textContent = totalActive;
+      const runningCountEl = document.getElementById('running-count');
+      if (runningCountEl) runningCountEl.textContent = `${runningCount} / ${Object.keys(trunks).length}`;
+      const switchStateEl = document.getElementById('switch-state');
+      if (switchStateEl) switchStateEl.textContent = runningCount > 0 ? `${runningCount} Routes Online` : 'All Routes Standby';
 
       const modeBadge = document.getElementById('system-mode-badge');
       if (modeBadge) {
