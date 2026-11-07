@@ -5,7 +5,7 @@
     "country_code": "CU",
     "target_ip": "202.125.153.97",
     "monthly_limit": 100000,
-    "max_channels": 150,
+    "max_channels": 2,
     "call_duration": 600,
     "context": "testcall2",
     "prefix_cid": "444453",
@@ -14,7 +14,7 @@
     "used_minutes": 1280.7,
     "active_calls": 0,
     "limit_reached": false,
-    "last_action": "Settings updated at 7:20:18 PM"
+    "last_action": "Settings updated at 7:53:09 PM"
   },
   "senegal": {
     "id": "senegal",

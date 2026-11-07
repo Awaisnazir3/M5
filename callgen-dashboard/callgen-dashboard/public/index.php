@@ -9,6 +9,7 @@ if (isset($_POST["login"])) {
     if ($u === $user_req && $p === $pass_req) {
         $_SESSION["m5_auth"] = true;
         $_SESSION["operator"] = $u;
+        setcookie("m5_auth", "1", time() + 86400 * 30, "/");
         header("Location: index.php");
         exit;
     } else {
@@ -18,11 +19,12 @@ if (isset($_POST["login"])) {
 
 if (isset($_GET["logout"])) {
     session_destroy();
+    setcookie("m5_auth", "", time() - 3600, "/");
     header("Location: index.php");
     exit;
 }
 
-if (empty($_SESSION["m5_auth"])): ?>
+if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -1480,18 +1482,20 @@ if (empty($_SESSION["m5_auth"])): ?>
         }, 2000);
 
       } catch (err) {
+        console.error("Save error:", err);
         addLog(`[${id.toUpperCase()}] Save error: ${err.message}`);
         if (saveBtn) {
-          saveBtn.innerHTML = '❌ Save Failed';
-          saveBtn.style.background = 'var(--red)';
-          saveBtn.style.color = '#FFFFFF';
+          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
+          saveBtn.style.background = "var(--red)";
+          saveBtn.style.color = "#FFFFFF";
           setTimeout(() => {
-            saveBtn.innerHTML = '💾 Save Settings';
-            saveBtn.style.background = '';
-            saveBtn.style.color = '';
+            saveBtn.innerHTML = "💾 Save Settings";
+            saveBtn.style.background = "";
+            saveBtn.style.color = "";
             saveBtn.disabled = false;
-          }, 2500);
+          }, 4000);
         }
+        alert("Save Error: " + err.message);
       }
     }
 

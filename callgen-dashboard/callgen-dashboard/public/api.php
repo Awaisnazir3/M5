@@ -2,7 +2,29 @@
 session_start();
 header("Content-Type: application/json");
 
-if (empty($_SESSION["m5_auth"])) {
+// Allow access if session authenticated, or cookie present, or from local private LAN
+$client_ip = $_SERVER["REMOTE_ADDR"] ?? "";
+$is_local_ip = in_array($client_ip, ["127.0.0.1", "::1"], true) ||
+               str_starts_with($client_ip, "192.168.") ||
+               str_starts_with($client_ip, "10.") ||
+               str_starts_with($client_ip, "172.16.") ||
+               str_starts_with($client_ip, "172.17.") ||
+               str_starts_with($client_ip, "172.18.") ||
+               str_starts_with($client_ip, "172.19.") ||
+               str_starts_with($client_ip, "172.20.") ||
+               str_starts_with($client_ip, "172.21.") ||
+               str_starts_with($client_ip, "172.22.") ||
+               str_starts_with($client_ip, "172.23.") ||
+               str_starts_with($client_ip, "172.24.") ||
+               str_starts_with($client_ip, "172.25.") ||
+               str_starts_with($client_ip, "172.26.") ||
+               str_starts_with($client_ip, "172.27.") ||
+               str_starts_with($client_ip, "172.28.") ||
+               str_starts_with($client_ip, "172.29.") ||
+               str_starts_with($client_ip, "172.30.") ||
+               str_starts_with($client_ip, "172.31.");
+
+if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"]) && !$is_local_ip) {
     http_response_code(401);
     exit(json_encode(["ok" => false, "error" => "Not authenticated"]));
 }
@@ -38,7 +60,7 @@ if ($a === "save") {
     $trunk = trim($d["trunk"] ?? "");
     $validTrunks = ["cuba", "senegal", "mali"];
     if (!in_array($trunk, $validTrunks, true)) {
-        done(["ok" => false, "error" => "Invalid trunk target"], 400);
+        done(["ok" => false, "error" => "Invalid trunk target: " . $trunk], 400);
     }
 
     $name = trim($d["name"] ?? "");
@@ -50,7 +72,7 @@ if ($a === "save") {
     $ctx = trim($d["context"] ?? "testcall");
 
     if (!preg_match('/^[A-Za-z0-9.:-]{1,253}$/', $ip) || $m < 1 || $n < 1 || $n > 2000 || $t < 1 || $t > 86400) {
-        done(["ok" => false, "error" => "Invalid settings parameters"], 400);
+        done(["ok" => false, "error" => "Invalid settings parameters: IP={$ip}, Limit={$m}, Max={$n}, Dur={$t}"], 400);
     }
 
     $f = "/etc/callgen-{$trunk}.json";

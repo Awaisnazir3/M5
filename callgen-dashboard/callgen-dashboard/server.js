@@ -1651,18 +1651,20 @@ const dashboardHtml = `<!doctype html>
         }, 2000);
 
       } catch (err) {
+        console.error("Save error:", err);
         addLog(\`[\${id.toUpperCase()}] Save error: \${err.message}\`);
         if (saveBtn) {
-          saveBtn.innerHTML = '❌ Save Failed';
-          saveBtn.style.background = 'var(--red)';
-          saveBtn.style.color = '#FFFFFF';
+          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
+          saveBtn.style.background = "var(--red)";
+          saveBtn.style.color = "#FFFFFF";
           setTimeout(() => {
-            saveBtn.innerHTML = '💾 Save Settings';
-            saveBtn.style.background = '';
-            saveBtn.style.color = '';
+            saveBtn.innerHTML = "💾 Save Settings";
+            saveBtn.style.background = "";
+            saveBtn.style.color = "";
             saveBtn.disabled = false;
-          }, 2500);
+          }, 4000);
         }
+        alert("Save Error: " + err.message);
       }
     }
 
