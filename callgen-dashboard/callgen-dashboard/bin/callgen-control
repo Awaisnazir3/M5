@@ -91,6 +91,31 @@ case "$CMD" in
         echo "Configuration reloaded. Engine updates within 5s."
         ;;
 
+    save)
+        python3 - "$TRUNK" "${3:-{}}" <<'PY'
+import sys, json, os
+trunk = sys.argv[1]
+if trunk not in ['cuba', 'senegal', 'mali']:
+    sys.exit(1)
+try:
+    data = json.loads(sys.argv[2])
+    conf_path = f'/etc/callgen-{trunk}.json'
+    with open(conf_path, 'w') as f:
+        json.dump(data, f, indent=2)
+    os.chmod(conf_path, 0o664)
+    try:
+        import grp
+        gid = grp.getgrnam("apache").gr_gid
+        os.chown(conf_path, 0, gid)
+    except Exception:
+        pass
+    print(f"Saved configuration for {trunk}")
+except Exception as e:
+    print(f"Error saving {trunk}: {e}", file=sys.stderr)
+    sys.exit(1)
+PY
+        ;;
+
     status)
         python3 - "$TRUNK" <<'PY'
 import json, csv, subprocess, os, sys

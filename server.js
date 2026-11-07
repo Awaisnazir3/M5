@@ -546,6 +546,7 @@ const dashboardHtml = `<!doctype html>
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1;
     }
     .flag-badge {
       background: var(--brown-light);
@@ -556,6 +557,48 @@ const dashboardHtml = `<!doctype html>
       border-radius: 6px;
       letter-spacing: 0.5px;
       border: 1px solid #DBCFC9;
+      min-width: 32px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .trunk-title-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .trunk-title-input {
+      font-size: 17px;
+      font-weight: 750;
+      color: var(--brown);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 2px 6px;
+      width: 130px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .trunk-title-input:hover {
+      background: #FFFFFF;
+      border-color: #D2D7CF;
+    }
+    .trunk-title-input:focus {
+      background: #FFFFFF;
+      border-color: var(--sage);
+      box-shadow: 0 0 0 2px rgba(124, 142, 118, 0.25);
+      outline: none;
+      width: 150px;
+    }
+    .title-edit-icon {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.35;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+    .trunk-title-wrap:hover .title-edit-icon {
+      opacity: 0.9;
     }
     .trunk-name {
       font-size: 17px;
@@ -850,25 +893,79 @@ const dashboardHtml = `<!doctype html>
 
   <script>
     const TRUNK_META = {
-      cuba: {
-        flag: "CU",
-        name: "Cuba Destination",
-        script: "asterisk_callgen.sh",
-        desc: "Cuba route with testcall2 dialplan & duration enforcement"
-      },
-      senegal: {
-        flag: "SN",
-        name: "Senegal Destination",
-        script: "asterisk_callgen2.sh",
-        desc: "Senegal trunk with 400ch burst capacity & ANI pattern"
-      },
-      mali: {
-        flag: "ML",
-        name: "Mali Destination",
-        script: "asterisk_callgen3.sh",
-        desc: "Mali trunk route with Asterisk channel spooler"
-      }
+      cuba: { script: "asterisk_callgen.sh" },
+      senegal: { script: "asterisk_callgen2.sh" },
+      mali: { script: "asterisk_callgen3.sh" }
     };
+
+    const COUNTRY_CODES = {
+      'cuba': 'CU',
+      'senegal': 'SN',
+      'mali': 'ML',
+      'china': 'CN',
+      'united states': 'US',
+      'usa': 'US',
+      'united kingdom': 'GB',
+      'uk': 'UK',
+      'germany': 'DE',
+      'france': 'FR',
+      'canada': 'CA',
+      'india': 'IN',
+      'pakistan': 'PK',
+      'brazil': 'BR',
+      'spain': 'ES',
+      'italy': 'IT',
+      'russia': 'RU',
+      'japan': 'JP',
+      'turkey': 'TR',
+      'australia': 'AU',
+      'singapore': 'SG',
+      'uae': 'AE',
+      'dubai': 'AE',
+      'egypt': 'EG',
+      'south africa': 'ZA',
+      'nigeria': 'NG',
+      'bangladesh': 'BD'
+    };
+
+    function getRouteFlag(name, id) {
+      if (!name || !name.trim()) return (id || 'XX').slice(0, 2).toUpperCase();
+      const lower = name.trim().toLowerCase();
+      if (COUNTRY_CODES[lower]) return COUNTRY_CODES[lower];
+      const words = name.trim().split(/\s+/);
+      if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+      return name.trim().slice(0, 2).toUpperCase();
+    }
+
+    function handleNameChange(id, newName) {
+      const displayName = newName.trim() || id;
+
+      const titleInput = document.getElementById('title-name-' + id);
+      if (titleInput) {
+        titleInput.dataset.modified = 'true';
+        if (titleInput.value !== newName) titleInput.value = newName;
+      }
+
+      const fieldInput = document.getElementById('input-name-' + id);
+      if (fieldInput) {
+        fieldInput.dataset.modified = 'true';
+        if (fieldInput.value !== newName) fieldInput.value = newName;
+      }
+
+      const flagEl = document.getElementById('flag-' + id);
+      if (flagEl) {
+        flagEl.textContent = getRouteFlag(displayName, id);
+      }
+
+      const saveBtn = document.getElementById('btn-save-' + id);
+      if (saveBtn && !saveBtn.disabled) {
+        saveBtn.innerHTML = \`💾 Save \${displayName} Settings\`;
+      }
+
+      if (trunksData[id]) {
+        trunksData[id].name = displayName;
+      }
+    }
 
     let trunksData = {};
     let isInitialized = false;
@@ -894,17 +991,22 @@ const dashboardHtml = `<!doctype html>
     }
 
     function buildCardSkeleton(id, t) {
-      const meta = TRUNK_META[id] || { flag: id.toUpperCase(), name: t.name, script: id };
+      const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
+      const flagCode = getRouteFlag(routeName, id);
+      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || \`\${id}_callgen.sh\`;
       const card = document.createElement('div');
       card.className = 'trunk-card';
       card.id = 'card-' + id;
       card.innerHTML = \`
         <div class="trunk-header">
           <div class="trunk-identity">
-            <span class="flag-badge">\${meta.flag}</span>
+            <span class="flag-badge" id="flag-\${id}">\${flagCode}</span>
             <div>
-              <div class="trunk-name">\${t.name}</div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;">\${meta.script}</div>
+              <div class="trunk-title-wrap">
+                <input type="text" class="trunk-title-input" id="title-name-\${id}" value="\${routeName}" title="Click to edit destination name" oninput="handleNameChange('\${id}', this.value)">
+                <span class="title-edit-icon" onclick="document.getElementById('title-name-\${id}').focus()" title="Edit name">✏️</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);font-family:monospace;padding-left:6px;">\${scriptName}</div>
             </div>
           </div>
           <span id="badge-\${id}" class="trunk-status"></span>
@@ -938,6 +1040,10 @@ const dashboardHtml = `<!doctype html>
 
           <form id="form-\${id}" onsubmit="saveTrunk(event, '\${id}')">
             <div class="fields-grid">
+              <div class="field-group full">
+                <label>Route / Destination Name</label>
+                <input type="text" id="input-name-\${id}" name="name" value="\${routeName}" placeholder="e.g. China, Cuba, Senegal, UK" oninput="handleNameChange('\${id}', this.value)" required>
+              </div>
               <div class="field-group">
                 <label>Target IP / Host</label>
                 <input type="text" id="input-ip-\${id}" name="target_ip" value="\${t.target_ip}" required pattern="[A-Za-z0-9.:-]+">
@@ -966,7 +1072,7 @@ const dashboardHtml = `<!doctype html>
 
             <div style="margin-top:12px;">
               <button type="submit" id="btn-save-\${id}" class="btn btn-outline" style="width:100%;padding:7px;font-size:12px;">
-                💾 Save \${t.name} Settings
+                💾 Save \${routeName} Settings
               </button>
             </div>
           </form>
@@ -991,6 +1097,25 @@ const dashboardHtml = `<!doctype html>
 
         const isLimitReached = (t.used_minutes >= t.monthly_limit);
         const percent = t.monthly_limit > 0 ? Math.min(100, Math.round((t.used_minutes / t.monthly_limit) * 100)) : 0;
+        const curName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
+
+        const titleInput = document.getElementById('title-name-' + id);
+        const nameInput = document.getElementById('input-name-' + id);
+
+        if (titleInput && document.activeElement !== titleInput && (forceSyncInputs || !titleInput.dataset.modified)) {
+          titleInput.value = curName;
+        }
+        if (nameInput && document.activeElement !== nameInput && (forceSyncInputs || !nameInput.dataset.modified)) {
+          nameInput.value = curName;
+        }
+        const flagEl = document.getElementById('flag-' + id);
+        if (flagEl && (forceSyncInputs || (!titleInput?.dataset.modified && !nameInput?.dataset.modified))) {
+          flagEl.textContent = getRouteFlag(curName, id);
+        }
+        const saveBtn = document.getElementById('btn-save-' + id);
+        if (saveBtn && !saveBtn.disabled && document.activeElement !== titleInput && document.activeElement !== nameInput && !titleInput?.dataset.modified) {
+          saveBtn.innerHTML = \`💾 Save \${curName} Settings\`;
+        }
 
         // 1. Badge logic with LIMIT REACHED state
         const badge = document.getElementById('badge-' + id);
@@ -1042,7 +1167,7 @@ const dashboardHtml = `<!doctype html>
         if (actionsDiv) {
           if (isLimitReached) {
             actionsDiv.innerHTML = \`
-              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for \${t.name}. Please increase Monthly Limit (Min) and click Save to restart.')">
+              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for \${curName}. Please increase Monthly Limit (Min) and click Save to restart.')">
                 ⛔ Limit Reached (Increase Limit)
               </button>
               <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
@@ -1141,7 +1266,12 @@ const dashboardHtml = `<!doctype html>
         d.call_duration = Number(d.call_duration);
 
         const res = await api('save', d);
-        addLog(\`[\${id.toUpperCase()}] \${res.message}\`);
+        addLog(\`[\${(d.name || id).toUpperCase()}] \${res.message}\`);
+
+        const titleInput = document.getElementById('title-name-' + id);
+        if (titleInput) delete titleInput.dataset.modified;
+        const nameInput = document.getElementById('input-name-' + id);
+        if (nameInput) delete nameInput.dataset.modified;
 
         if (saveBtn) {
           saveBtn.innerHTML = '✓ Settings Saved!';
@@ -1285,6 +1415,7 @@ const server = http.createServer((req, res) => {
           return res.end(JSON.stringify({ ok: false, error: 'Invalid or missing trunk identifier' }));
         }
 
+        const name = (data.name || '').trim();
         const ip = (data.target_ip || '').trim();
         const prefix = (data.prefix_cid || '').trim();
         const m = parseInt(data.monthly_limit, 10);
@@ -1297,6 +1428,9 @@ const server = http.createServer((req, res) => {
           return res.end(JSON.stringify({ ok: false, error: 'Invalid settings parameters' }));
         }
 
+        if (name) {
+          trunks[trunkId].name = name;
+        }
         trunks[trunkId].target_ip = ip;
         trunks[trunkId].prefix_cid = prefix;
         trunks[trunkId].monthly_limit = m;

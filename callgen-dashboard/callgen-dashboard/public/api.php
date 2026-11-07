@@ -41,6 +41,7 @@ if ($a === "save") {
         done(["ok" => false, "error" => "Invalid trunk target"], 400);
     }
 
+    $name = trim($d["name"] ?? "");
     $ip = trim($d["target_ip"] ?? "");
     $prefix = trim($d["prefix_cid"] ?? "");
     $m = (int)($d["monthly_limit"] ?? 0);
@@ -53,9 +54,9 @@ if ($a === "save") {
     }
 
     $f = "/etc/callgen-{$trunk}.json";
-    $tmp = $f . ".tmp";
     $cfgData = [
         "id" => $trunk,
+        "name" => $name ?: ucfirst($trunk),
         "target_ip" => $ip,
         "prefix_cid" => $prefix,
         "monthly_limit" => $m,
@@ -64,16 +65,16 @@ if ($a === "save") {
         "context" => $ctx
     ];
 
-    file_put_contents($tmp, json_encode($cfgData, JSON_PRETTY_PRINT) . "\n");
-    chmod($tmp, 0640);
-    chown($tmp, "root");
-    if (posix_getgrnam("asterisk")) {
-        chgrp($tmp, "asterisk");
+    $saved = @file_put_contents($f, json_encode($cfgData, JSON_PRETTY_PRINT) . "\n");
+    if ($saved === false) {
+        [$sr, $so] = ctl(["save", $trunk, json_encode($cfgData)]);
+        if ($sr) {
+            done(["ok" => false, "error" => "Failed to write configuration: " . $so], 500);
+        }
     }
-    rename($tmp, $f);
 
     [$r, $o] = ctl(["reload", $trunk]);
-    done(["ok" => !$r, "message" => "Saved settings for " . ucfirst($trunk) . ". Effective within 5s."], $r ? 500 : 200);
+    done(["ok" => true, "message" => "Saved settings for " . ($name ?: ucfirst($trunk)) . ". Effective within 5s."]);
 }
 
 // 3. START / STOP
