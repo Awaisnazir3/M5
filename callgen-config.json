@@ -10,9 +10,9 @@
     "context": "testcall2",
     "prefix_cid": "444453",
     "ani_prefix": "96655",
-    "running": true,
+    "running": false,
     "used_minutes": 1280.7,
-    "active_calls": 1,
+    "active_calls": 0,
     "limit_reached": false,
     "last_action": "Settings updated at 2:36:26 PM"
   },
@@ -27,9 +27,9 @@
     "context": "testcall",
     "prefix_cid": "619334221",
     "ani_prefix": "+442",
-    "running": true,
-    "used_minutes": 4497.6,
-    "active_calls": 12,
+    "running": false,
+    "used_minutes": 4542.7,
+    "active_calls": 0,
     "limit_reached": false,
     "last_action": "Settings updated at 2:46:44 PM"
   },
@@ -44,9 +44,9 @@
     "context": "testcall",
     "prefix_cid": "223",
     "ani_prefix": "442",
-    "running": true,
+    "running": false,
     "used_minutes": 918.5,
-    "active_calls": 1,
+    "active_calls": 0,
     "limit_reached": false,
     "last_action": "Settings updated at 2:42:57 PM"
   }

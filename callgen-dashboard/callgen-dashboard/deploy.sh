@@ -15,6 +15,15 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "=== Installing M5-Traffic Controller from ${SCRIPT_DIR} ==="
 
+# 0. Ensure Web Server and PHP are installed
+if command -v dnf >/dev/null 2>&1; then
+    if ! id -u apache >/dev/null 2>&1; then
+        echo "Installing Apache and PHP..."
+        dnf install -y httpd php php-json
+        systemctl enable --now httpd
+    fi
+fi
+
 # 1. Detect Web User (apache or www-data)
 if id -u apache >/dev/null 2>&1; then
     WEB_USER="apache"
