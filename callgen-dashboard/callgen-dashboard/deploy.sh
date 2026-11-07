@@ -55,12 +55,14 @@ systemctl enable asterisk-callgen-senegal.service
 systemctl enable asterisk-callgen-mali.service
 
 # 4. Initialize Config Files
-TRUNKS=("cuba" "senegal" "mali")
-declare -A DEFAULT_IPS=( ["cuba"]="202.125.153.97" ["senegal"]="206.251.255.21" ["mali"]="178.22.15.201" )
-declare -A DEFAULT_PREFIX=( ["cuba"]="2237" ["senegal"]="444453" ["mali"]="619334221" )
-declare -A DEFAULT_LIMITS=( ["cuba"]="100000" ["senegal"]="250000" ["mali"]="150000" )
-declare -A DEFAULT_MAX=( ["cuba"]="150" ["senegal"]="400" ["mali"]="220" )
-declare -A DEFAULT_CTX=( ["cuba"]="testcall2" ["senegal"]="testcall" ["mali"]="testcall" )
+TRUNKS=("mali" "cuba" "senegal")
+declare -A DEFAULT_IPS=( ["mali"]="202.125.153.97" ["cuba"]="206.251.255.21" ["senegal"]="178.22.15.201" )
+declare -A DEFAULT_PREFIX=( ["mali"]="" ["cuba"]="4444" ["senegal"]="619334" )
+declare -A DEFAULT_CC=( ["mali"]="2237" ["cuba"]="53" ["senegal"]="221" )
+declare -A DEFAULT_PREFIX_CID=( ["mali"]="2237" ["cuba"]="444453" ["senegal"]="619334221" )
+declare -A DEFAULT_LIMITS=( ["mali"]="100000" ["cuba"]="250000" ["senegal"]="150000" )
+declare -A DEFAULT_MAX=( ["mali"]="150" ["cuba"]="400" ["senegal"]="220" )
+declare -A DEFAULT_CTX=( ["mali"]="testcall2" ["cuba"]="testcall" ["senegal"]="testcall" )
 
 for t in "${TRUNKS[@]}"; do
     CONF="/etc/callgen-${t}.json"
@@ -69,8 +71,11 @@ for t in "${TRUNKS[@]}"; do
         cat > "$CONF" <<EOF
 {
   "id": "${t}",
+  "name": "${t^}",
   "target_ip": "${DEFAULT_IPS[$t]}",
-  "prefix_cid": "${DEFAULT_PREFIX[$t]}",
+  "prefix": "${DEFAULT_PREFIX[$t]}",
+  "country_code": "${DEFAULT_CC[$t]}",
+  "prefix_cid": "${DEFAULT_PREFIX_CID[$t]}",
   "monthly_limit": ${DEFAULT_LIMITS[$t]},
   "max_channels": ${DEFAULT_MAX[$t]},
   "call_duration": 600,

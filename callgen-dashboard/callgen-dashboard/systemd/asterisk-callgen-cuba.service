@@ -6,7 +6,7 @@ Wants=asterisk.service
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/asterisk_callgen.sh
+ExecStart=/usr/local/bin/asterisk_callgen2.sh
 Restart=always
 RestartSec=5
 StandardOutput=journal
