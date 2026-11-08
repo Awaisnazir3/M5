@@ -89,7 +89,31 @@ case "$CMD" in
         ;;
 
     reload)
+        /usr/local/sbin/callgen-sync-inbound.py || true
         echo "Configuration reloaded. Engine updates within 5s."
+        ;;
+
+    save-inbound)
+        python3 - "${2:-{}}" <<'PY'
+import sys, json, os
+try:
+    data = json.loads(sys.argv[1])
+    conf_path = '/etc/callgen-inbound.json'
+    with open(conf_path, 'w') as f:
+        json.dump(data, f, indent=2)
+    os.chmod(conf_path, 0o664)
+    try:
+        import grp
+        gid = grp.getgrnam("apache").gr_gid
+        os.chown(conf_path, 0, gid)
+    except Exception:
+        pass
+    print("Saved inbound configuration")
+except Exception as e:
+    print(f"Error saving inbound: {e}", file=sys.stderr)
+    sys.exit(1)
+PY
+        /usr/local/sbin/callgen-sync-inbound.py || true
         ;;
 
     save)
@@ -115,11 +139,12 @@ except Exception as e:
     print(f"Error saving {trunk}: {e}", file=sys.stderr)
     sys.exit(1)
 PY
+        /usr/local/sbin/callgen-sync-inbound.py || true
         ;;
 
     status)
         python3 - "$TRUNK" <<'PY'
-import json, csv, subprocess, os, sys
+import json, csv, subprocess, os, sys, re
 from datetime import datetime
 
 target_trunk = sys.argv[1] if len(sys.argv) > 1 else 'all'
@@ -131,6 +156,43 @@ default_configs = {
     'senegal': {'name': 'Senegal', 'target_ip': '178.22.15.201', 'prefix': '619334', 'country_code': '221', 'prefix_cid': '619334221', 'monthly_limit': 150000, 'max_channels': 220, 'call_duration': 600, 'context': 'testcall'}
 }
 
+COUNTRY_PREFIXES = [
+    ('2237', 'Mali', '223', 'ML'),
+    ('223', 'Mali', '223', 'ML'),
+    ('444453', 'Cuba', '53', 'CU'),
+    ('4444', 'Cuba (Prefix)', '53', 'CU'),
+    ('53', 'Cuba', '53', 'CU'),
+    ('619334221', 'Senegal', '221', 'SN'),
+    ('619334', 'Senegal (Prefix)', '221', 'SN'),
+    ('221', 'Senegal', '221', 'SN'),
+    ('86', 'China', '86', 'CN'),
+    ('44', 'United Kingdom', '44', 'GB'),
+    ('1', 'USA / Canada', '1', 'US'),
+    ('91', 'India', '91', 'IN'),
+    ('92', 'Pakistan', '92', 'PK'),
+    ('49', 'Germany', '49', 'DE'),
+    ('33', 'France', '33', 'FR'),
+    ('34', 'Spain', '34', 'ES'),
+    ('39', 'Italy', '39', 'IT'),
+    ('7', 'Russia', '7', 'RU'),
+    ('81', 'Japan', '81', 'JP'),
+    ('90', 'Turkey', '90', 'TR'),
+    ('971', 'UAE', '971', 'AE'),
+    ('20', 'Egypt', '20', 'EG'),
+    ('27', 'South Africa', '27', 'ZA'),
+    ('234', 'Nigeria', '234', 'NG'),
+]
+
+def resolve_country(did):
+    clean = re.sub(r'[^0-9]', '', str(did or ''))
+    if not clean or clean == '0':
+        return {'country': 'Unknown / Test', 'code': 'N/A', 'flag': 'XX'}
+    for pfx, country, cc, flag in COUNTRY_PREFIXES:
+        if clean.startswith(pfx):
+            return {'country': country, 'code': cc, 'flag': flag}
+    cc = clean[:3] if len(clean) >= 3 else clean
+    return {'country': f'Country +{cc}', 'code': cc, 'flag': 'XX'}
+
 try:
     s = subprocess.run(['/usr/sbin/asterisk', '-rx', 'core show channels'], capture_output=True, text=True).stdout
 except Exception:
@@ -139,12 +201,15 @@ except Exception:
 cdr_file = '/var/log/asterisk/cdr-csv/Master.csv'
 current_month = datetime.now().strftime('%Y-%m')
 cdr_rows = []
+all_cdr_rows = []
 if os.path.exists(cdr_file):
     try:
         with open(cdr_file, newline='') as h:
             for r in csv.reader(h):
-                if len(r) >= 15 and r[14] == 'ANSWERED' and r[9].startswith(current_month):
-                    cdr_rows.append(r)
+                if len(r) >= 15 and r[9].startswith(current_month):
+                    all_cdr_rows.append(r)
+                    if r[14] == 'ANSWERED':
+                        cdr_rows.append(r)
     except Exception:
         pass
 
@@ -187,10 +252,128 @@ for t in trunks:
     cfg['used_minutes'] = round(sec / 60, 2)
     result[t] = cfg
 
+# Inbound Configuration
+inbound_conf_path = '/etc/callgen-inbound.json'
+inbound_cfg = {
+    'source_ips': [
+        {
+            'id': 'src-1',
+            'ip': '192.168.1.13',
+            'label': 'Node-13 Forwarder',
+            'prefix': '2237, 4444, 53, 619334, 221',
+            'country_code': '223, 53, 221',
+            'context': 'auto'
+        }
+    ],
+    'source_ip': '192.168.1.13',
+    'testcall_duration': 600,
+    'testcall2_duration': 550,
+    'testcall2_prefixes': '2237',
+    'testcall_prefixes': '4444, 53, 619334, 221'
+}
+if os.path.exists(inbound_conf_path):
+    try:
+        inbound_cfg.update(json.load(open(inbound_conf_path)))
+    except Exception:
+        pass
+
+# Target Country Minutes Records (Cuba, Mali, Senegal)
+country_records = {
+    'mali': {'name': 'Mali', 'code': '223', 'prefix': '2237', 'flag': 'ML', 'context': 'testcall2', 'calls': 0, 'answered': 0, 'minutes': 0.0, 'active': 0},
+    'cuba': {'name': 'Cuba', 'code': '53', 'prefix': '4444, 53', 'flag': 'CU', 'context': 'testcall', 'calls': 0, 'answered': 0, 'minutes': 0.0, 'active': 0},
+    'senegal': {'name': 'Senegal', 'code': '221', 'prefix': '619334, 221', 'flag': 'SN', 'context': 'testcall', 'calls': 0, 'answered': 0, 'minutes': 0.0, 'active': 0}
+}
+
+def match_target_country(did):
+    clean = re.sub(r'[^0-9]', '', str(did or ''))
+    if clean.startswith('2237') or clean.startswith('223'):
+        return 'mali'
+    if clean.startswith('444453') or clean.startswith('4444') or clean.startswith('53'):
+        return 'cuba'
+    if clean.startswith('619334221') or clean.startswith('619334') or clean.startswith('221'):
+        return 'senegal'
+    return None
+
+# Active Inbound Channels
+active_inbound = []
+try:
+    sc = subprocess.run(['/usr/sbin/asterisk', '-rx', 'core show channels concise'], capture_output=True, text=True).stdout
+    for line in sc.splitlines():
+        parts = line.strip().split('!')
+        if len(parts) >= 9:
+            chan = parts[0]
+            if 'trunk-inbound' in chan or 'trunk-13' in chan:
+                ctx = parts[1]
+                exten = parts[2]
+                acc = parts[9] if len(parts) > 9 else ''
+                did = acc if (acc and acc != 's') else exten
+                cinfo = resolve_country(did)
+                ck = match_target_country(did)
+                if ck:
+                    country_records[ck]['active'] += 1
+                active_inbound.append({
+                    'channel': chan,
+                    'context': ctx,
+                    'did': did,
+                    'duration': parts[8] if len(parts) > 8 else '0',
+                    'country': cinfo['country'],
+                    'code': cinfo['code'],
+                    'flag': cinfo['flag']
+                })
+except Exception:
+    pass
+
+# Inbound CDR summary & recent calls
+recent_inbound = []
+
+for r in reversed(all_cdr_rows):
+    chan = r[5]
+    userfield = r[17] if len(r) > 17 else ''
+    is_in = ('trunk-inbound' in chan or 'trunk-13' in chan or userfield.startswith('inbound:'))
+    if not is_in:
+        continue
+
+    sec = int(r[13]) if r[13].isdigit() else 0
+    ctx = r[3]
+    status = r[14]
+    did = ''
+    if userfield.startswith('inbound:'):
+        u_parts = userfield.split(':')
+        if len(u_parts) >= 2:
+            did = u_parts[1]
+    if not did:
+        did = r[0] if (r[0] and r[0] != 's') else (r[1] or r[2])
+
+    cinfo = resolve_country(did)
+    ck = match_target_country(did)
+    if ck:
+        country_records[ck]['calls'] += 1
+        if status == 'ANSWERED':
+            country_records[ck]['answered'] += 1
+            country_records[ck]['minutes'] = round(country_records[ck]['minutes'] + sec/60.0, 2)
+
+    if len(recent_inbound) < 20:
+        recent_inbound.append({
+            'timestamp': r[9],
+            'did': did,
+            'context': ctx,
+            'status': status,
+            'duration': sec,
+            'country': cinfo['country'],
+            'code': cinfo['code'],
+            'flag': cinfo['flag']
+        })
+
+inbound_res = dict(inbound_cfg)
+inbound_res['active_channels'] = len(active_inbound)
+inbound_res['active_calls'] = active_inbound
+inbound_res['country_records'] = country_records
+inbound_res['recent_calls'] = recent_inbound
+
 if target_trunk in result:
     print(json.dumps({'trunk': result[target_trunk]}))
 else:
-    print(json.dumps({'trunks': result}))
+    print(json.dumps({'trunks': result, 'inbound': inbound_res}))
 PY
         ;;
 

@@ -43,6 +43,9 @@ install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_c
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen3.sh" /usr/local/bin/asterisk_callgen3.sh
 install -m 750 "${SCRIPT_DIR}/bin/callgen-control" /usr/local/sbin/callgen-control
+if [ -f "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" ]; then
+    install -m 750 "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" /usr/local/sbin/callgen-sync-inbound.py
+fi
 
 # 3. Install Systemd Services
 echo "Installing systemd services for all 3 routes..."
@@ -90,6 +93,38 @@ EOF
         chmod 644 "$CONF"
     fi
 done
+
+# Initialize Inbound Configuration if not present
+INBOUND_CONF="/etc/callgen-inbound.json"
+if [ ! -f "$INBOUND_CONF" ]; then
+    echo "Creating initial inbound configuration at ${INBOUND_CONF}..."
+    cat > "$INBOUND_CONF" <<EOF
+{
+  "source_ips": [
+    {
+      "id": "src-1",
+      "ip": "192.168.1.13",
+      "label": "Node-13 Forwarder",
+      "prefix": "2237, 4444, 53, 619334, 221",
+      "country_code": "223, 53, 221",
+      "context": "auto"
+    }
+  ],
+  "source_ip": "192.168.1.13",
+  "testcall_duration": 600,
+  "testcall2_duration": 550,
+  "testcall2_prefixes": "2237",
+  "testcall_prefixes": "4444, 53, 619334, 221"
+}
+EOF
+    chmod 664 "$INBOUND_CONF"
+    if id -g "${WEB_USER}" >/dev/null 2>&1; then
+        chown root:"${WEB_USER}" "$INBOUND_CONF"
+    fi
+fi
+if [ -x /usr/local/sbin/callgen-sync-inbound.py ]; then
+    /usr/local/sbin/callgen-sync-inbound.py || true
+fi
 
 # 5. Deploy Web Dashboard
 WEB_ROOT="/var/www/html/callgen"

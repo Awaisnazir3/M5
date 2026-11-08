@@ -972,7 +972,261 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       </div>
     </div>
     <div class="trunk-grid" id="trunk-container"></div>
+
+    <!-- Dedicated Inbound Call Gateway & Context Management -->
+    <section class="inbound-section" style="margin-top:28px;">
+      <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;padding:22px;box-shadow:0 1px 3px rgba(16,24,40,0.06);">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:24px;">📥</span>
+            <div>
+              <h2 style="font-size:16px;font-weight:800;color:var(--brown);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                Manage multiple allowed inbound source IPs, CC/prefixes, context routing to [testcall]/[testcall2], and call duration limits
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="inbound-active-badge" style="background:#F2F4F7;color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
+              ○ 0 Active Inbound Calls
+            </span>
+            <button type="button" class="btn btn-sage btn-sm" onclick="openAddSourceIpModal()">
+              + Add Allowed Source IP
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Allowed Inbound Source IPs Table (Multiple IPs) -->
+        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;">
+          <div style="padding:10px 14px;background:#F2F4F7;font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;">
+            <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
+            <span id="source-ips-count" style="font-weight:600;color:var(--muted);text-transform:none;">1 IP active</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10px;text-transform:uppercase;">
+                  <th style="padding:8px 12px;">Source IP Address</th>
+                  <th style="padding:8px 12px;">Gateway Label / Note</th>
+                  <th style="padding:8px 12px;">Allowed CC & Prefixes</th>
+                  <th style="padding:8px 12px;">Assigned Context</th>
+                  <th style="padding:8px 12px;text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="source-ips-tbody">
+                <!-- Populated via renderSourceIpsTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. Context Call Duration Limits & Prefix Routing Form -->
+        <form id="inbound-form" onsubmit="saveInboundConfig(event)" style="margin-bottom:24px;">
+          <!-- Security Notice Banner -->
+          <div style="background:#FFF9F2;border:1px solid #FFE4C4;border-left:4px solid #F59E0B;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:20px;">🛡️</span>
+            <div style="font-size:12px;color:#78350F;line-height:1.4;">
+              <b>Strict Prefix Routing & Rejection Enabled:</b> Only incoming calls matching the explicitly allowed prefixes below will be accepted. Any unlisted prefix or unrecognized number will be <b>immediately REJECTED</b> (SIP 603 Declined / Busy) and will not connect.
+            </div>
+          </div>
+
+          <!-- Side-by-Side Context Cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:16px;margin-bottom:16px;">
+
+            <!-- CARD 1: Context [testcall] (Cuba & Senegal) -->
+            <div style="background:#FAFCF9;border:1px solid #DCE6D9;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E3ECE0;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:18px;">🇨🇺 🇸🇳</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Context [testcall]</div>
+                    <div style="font-size:11px;color:var(--muted);">Cuba (+53) & Senegal (+221) Route</div>
+                  </div>
+                </div>
+                <span style="background:#EBF5EA;color:#2D6A28;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:700;">
+                  Strict Routing
+                </span>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <div class="field-group">
+                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;display:flex;justify-content:space-between;">
+                    <span>[testcall] Allowed Prefixes / CC</span>
+                    <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                  </label>
+                  <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" placeholder="4444, 53, 619334, 221" style="font-family:monospace;font-weight:700;padding:10px 12px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
+                  <span style="font-size:11px;color:var(--muted);">Allowed Cuba & Senegal prefixes. Unlisted prefixes are rejected.</span>
+                </div>
+
+                <div class="field-group">
+                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;">
+                    Call Duration Limit (Seconds)
+                  </label>
+                  <div style="position:relative;">
+                    <input type="number" id="inbound-testcall-dur" name="testcall_duration" min="1" max="86400" required placeholder="600" style="font-weight:700;padding:10px 12px;padding-right:45px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
+                    <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--muted);">SEC</span>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted);">Calls in [testcall] hang up automatically when this time expires.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 2: Context [testcall2] (Mali) -->
+            <div style="background:#FAFBFB;border:1px solid #E1E6EB;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E5E9EE;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:18px;">🇲🇱</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Context [testcall2]</div>
+                    <div style="font-size:11px;color:var(--muted);">Mali (+223) Route</div>
+                  </div>
+                </div>
+                <span style="background:#EBF3FB;color:#1D5A8C;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:700;">
+                  Strict Routing
+                </span>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <div class="field-group">
+                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;display:flex;justify-content:space-between;">
+                    <span>[testcall2] Allowed Prefixes / CC</span>
+                    <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                  </label>
+                  <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" placeholder="2237" style="font-family:monospace;font-weight:700;padding:10px 12px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
+                  <span style="font-size:11px;color:var(--muted);">Allowed Mali prefixes. Unlisted prefixes are rejected.</span>
+                </div>
+
+                <div class="field-group">
+                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;">
+                    Call Duration Limit (Seconds)
+                  </label>
+                  <div style="position:relative;">
+                    <input type="number" id="inbound-testcall2-dur" name="testcall2_duration" min="1" max="86400" required placeholder="550" style="font-weight:700;padding:10px 12px;padding-right:45px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
+                    <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--muted);">SEC</span>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted);">Calls in [testcall2] hang up automatically when this time expires.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Action Bar: Save & Apply Button -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 18px;background:#F9FAFB;border:1px solid #EAECF0;border-radius:8px;">
+            <div style="font-size:12px;color:var(--muted);">
+              💡 <b>Note:</b> Clicking save writes settings to Asterisk and reloads dialplan dynamically without dropping active calls.
+            </div>
+            <button type="submit" id="btn-save-inbound" class="btn btn-sage" style="padding:11px 24px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 4px rgba(0,0,0,0.06);cursor:pointer;">
+              💾 Apply & Save Inbound Settings
+            </button>
+          </div>
+        </form>
+
+        <!-- 3. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
+        <div style="margin-bottom:0;background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,0.04);">
+          <div style="padding:12px 16px;background:#F8F9FA;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-size:13px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+                📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
+              </span>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                Live minutes accrued from <code>/var/log/asterisk/cdr-csv/Master.csv</code> for current calendar month
+              </div>
+            </div>
+            <span style="font-size:11px;color:var(--sage-dark);font-weight:700;background:#F5F8F4;padding:4px 10px;border-radius:6px;border:1px solid #D8E2D5;">
+              ● Monitored Destinations
+            </span>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10.5px;text-transform:uppercase;background:#FAFAFA;">
+                  <th style="padding:10px 14px;">Destination Country</th>
+                  <th style="padding:10px 14px;">Country Code & Prefix</th>
+                  <th style="padding:10px 14px;">Assigned Context</th>
+                  <th style="padding:10px 14px;">Total Inbound Calls</th>
+                  <th style="padding:10px 14px;">Answered Calls</th>
+                  <th style="padding:10px 14px;">Total Consumed Minutes</th>
+                  <th style="padding:10px 14px;">Active Channels</th>
+                </tr>
+              </thead>
+              <tbody id="country-records-tbody">
+                <!-- Populated via renderCountryRecordsTable() -->
+              </tbody>
+              <tfoot id="country-records-tfoot">
+                <!-- Total Row -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
   </main>
+
+  <!-- Add / Edit Allowed Inbound Source IP Modal Dialog -->
+  <div id="source-ip-modal-overlay" class="modal-overlay hidden" onclick="handleSourceIpOverlayClick(event)">
+    <div class="modal-dialog" style="max-width:480px;" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">🌐</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--brown);" id="source-ip-modal-title">Allowed Source IP</div>
+            <div style="font-size:11px;color:var(--muted);">Configure remote authorized gateway & prefixes</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeSourceIpModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="source-ip-form" onsubmit="saveSourceIpItem(event)">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="field-group">
+              <label>Source IP Address / Host</label>
+              <input type="text" id="sip-input-ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.1.13">
+              <span style="font-size:10px;color:var(--muted);">Remote PBX address sending incoming calls to 198</span>
+            </div>
+
+            <div class="field-group">
+              <label>Gateway Label / Name</label>
+              <input type="text" id="sip-input-label" placeholder="e.g. Node-13 Forwarder">
+            </div>
+
+            <div class="field-group">
+              <label>Allowed CC & Prefixes (Comma Separated)</label>
+              <input type="text" id="sip-input-prefix" placeholder="e.g. 2237, 4444, 53, 619334, 221">
+              <span style="font-size:10px;color:var(--muted);">Prefixes/CC associated with this gateway</span>
+            </div>
+
+            <div class="field-group">
+              <label>Country Code (Optional)</label>
+              <input type="text" id="sip-input-cc" placeholder="e.g. 223, 53, 221">
+            </div>
+
+            <div class="field-group">
+              <label>Context Routing Override</label>
+              <select id="sip-input-context" style="padding:8px 10px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;">
+                <option value="auto">Auto (Prefix-based: 2237 -> [testcall2], others -> [testcall])</option>
+                <option value="testcall2">Force [testcall2] (Mali Context)</option>
+                <option value="testcall">Force [testcall] (Cuba/Senegal Context)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-outline" style="padding:10px 18px;font-size:13px;" onclick="closeSourceIpModal()">
+              Cancel
+            </button>
+            <button type="submit" id="btn-save-sip-item" class="btn btn-sage" style="padding:10px 20px;font-size:13px;font-weight:700;">
+              💾 Save Source IP
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Configuration Modal Dialog -->
   <div id="config-modal-overlay" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
@@ -1001,7 +1255,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <input type="text" id="modal-name" name="name" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleModalNameChange(this.value)" required>
             </div>
             <div class="field-group">
-              <label>Target IP / Host</label>
+              <label>Destination IP (Target Host)</label>
               <input type="text" id="modal-ip" name="target_ip" required pattern="[A-Za-z0-9.:-]+">
             </div>
             <div class="field-group">
@@ -1023,10 +1277,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div class="field-group">
               <label>Max Channels</label>
               <input type="number" id="modal-max" name="max_channels" min="1" max="2000" required>
-            </div>
-            <div class="field-group">
-              <label>Duration Cap (Sec)</label>
-              <input type="number" id="modal-dur" name="call_duration" min="1" max="86400" required>
             </div>
             <div class="field-group">
               <label>Dialplan Context</label>
@@ -1210,7 +1460,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         d.trunk = id;
         d.monthly_limit = Number(d.monthly_limit);
         d.max_channels = Number(d.max_channels);
-        d.call_duration = Number(d.call_duration);
+        d.call_duration = Number(d.call_duration || (trunksData[id] && trunksData[id].call_duration) || 600);
 
         const res = await api('save', d);
         addLog(`[${(d.name || id).toUpperCase()}] ${res.message}`);
@@ -1362,10 +1612,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <div class="summary-item">
                 <span class="summary-lbl">Max Calls</span>
                 <span class="summary-val" id="disp-max-${id}">${t.max_channels}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Duration</span>
-                <span class="summary-val" id="disp-dur-${id}">${t.call_duration}s</span>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Context</span>
@@ -1566,7 +1812,385 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
-    async function refreshAll(forceSync = false) {
+    // ==========================================
+    // INBOUND CALL GATEWAY & SOURCE IP MANAGEMENT
+    // ==========================================
+    let currentSourceIps = [];
+    let editingSourceIpIndex = -1;
+
+    function openAddSourceIpModal(index = -1) {
+      editingSourceIpIndex = index;
+      const overlay = document.getElementById('source-ip-modal-overlay');
+      const title = document.getElementById('source-ip-modal-title');
+      const ipIn = document.getElementById('sip-input-ip');
+      const lblIn = document.getElementById('sip-input-label');
+      const pfxIn = document.getElementById('sip-input-prefix');
+      const ccIn = document.getElementById('sip-input-cc');
+      const ctxIn = document.getElementById('sip-input-context');
+
+      if (index >= 0 && currentSourceIps[index]) {
+        const item = currentSourceIps[index];
+        title.textContent = 'Edit Allowed Source IP';
+        ipIn.value = item.ip || '';
+        lblIn.value = item.label || '';
+        pfxIn.value = item.prefix || '';
+        ccIn.value = item.country_code || item.cc || '';
+        ctxIn.value = item.context || 'auto';
+      } else {
+        title.textContent = 'Add Allowed Source IP';
+        ipIn.value = '';
+        lblIn.value = '';
+        pfxIn.value = '';
+        ccIn.value = '';
+        ctxIn.value = 'auto';
+      }
+
+      overlay.classList.remove('hidden');
+    }
+
+    function closeSourceIpModal() {
+      const overlay = document.getElementById('source-ip-modal-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      editingSourceIpIndex = -1;
+    }
+
+    function handleSourceIpOverlayClick(e) {
+      if (e.target.id === 'source-ip-modal-overlay') {
+        closeSourceIpModal();
+      }
+    }
+
+    async function saveSourceIpItem(e) {
+      e.preventDefault();
+      const ip = document.getElementById('sip-input-ip').value.trim();
+      const label = document.getElementById('sip-input-label').value.trim();
+      const prefix = document.getElementById('sip-input-prefix').value.trim();
+      const cc = document.getElementById('sip-input-cc').value.trim();
+      const context = document.getElementById('sip-input-context').value;
+
+      if (!ip) {
+        alert('Please enter a valid IP address or hostname');
+        return;
+      }
+
+      const item = {
+        id: editingSourceIpIndex >= 0 ? (currentSourceIps[editingSourceIpIndex].id || ('src-' + (editingSourceIpIndex + 1))) : ('src-' + Date.now()),
+        ip: ip,
+        label: label || ('Gateway ' + (currentSourceIps.length + 1)),
+        prefix: prefix,
+        country_code: cc,
+        context: context
+      };
+
+      if (editingSourceIpIndex >= 0) {
+        currentSourceIps[editingSourceIpIndex] = item;
+      } else {
+        const exists = currentSourceIps.some(s => s.ip === item.ip);
+        if (exists) {
+          alert('IP address ' + item.ip + ' is already registered in the allowed list.');
+          return;
+        }
+        currentSourceIps.push(item);
+      }
+
+      closeSourceIpModal();
+      renderSourceIpsTable();
+      await persistInboundSettings(true);
+    }
+
+    async function deleteSourceIp(index) {
+      if (index < 0 || index >= currentSourceIps.length) return;
+      const item = currentSourceIps[index];
+      if (currentSourceIps.length <= 1) {
+        if (!confirm('Warning: This is the only allowed source IP (' + item.ip + '). If removed, no remote PBX will be allowed to send calls. Remove anyway?')) {
+          return;
+        }
+      } else {
+        if (!confirm('Remove ' + item.ip + ' (' + (item.label || 'Gateway') + ') from allowed inbound source IPs?')) {
+          return;
+        }
+      }
+
+      currentSourceIps.splice(index, 1);
+      renderSourceIpsTable();
+      await persistInboundSettings(true);
+    }
+
+    function renderSourceIpsTable() {
+      const tbody = document.getElementById('source-ips-tbody');
+      const countEl = document.getElementById('source-ips-count');
+      if (countEl) {
+        countEl.textContent = currentSourceIps.length + ' IP' + (currentSourceIps.length === 1 ? '' : 's') + ' authorized';
+      }
+      if (!tbody) return;
+
+      if (currentSourceIps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = currentSourceIps.map((s, idx) => {
+        const ctxBadge = s.context === 'testcall2'
+          ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:#F5F8F4;color:var(--sage-dark);border:1px solid #D8E2D5;">[testcall2]</span>'
+          : (s.context === 'testcall'
+            ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:#F9F6F0;color:var(--brown);border:1px solid #E8DFD8;">[testcall]</span>'
+            : '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;background:#F2F4F7;color:var(--muted);">Auto (Prefix)</span>');
+
+        return `
+          <tr style="border-bottom:1px solid #EAECF0;">
+            <td style="padding:9px 12px;font-family:monospace;font-weight:700;color:var(--brown);">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sage);margin-right:6px;"></span>
+              ${s.ip}
+            </td>
+            <td style="padding:9px 12px;font-weight:600;color:#344054;">
+              ${s.label || '<span style="color:var(--muted);font-style:italic;">None</span>'}
+            </td>
+            <td style="padding:9px 12px;font-family:monospace;font-size:11.5px;color:#475467;">
+              ${s.prefix || (s.country_code ? 'CC: +' + s.country_code : '<span style="color:var(--muted);">All (Auto)</span>')}
+            </td>
+            <td style="padding:9px 12px;">
+              ${ctxBadge}
+            </td>
+            <td style="padding:9px 12px;text-align:right;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
+                ✏ Edit
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="deleteSourceIp(${idx})" style="padding:4px 8px;font-size:11px;color:var(--red);border-color:#FECDCA;">
+                🗑 Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCountryRecordsTable(records) {
+      const tbody = document.getElementById('country-records-tbody');
+      const tfoot = document.getElementById('country-records-tfoot');
+      if (!tbody) return;
+
+      if (!records) {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
+        if (tfoot) tfoot.innerHTML = '';
+        return;
+      }
+
+      // Pre-ordered strictly for Cuba, Mali, Senegal
+      const targets = ['cuba', 'mali', 'senegal'];
+      let totalCalls = 0;
+      let totalAnswered = 0;
+      let totalMinutes = 0;
+      let totalActive = 0;
+
+      const rowsHtml = targets.map(key => {
+        const c = records[key] || {
+          name: key.charAt(0).toUpperCase() + key.slice(1),
+          code: key === 'cuba' ? '53' : (key === 'mali' ? '223' : '221'),
+          prefix: key === 'cuba' ? '4444, 53' : (key === 'mali' ? '2237' : '619334, 221'),
+          flag: key === 'cuba' ? 'CU' : (key === 'mali' ? 'ML' : 'SN'),
+          context: key === 'mali' ? 'testcall2' : 'testcall',
+          calls: 0,
+          answered: 0,
+          minutes: 0,
+          active: 0
+        };
+
+        totalCalls += (c.calls || 0);
+        totalAnswered += (c.answered || 0);
+        totalMinutes += (c.minutes || 0);
+        totalActive += (c.active || 0);
+
+        const isTestcall2 = c.context === 'testcall2';
+        const ctxBadge = '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:' + (isTestcall2 ? '#F5F8F4' : '#F9F6F0') + ';color:' + (isTestcall2 ? 'var(--sage-dark)' : 'var(--brown)') + ';border:1px solid ' + (isTestcall2 ? '#D8E2D5' : '#E8DFD8') + ';">[' + c.context + ']</span>';
+
+        return `
+          <tr style="border-bottom:1px solid #EAECF0;">
+            <td style="padding:10px 14px;font-weight:700;color:var(--brown);">
+              <span class="flag-badge" style="font-size:10px;padding:2px 6px;margin-right:6px;">${c.flag || 'XX'}</span>
+              ${c.name}
+            </td>
+            <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#475467;">
+              <b>+${c.code}</b> <span style="color:var(--muted);font-size:11px;">(${c.prefix})</span>
+            </td>
+            <td style="padding:10px 14px;">
+              ${ctxBadge}
+            </td>
+            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+              ${c.calls}
+            </td>
+            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+              ${c.answered}
+            </td>
+            <td style="padding:10px 14px;font-size:14px;font-weight:800;color:var(--sage-dark);">
+              ${Number(c.minutes).toFixed(2)} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>
+            </td>
+            <td style="padding:10px 14px;">
+              ${c.active > 0 
+                ? '<span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🟢 ' + c.active + ' Live</span>' 
+                : '<span style="color:var(--muted);font-size:11px;">0 active</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr style="background:#F8F9FA;font-weight:800;border-top:2px solid #EAECF0;color:var(--brown);">
+            <td style="padding:10px 14px;" colspan="3">Monthly Monitored Total</td>
+            <td style="padding:10px 14px;">${totalCalls}</td>
+            <td style="padding:10px 14px;">${totalAnswered}</td>
+            <td style="padding:10px 14px;font-size:14px;color:var(--sage-dark);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--muted);font-weight:600;">min</span></td>
+            <td style="padding:10px 14px;">${totalActive > 0 ? '<span style="color:#2D6A28;">🟢 ' + totalActive + ' Live</span>' : '0 active'}</td>
+          </tr>
+        `;
+      }
+    }
+
+    async function persistInboundSettings(notify = false) {
+      const dur1El = document.getElementById('inbound-testcall-dur');
+      const dur2El = document.getElementById('inbound-testcall2-dur');
+      const pfx1El = document.getElementById('inbound-testcall-pfx');
+      const pfx2El = document.getElementById('inbound-testcall2-pfx');
+
+      const dur1 = parseInt(dur1El && dur1El.value ? dur1El.value : '600', 10) || 600;
+      const dur2 = parseInt(dur2El && dur2El.value ? dur2El.value : '550', 10) || 550;
+      const pfx1 = pfx1El ? pfx1El.value.trim() : '4444, 53, 619334, 221';
+      const pfx2 = pfx2El ? pfx2El.value.trim() : '2237';
+
+      const d = {
+        testcall_duration: dur1,
+        testcall2_duration: dur2,
+        testcall_prefixes: pfx1,
+        testcall2_prefixes: pfx2,
+        source_ips: currentSourceIps
+      };
+
+      try {
+        const res = await api('save-inbound', d);
+        if (notify) {
+          addLog('[INBOUND] ' + res.message);
+        }
+        await refreshAll(true);
+        return res;
+      } catch (err) {
+        console.error('Failed to persist inbound settings:', err);
+        if (notify) {
+          addLog('[INBOUND] Error: ' + err.message);
+          alert('Inbound Save Error: ' + err.message);
+        }
+        throw err;
+      }
+    }
+
+    async function saveInboundConfig(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const btn = document.getElementById('btn-save-inbound');
+      const origText = btn ? btn.innerHTML : '💾 Apply & Save Inbound Settings';
+      try {
+        if (btn) {
+          btn.innerHTML = '⏳ Applying Rules & Reloading Dialplan...';
+          btn.disabled = true;
+        }
+
+        const res = await persistInboundSettings(false);
+        addLog('[INBOUND] ' + (res.message || 'Inbound duration limits and prefixes updated.'));
+
+        if (btn) {
+          btn.innerHTML = '✓ Inbound Settings Active!';
+          btn.style.background = 'var(--green)';
+          btn.style.color = '#FFFFFF';
+
+          setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.disabled = false;
+          }, 1800);
+        }
+
+      } catch (err) {
+        console.error('Inbound save error:', err);
+        addLog('[INBOUND] Error: ' + err.message);
+        if (btn) {
+          btn.innerHTML = '❌ ' + (err.message || 'Save Failed');
+          btn.style.background = 'var(--red)';
+          btn.style.color = '#FFFFFF';
+          setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.disabled = false;
+          }, 3000);
+        }
+        alert('Inbound Save Error: ' + err.message);
+      }
+    }
+
+    function renderInboundSection(inbound, forceSync = false) {
+      if (!inbound) return;
+
+      // 1. Sync form inputs if not focused
+      if (forceSync) {
+        const dur1El = document.getElementById('inbound-testcall-dur');
+        if (dur1El && document.activeElement !== dur1El) {
+          dur1El.value = inbound.testcall_duration !== undefined ? inbound.testcall_duration : 600;
+        }
+
+        const dur2El = document.getElementById('inbound-testcall2-dur');
+        if (dur2El && document.activeElement !== dur2El) {
+          dur2El.value = inbound.testcall2_duration !== undefined ? inbound.testcall2_duration : 550;
+        }
+
+        const pfx2El = document.getElementById('inbound-testcall2-pfx');
+        if (pfx2El && document.activeElement !== pfx2El) {
+          pfx2El.value = inbound.testcall2_prefixes !== undefined ? inbound.testcall2_prefixes : '2237';
+        }
+
+        const pfx1El = document.getElementById('inbound-testcall-pfx');
+        if (pfx1El && document.activeElement !== pfx1El) {
+          pfx1El.value = inbound.testcall_prefixes !== undefined ? inbound.testcall_prefixes : '4444, 53, 619334, 221';
+        }
+      }
+
+      // 2. Active calls badge
+      const activeCount = inbound.active_channels || (inbound.active_calls ? inbound.active_calls.length : 0);
+      const activeBadge = document.getElementById('inbound-active-badge');
+      if (activeBadge) {
+        if (activeCount > 0) {
+          activeBadge.style.background = '#EBF5EA';
+          activeBadge.style.color = '#2D6A28';
+          activeBadge.innerHTML = '🟢 <b>' + activeCount + '</b> Active Inbound Call' + (activeCount > 1 ? 's' : '');
+        } else {
+          activeBadge.style.background = '#F2F4F7';
+          activeBadge.style.color = 'var(--muted)';
+          activeBadge.innerHTML = '○ 0 Active Inbound Calls';
+        }
+      }
+
+      // 3. Source IPs Table
+      if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
+        currentSourceIps = inbound.source_ips;
+        renderSourceIpsTable();
+      } else if (currentSourceIps.length === 0) {
+        currentSourceIps = [{
+          id: 'src-1',
+          ip: inbound.source_ip || '192.168.1.13',
+          label: 'Default Gateway',
+          prefix: '2237, 4444, 53, 619334, 221',
+          country_code: '223, 53, 221',
+          context: 'auto'
+        }];
+        renderSourceIpsTable();
+      }
+
+      // 4. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
+      renderCountryRecordsTable(inbound.country_records);
+
+    }
+
+        async function refreshAll(forceSync = false) {
       try {
         const res = await api('status');
         trunksData = res.trunks;
@@ -1582,6 +2206,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           updateMetricsOnly(trunksData, true);
         } else {
           updateMetricsOnly(trunksData, forceSync);
+        }
+
+        if (res.inbound) {
+          renderInboundSection(res.inbound, forceSync);
         }
       } catch (e) {
         addLog('Error fetching status: ' + e.message);

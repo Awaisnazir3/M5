@@ -91,30 +91,16 @@ PY
 
     REM=$((LIMITSEC - USED - (ACTIVE + PENDING) * DUR))
 
-    # 4. Dispatch calls if within limits
-    if ((REM >= DUR)); then
-        NEED=$((MAXCALLS - ACTIVE - PENDING))
-        BUDGET=$((REM / DUR))
-        ((NEED > BUDGET)) && NEED=$BUDGET
+    # 4. Dispatch 1 call every 2 seconds if under capacity limits
+    if ((REM >= DUR)) && [ "$((ACTIVE + PENDING))" -lt "$MAXCALLS" ]; then
+        CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
+        TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
+        ANI="442$(tr -dc '1-9' < /dev/urandom 2>/dev/null | head -c 9)"
 
-        if [ "$NEED" -gt 0 ]; then
-            for ((i = 0; i < NEED; i++)); do
-                CURR=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
-                case "$CURR" in ''|*[!0-9]*) CURR=0 ;; esac
-                PEND=$(find "$SPOOL" -maxdepth 1 -type f -name 'mali_*.call' 2>/dev/null | wc -l)
-                case "$PEND" in ''|*[!0-9]*) PEND=0 ;; esac
+        CALLFILE="mali_$(date +%s%N).call"
+        TMP_FILE="$TMP_DIR/$CALLFILE"
 
-                [ "$((CURR + PEND))" -ge "$MAXCALLS" ] && break
-
-                # Exact callerid and ANI pattern for Mali (CC 2237)
-                CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
-                TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
-                ANI="442$(tr -dc '1-9' < /dev/urandom 2>/dev/null | head -c 9)"
-
-                CALLFILE="mali_$(date +%s%N).call"
-                TMP_FILE="$TMP_DIR/$CALLFILE"
-
-                cat <<EOF > "$TMP_FILE"
+        cat <<EOF > "$TMP_FILE"
 Channel: $TARGET
 Context: $CONTEXT
 Extension: s
@@ -126,13 +112,11 @@ WaitTime: 45
 Archive: yes
 Set: CDR(userfield)=callgen-mali
 EOF
-                touch -t $(date +%Y%m%d%H%M.%S) "$TMP_FILE"
-                chown -f asterisk:asterisk "$TMP_FILE" 2>/dev/null || true
-                chmod 664 "$TMP_FILE" 2>/dev/null || true
-                mv "$TMP_FILE" "$SPOOL/"
-            done
-        fi
+        touch -t $(date +%Y%m%d%H%M.%S) "$TMP_FILE"
+        chown -f asterisk:asterisk "$TMP_FILE" 2>/dev/null || true
+        chmod 664 "$TMP_FILE" 2>/dev/null || true
+        mv "$TMP_FILE" "$SPOOL/"
     fi
 
-    sleep 3
+    sleep 2
 done
