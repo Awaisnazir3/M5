@@ -49,14 +49,36 @@ ln -sfn /usr/local/sbin/callgen_db.py /usr/local/lib/python3.9/site-packages/cal
 
 # Initialize SQLite schema and CDR symlink
 python3 /usr/local/sbin/callgen_db.py init 2>/dev/null || true
+chmod 666 /var/lib/callgen/callgen.db* 2>/dev/null || true
+
 if [ -d /var/log/asterisk ]; then
     ln -sfn /var/lib/callgen/callgen.db /var/log/asterisk/master.db 2>/dev/null || true
     chown -h asterisk:asterisk /var/log/asterisk/master.db 2>/dev/null || true
 fi
-if [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ] && [ -d /etc/asterisk ]; then
-    cp "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" /etc/asterisk/ 2>/dev/null || true
-    chmod 640 /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
+
+# Ensure Asterisk base configs exist
+if [ -d /etc/asterisk ]; then
+    if [ ! -f /etc/asterisk/pjsip.conf ] && [ -f "${SCRIPT_DIR}/asterisk/pjsip.conf" ]; then
+        cp "${SCRIPT_DIR}/asterisk/pjsip.conf" /etc/asterisk/pjsip.conf
+    fi
+    if [ ! -f /etc/asterisk/extensions.conf ] && [ -f "${SCRIPT_DIR}/asterisk/extensions.conf" ]; then
+        cp "${SCRIPT_DIR}/asterisk/extensions.conf" /etc/asterisk/extensions.conf
+    fi
+    if [ -f "${SCRIPT_DIR}/asterisk/cdr.conf" ]; then
+        cp "${SCRIPT_DIR}/asterisk/cdr.conf" /etc/asterisk/cdr.conf 2>/dev/null || true
+    fi
+    if [ -f "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" ]; then
+        cp "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
+    elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
+        cp "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
+    fi
+    chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
 fi
+
+# Spool and temporary call directories
+mkdir -p /var/spool/asterisk/outgoing /tmp/asterisk_calls_cuba /tmp/asterisk_calls_senegal /tmp/asterisk_calls_mali /var/log/asterisk/cdr-csv
+chmod 777 /var/spool/asterisk/outgoing /tmp/asterisk_calls_* 2>/dev/null || true
+chown -R asterisk:asterisk /var/spool/asterisk /var/log/asterisk 2>/dev/null || true
 
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_callgen.sh
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
@@ -143,6 +165,9 @@ EOF
 fi
 if [ -x /usr/local/sbin/callgen-sync-inbound.py ]; then
     /usr/local/sbin/callgen-sync-inbound.py || true
+    if command -v asterisk >/dev/null 2>&1 && systemctl is-active --quiet asterisk 2>/dev/null; then
+        asterisk -rx "core reload" 2>/dev/null || true
+    fi
 fi
 
 # 5. Deploy Web Dashboard
