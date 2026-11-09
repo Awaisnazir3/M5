@@ -985,68 +985,120 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
         </div>
 
-        <!-- Inbound Context Duration Limits Control -->
+        <!-- Inbound Breakout Prefix Routing & Context Duration Limits -->
         <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
             <div>
               <span style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
-                ⏱ Inbound Context Call Duration Limits
+                ⏱ Inbound Breakout Prefix Routing & Context Duration Limits
               </span>
               <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                Maximum call timeout (in seconds) for incoming breakout routes in Asterisk dialplan
+                Configure allowed breakout prefixes and maximum call timeouts in Asterisk dialplan
               </div>
             </div>
-            <button type="button" class="btn btn-sage btn-sm" id="btn-save-durations" onclick="saveContextDurations()" style="padding:6px 14px;font-size:12px;font-weight:700;">
-              💾 Save Duration Limits
+            <button type="button" class="btn btn-sage btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:6px 14px;font-size:12px;font-weight:700;">
+              💾 Save Breakout & Duration Settings
             </button>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;">
-            <!-- [testcall] Context Duration -->
-            <div style="background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.03);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:12px;">[testcall]</span>
-                  <span style="font-size:12px;font-weight:700;color:var(--brown);">Cuba & Senegal Routes</span>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+            <!-- [testcall] Cuba & Senegal Breakout Card -->
+            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-weight:800;font-size:12px;color:var(--brown);background:#F2F4F7;padding:4px 8px;border-radius:6px;letter-spacing:0.5px;">CU SN</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Cuba & Senegal Breakout</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:1px;">Cuba (+53) & Senegal (+221) Route Settings</div>
+                  </div>
                 </div>
-                <span id="testcall-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">60s (1m)</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall]</span>
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                </div>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
-                <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+
+              <div>
+                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                </label>
+                <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                  Allowed Cuba & Senegal breakout prefixes. Unlisted prefixes are rejected.
+                </div>
               </div>
-              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 45)">45s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 60)">60s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 90)">90s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 120)">2m</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 300)">5m</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 600)">10m</button>
+
+              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                    MAX CALL DURATION LIMIT
+                  </label>
+                  <span id="testcall-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">60s (1m)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                </div>
+                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 45)">45s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 60)">60s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 90)">90s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 120)">2m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 300)">5m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 600)">10m</button>
+                </div>
               </div>
             </div>
 
-            <!-- [testcall2] Context Duration -->
-            <div style="background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.03);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:12px;">[testcall2]</span>
-                  <span style="font-size:12px;font-weight:700;color:var(--brown);">Mali Route (+223)</span>
+            <!-- [testcall2] Mali Breakout Card -->
+            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-weight:800;font-size:12px;color:var(--brown);background:#F2F4F7;padding:4px 8px;border-radius:6px;letter-spacing:0.5px;">ML</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Mali Breakout</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:1px;">Mali (+223) Route Settings</div>
+                  </div>
                 </div>
-                <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">50s</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall2]</span>
+                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                </div>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
-                <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+
+              <div>
+                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                </label>
+                <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                  Allowed Mali breakout prefixes. Unlisted prefixes are rejected.
+                </div>
               </div>
-              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 45)">45s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 50)">50s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 60)">60s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 90)">90s</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 120)">2m</button>
-                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 300)">5m</button>
+
+              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                    MAX CALL DURATION LIMIT
+                  </label>
+                  <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">50s</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                </div>
+                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 45)">45s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 50)">50s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 60)">60s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 90)">90s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 120)">2m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 300)">5m</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1147,8 +1199,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
             <div class="field-group">
               <label>Allowed CC & Prefixes (Comma Separated)</label>
-              <input type="text" id="sip-input-prefix" placeholder="e.g. 2237, 4444, 53, 619334, 221">
+              <input type="text" id="sip-input-prefix" placeholder="e.g. 444453, 619334221, 2237">
               <span style="font-size:10px;color:var(--muted);">Prefixes/CC associated with this gateway</span>
+              <div style="display:flex;gap:5px;margin-top:6px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:10.5px;color:var(--muted);font-weight:600;">Quick Insert:</span>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('444453, 619334221, 2237')">All Breakouts</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('444453')">Cuba (444453)</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('619334221')">Senegal (619334221)</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('2237')">Mali (2237)</button>
+              </div>
             </div>
 
             <div class="field-group">
@@ -1218,9 +1277,18 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <label>Max Concurrency (Channels)</label>
               <input type="number" id="modal-max" name="max_channels" min="1" max="2000" required>
             </div>
+            <div class="field-group">
+              <label>Monthly Quota Limit (Minutes)</label>
+              <input type="number" id="modal-limit" name="monthly_limit" min="1" max="10000000" required>
+            </div>
+            <div class="field-group">
+              <label>Assigned Dialplan Context</label>
+              <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);">
+                <option value="testcall">[testcall] - Cuba & Senegal (Default)</option>
+                <option value="testcall2">[testcall2] - Mali Route</option>
+              </select>
+            </div>
             <input type="hidden" id="modal-dur" name="call_duration" value="600">
-            <input type="hidden" id="modal-ctx" name="context" value="testcall">
-            <input type="hidden" id="modal-limit" name="monthly_limit" value="100000">
           </div>
 
           <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
@@ -1469,6 +1537,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
       const maxChan = Number(t.max_channels) || 1;
       const activeCalls = Number(t.active_calls) || 0;
+      const limitMin = Number(t.monthly_limit) || 100000;
+      const usedMin = Number(t.used_minutes) || 0;
+      const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
+      const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
 
       const card = document.createElement('div');
       card.className = 'trunk-card';
@@ -1482,7 +1554,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
                 <div class="trunk-name" id="dash-name-${id}">${routeName}</div>
                 <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')">⚙️</button>
               </div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;">${scriptName}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                <span style="font-size:11px;color:var(--muted);font-family:monospace;" id="hdr-script-${id}">${scriptName}</span>
+                <span style="font-size:10.5px;font-weight:700;color:#2D6A28;background:#EBF5EA;padding:1px 7px;border-radius:4px;font-family:monospace;" id="hdr-ctx-${id}">[${ctxName}]</span>
+              </div>
             </div>
           </div>
           <span id="badge-${id}" class="trunk-status"></span>
@@ -1496,7 +1571,28 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
           </div>
 
-          <div class="config-summary-box">
+          <!-- Monthly Minutes Quota Limit -->
+          <div class="metric-single-box" style="margin-top:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="metric-item-lbl">Monthly Minutes Quota</div>
+              <div style="font-size:11px;font-weight:700;color:${pct > 90 ? 'var(--red)' : 'var(--sage-dark)'};" id="limit-pct-${id}">
+                ${pct}% used
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;">
+              <div style="font-size:15px;font-weight:800;color:var(--brown);" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>
+              </div>
+              <div style="font-size:11.5px;font-weight:600;color:var(--muted);" id="limit-txt-${id}">
+                Limit: <b>${limitMin.toLocaleString()}</b> min
+              </div>
+            </div>
+            <div style="width:100%;height:6px;background:#EAECF0;border-radius:3px;margin-top:6px;overflow:hidden;">
+              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s ease;"></div>
+            </div>
+          </div>
+
+          <div class="config-summary-box" style="margin-top:10px;">
             <div class="config-summary-header">
               <span>Route Parameters</span>
               <button type="button" class="btn-link-gear" onclick="openConfigModal('${id}')">⚙️ Configure</button>
@@ -1517,6 +1613,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <div class="summary-item">
                 <span class="summary-lbl">Route Prefix</span>
                 <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Assigned Context</span>
+                <span class="summary-val" id="disp-ctx-${id}" style="color:#2D6A28;font-weight:800;font-family:monospace;font-size:12px;">[${ctxName}]</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-lbl">Engine Script</span>
+                <span class="summary-val" id="disp-script-${id}" style="color:var(--brown);font-weight:700;font-family:monospace;font-size:11.5px;">${scriptName}</span>
               </div>
             </div>
           </div>
@@ -1573,7 +1677,30 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
         }
 
-        // 3. Overall configuration display on Dashboard card
+        // 3. Monthly Minutes Quota update
+        const limitMin = Number(t.monthly_limit) || 100000;
+        const usedMin = Number(t.used_minutes) || 0;
+        const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
+
+        const usedMinEl = document.getElementById('used-min-' + id);
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>`;
+        const limitTxtEl = document.getElementById('limit-txt-' + id);
+        if (limitTxtEl) limitTxtEl.innerHTML = `Limit: <b>${limitMin.toLocaleString()}</b> min`;
+        const limitPctEl = document.getElementById('limit-pct-' + id);
+        if (limitPctEl) {
+          limitPctEl.textContent = `${pct}% used`;
+          limitPctEl.style.color = pct > 90 ? 'var(--red)' : 'var(--sage-dark)';
+        }
+        const progBarEl = document.getElementById('prog-bar-' + id);
+        if (progBarEl) {
+          progBarEl.style.width = pct + '%';
+          progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--sage)';
+        }
+
+        // 4. Overall configuration display on Dashboard card
+        const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
+        const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
+
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = t.target_ip || '-';
         const dispCc = document.getElementById('disp-cc-' + id);
@@ -1582,6 +1709,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
         const dispDial = document.getElementById('disp-dial-' + id);
         if (dispDial) dispDial.textContent = t.prefix_cid || '-';
+        const dispCtx = document.getElementById('disp-ctx-' + id);
+        if (dispCtx) dispCtx.textContent = `[${ctxName}]`;
+        const hdrCtx = document.getElementById('hdr-ctx-' + id);
+        if (hdrCtx) hdrCtx.textContent = `[${ctxName}]`;
+        const dispScript = document.getElementById('disp-script-' + id);
+        if (dispScript) dispScript.textContent = scriptName;
 
         // 4. Start/Stop Action buttons
         const actionsDiv = document.getElementById('actions-' + id);
@@ -1663,6 +1796,18 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const overlay = document.getElementById('source-ip-modal-overlay');
       if (overlay) overlay.classList.add('hidden');
       editingSourceIpIndex = -1;
+    }
+
+    function insertSipPfx(val) {
+      const el = document.getElementById('sip-input-prefix');
+      if (!el) return;
+      if (!el.value.trim() || val.includes(',')) {
+        el.value = val;
+      } else {
+        const existing = el.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(val)) existing.push(val);
+        el.value = existing.join(', ');
+      }
     }
 
     function handleSourceIpOverlayClick(e) {
@@ -1873,17 +2018,19 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
-    async function saveContextDurations() {
-      const dur1 = parseInt(document.getElementById('input-testcall-dur').value, 10);
-      const dur2 = parseInt(document.getElementById('input-testcall2-dur').value, 10);
+    async function saveBreakoutSettings() {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
+      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
+      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
 
       if (isNaN(dur1) || dur1 < 1 || isNaN(dur2) || dur2 < 1) {
         alert('Please enter valid positive duration limits in seconds (e.g. 60)');
         return;
       }
 
-      const btn = document.getElementById('btn-save-durations');
-      const originalText = btn ? btn.textContent : '💾 Save Duration Limits';
+      const btn = document.getElementById('btn-save-breakout') || document.getElementById('btn-save-durations');
+      const originalText = btn ? btn.textContent : '💾 Save Breakout & Duration Settings';
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'Saving...';
@@ -1893,10 +2040,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const payload = {
           testcall_duration: dur1,
           testcall2_duration: dur2,
+          testcall_prefixes: pfx1,
+          testcall2_prefixes: pfx2,
           source_ips: currentSourceIps
         };
         const res = await api('save-inbound', payload);
-        addLog('[DURATIONS] ' + res.message);
+        addLog('[BREAKOUT] ' + res.message);
         if (btn) {
           btn.textContent = '✓ Saved!';
           setTimeout(() => {
@@ -1906,23 +2055,28 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
         await refreshAll(true);
       } catch (err) {
-        console.error('Failed to save durations:', err);
-        addLog('[DURATIONS] Error: ' + err.message);
-        alert('Failed to save context durations: ' + err.message);
+        console.error('Failed to save breakout settings:', err);
+        addLog('[BREAKOUT] Error: ' + err.message);
+        alert('Failed to save breakout settings: ' + err.message);
         if (btn) {
           btn.disabled = false;
           btn.textContent = originalText;
         }
       }
     }
+    const saveContextDurations = saveBreakoutSettings;
 
     async function persistInboundSettings(notify = false) {
       const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
       const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
+      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
+      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
       const d = {
         source_ips: currentSourceIps,
         testcall_duration: dur1,
-        testcall2_duration: dur2
+        testcall2_duration: dur2,
+        testcall_prefixes: pfx1,
+        testcall2_prefixes: pfx2
       };
 
       try {
@@ -1960,7 +2114,20 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       }
 
-      // 2. Context Call Duration Limits ([testcall] and [testcall2])
+      // 2. Breakout Prefixes & Context Call Duration Limits ([testcall] and [testcall2])
+      const pfx1Input = document.getElementById('inbound-testcall-pfx');
+      const pfx2Input = document.getElementById('inbound-testcall2-pfx');
+      if (pfx1Input && (document.activeElement !== pfx1Input || forceSync)) {
+        if (inbound.testcall_prefixes !== undefined && inbound.testcall_prefixes !== null) {
+          pfx1Input.value = inbound.testcall_prefixes;
+        }
+      }
+      if (pfx2Input && (document.activeElement !== pfx2Input || forceSync)) {
+        if (inbound.testcall2_prefixes !== undefined && inbound.testcall2_prefixes !== null) {
+          pfx2Input.value = inbound.testcall2_prefixes;
+        }
+      }
+
       const dur1Input = document.getElementById('input-testcall-dur');
       const dur2Input = document.getElementById('input-testcall2-dur');
       if (dur1Input && (document.activeElement !== dur1Input || forceSync)) {
