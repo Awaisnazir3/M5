@@ -484,13 +484,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
     .config-summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    @media (max-width: 600px) {
-      .config-summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 16px;
     }
     .summary-item {
       display: flex;
@@ -654,51 +649,28 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       gap: 16px;
     }
 
-    /* Live Channel Gauge Box */
-    .metric-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      background: #F8F9F7;
-      padding: 12px;
+    /* Live Channel Status Box */
+    .metric-single-box {
+      background: #F8F9FA;
+      padding: 14px 18px;
       border-radius: 8px;
-      border: 1px solid #E8EBE6;
+      border: 1px solid #EAECF0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
     .metric-item-val {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
       color: var(--brown);
+      letter-spacing: -0.3px;
     }
     .metric-item-lbl {
       font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
+      font-weight: 700;
+      color: #667085;
       text-transform: uppercase;
-    }
-
-    /* Quota Bar */
-    .progress-wrap {
-      margin-top: 4px;
-    }
-    .progress-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 5px;
-      font-weight: 500;
-      color: var(--muted);
-    }
-    .progress-bar-bg {
-      height: 8px;
-      background: #EAECE8;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--sage);
-      border-radius: 4px;
-      transition: width 0.3s;
+      letter-spacing: 0.5px;
     }
 
     /* Form Fields */
@@ -973,7 +945,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     </div>
     <div class="trunk-grid" id="trunk-container"></div>
 
-    <!-- Dedicated Inbound Call Gateway & Context Management -->
+    <!-- Dedicated Inbound Call Gateway & Prefix Routing -->
     <section class="inbound-section" style="margin-top:28px;">
       <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;padding:22px;box-shadow:0 1px 3px rgba(16,24,40,0.06);">
         <!-- Header -->
@@ -983,7 +955,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div>
               <h2 style="font-size:16px;font-weight:800;color:var(--brown);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
               <div style="font-size:12px;color:var(--muted);margin-top:2px;">
-                Manage multiple allowed inbound source IPs, CC/prefixes, context routing to [testcall]/[testcall2], and call duration limits
+                Manage authorized inbound source IPs and allowed breakout prefixes
               </div>
             </div>
           </div>
@@ -1007,11 +979,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
               <thead>
                 <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10px;text-transform:uppercase;">
-                  <th style="padding:8px 12px;">Source IP Address</th>
-                  <th style="padding:8px 12px;">Gateway Label / Note</th>
-                  <th style="padding:8px 12px;">Allowed CC & Prefixes</th>
-                  <th style="padding:8px 12px;">Assigned Context</th>
-                  <th style="padding:8px 12px;text-align:right;">Actions</th>
+                  <th style="padding:10px 14px;width:25%;">Source IP Address</th>
+                  <th style="padding:10px 14px;width:25%;">Gateway Label / Note</th>
+                  <th style="padding:10px 14px;width:35%;">Allowed CC & Prefixes</th>
+                  <th style="padding:10px 14px;width:15%;text-align:right;">Actions</th>
                 </tr>
               </thead>
               <tbody id="source-ips-tbody">
@@ -1021,109 +992,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
         </div>
 
-        <!-- 2. Context Call Duration Limits & Prefix Routing Form -->
-        <form id="inbound-form" onsubmit="saveInboundConfig(event)" style="margin-bottom:24px;">
-          <!-- Security Notice Banner -->
-          <div style="background:#FFF9F2;border:1px solid #FFE4C4;border-left:4px solid #F59E0B;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
-            <span style="font-size:20px;">🛡️</span>
-            <div style="font-size:12px;color:#78350F;line-height:1.4;">
-              <b>Strict Prefix Routing & Rejection Enabled:</b> Only incoming calls matching the explicitly allowed prefixes below will be accepted. Any unlisted prefix or unrecognized number will be <b>immediately REJECTED</b> (SIP 603 Declined / Busy) and will not connect.
-            </div>
-          </div>
-
-          <!-- Side-by-Side Context Cards -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:16px;margin-bottom:16px;">
-
-            <!-- CARD 1: Context [testcall] (Cuba & Senegal) -->
-            <div style="background:#FAFCF9;border:1px solid #DCE6D9;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E3ECE0;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-size:18px;">🇨🇺 🇸🇳</span>
-                  <div>
-                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Context [testcall]</div>
-                    <div style="font-size:11px;color:var(--muted);">Cuba (+53) & Senegal (+221) Route</div>
-                  </div>
-                </div>
-                <span style="background:#EBF5EA;color:#2D6A28;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:700;">
-                  Strict Routing
-                </span>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:14px;">
-                <div class="field-group">
-                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;display:flex;justify-content:space-between;">
-                    <span>[testcall] Allowed Prefixes / CC</span>
-                    <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
-                  </label>
-                  <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" placeholder="4444, 53, 619334, 221" style="font-family:monospace;font-weight:700;padding:10px 12px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
-                  <span style="font-size:11px;color:var(--muted);">Allowed Cuba & Senegal prefixes. Unlisted prefixes are rejected.</span>
-                </div>
-
-                <div class="field-group">
-                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;">
-                    Call Duration Limit (Seconds)
-                  </label>
-                  <div style="position:relative;">
-                    <input type="number" id="inbound-testcall-dur" name="testcall_duration" min="1" max="86400" required placeholder="600" style="font-weight:700;padding:10px 12px;padding-right:45px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
-                    <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--muted);">SEC</span>
-                  </div>
-                  <span style="font-size:11px;color:var(--muted);">Calls in [testcall] hang up automatically when this time expires.</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CARD 2: Context [testcall2] (Mali) -->
-            <div style="background:#FAFBFB;border:1px solid #E1E6EB;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #E5E9EE;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-size:18px;">🇲🇱</span>
-                  <div>
-                    <div style="font-size:14px;font-weight:800;color:var(--brown);">Context [testcall2]</div>
-                    <div style="font-size:11px;color:var(--muted);">Mali (+223) Route</div>
-                  </div>
-                </div>
-                <span style="background:#EBF3FB;color:#1D5A8C;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:700;">
-                  Strict Routing
-                </span>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:14px;">
-                <div class="field-group">
-                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;display:flex;justify-content:space-between;">
-                    <span>[testcall2] Allowed Prefixes / CC</span>
-                    <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
-                  </label>
-                  <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" placeholder="2237" style="font-family:monospace;font-weight:700;padding:10px 12px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
-                  <span style="font-size:11px;color:var(--muted);">Allowed Mali prefixes. Unlisted prefixes are rejected.</span>
-                </div>
-
-                <div class="field-group">
-                  <label style="font-size:11.5px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:0.3px;">
-                    Call Duration Limit (Seconds)
-                  </label>
-                  <div style="position:relative;">
-                    <input type="number" id="inbound-testcall2-dur" name="testcall2_duration" min="1" max="86400" required placeholder="550" style="font-weight:700;padding:10px 12px;padding-right:45px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;width:100%;background:#FFFFFF;color:#1D2939;">
-                    <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--muted);">SEC</span>
-                  </div>
-                  <span style="font-size:11px;color:var(--muted);">Calls in [testcall2] hang up automatically when this time expires.</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Action Bar: Save & Apply Button -->
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 18px;background:#F9FAFB;border:1px solid #EAECF0;border-radius:8px;">
-            <div style="font-size:12px;color:var(--muted);">
-              💡 <b>Note:</b> Clicking save writes settings to Asterisk and reloads dialplan dynamically without dropping active calls.
-            </div>
-            <button type="submit" id="btn-save-inbound" class="btn btn-sage" style="padding:11px 24px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 4px rgba(0,0,0,0.06);cursor:pointer;">
-              💾 Apply & Save Inbound Settings
-            </button>
-          </div>
-        </form>
-
-        <!-- 3. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
+        <!-- 2. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
         <div style="margin-bottom:0;background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,0.04);">
           <div style="padding:12px 16px;background:#F8F9FA;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
             <div>
@@ -1131,7 +1000,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
                 📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
               </span>
               <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                Live minutes accrued from <code>/var/log/asterisk/cdr-csv/Master.csv</code> for current calendar month
+                Live minutes accrued from SQLite Database (<code>/var/lib/callgen/callgen.db</code>) for current calendar month
               </div>
             </div>
             <span style="font-size:11px;color:var(--sage-dark);font-weight:700;background:#F5F8F4;padding:4px 10px;border-radius:6px;border:1px solid #D8E2D5;">
@@ -1145,7 +1014,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
                 <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10.5px;text-transform:uppercase;background:#FAFAFA;">
                   <th style="padding:10px 14px;">Destination Country</th>
                   <th style="padding:10px 14px;">Country Code & Prefix</th>
-                  <th style="padding:10px 14px;">Assigned Context</th>
                   <th style="padding:10px 14px;">Total Inbound Calls</th>
                   <th style="padding:10px 14px;">Answered Calls</th>
                   <th style="padding:10px 14px;">Total Consumed Minutes</th>
@@ -1205,14 +1073,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <input type="text" id="sip-input-cc" placeholder="e.g. 223, 53, 221">
             </div>
 
-            <div class="field-group">
-              <label>Context Routing Override</label>
-              <select id="sip-input-context" style="padding:8px 10px;border:1px solid #CCD2C8;border-radius:6px;font-size:13px;">
-                <option value="auto">Auto (Prefix-based: 2237 -> [testcall2], others -> [testcall])</option>
-                <option value="testcall2">Force [testcall2] (Mali Context)</option>
-                <option value="testcall">Force [testcall] (Cuba/Senegal Context)</option>
-              </select>
-            </div>
+            <input type="hidden" id="sip-input-context" value="auto">
           </div>
 
           <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
@@ -1271,17 +1132,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <input type="text" id="modal-prefix-cid" name="prefix_cid" placeholder="e.g. 444453">
             </div>
             <div class="field-group">
-              <label>Month Limit (Min)</label>
-              <input type="number" id="modal-limit" name="monthly_limit" min="1" required>
-            </div>
-            <div class="field-group">
-              <label>Max Channels</label>
+              <label>Max Concurrency (Channels)</label>
               <input type="number" id="modal-max" name="max_channels" min="1" max="2000" required>
             </div>
-            <div class="field-group">
-              <label>Dialplan Context</label>
-              <input type="text" id="modal-ctx" name="context" required>
-            </div>
+            <input type="hidden" id="modal-dur" name="call_duration" value="600">
+            <input type="hidden" id="modal-ctx" name="context" value="testcall">
+            <input type="hidden" id="modal-limit" name="monthly_limit" value="100000">
           </div>
 
           <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
@@ -1365,16 +1221,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
       const modalStatus = document.getElementById('modal-status');
       if (modalStatus) {
-        const isLimitReached = (t.used_minutes >= t.monthly_limit);
-        if (isLimitReached) {
-          modalStatus.className = 'trunk-status status-limit';
-          modalStatus.textContent = '⛔ LIMIT REACHED';
-        } else if (t.running) {
+        if (t.running) {
           modalStatus.className = 'trunk-status status-running';
-          modalStatus.textContent = '● RUNNING';
+          modalStatus.textContent = '● ACTIVE';
         } else {
           modalStatus.className = 'trunk-status status-stopped';
-          modalStatus.textContent = '○ STOPPED';
+          modalStatus.textContent = '○ STANDBY';
         }
       }
 
@@ -1389,11 +1241,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const cidEl = document.getElementById('modal-prefix-cid');
       if (cidEl) cidEl.value = t.prefix_cid || '';
       const limEl = document.getElementById('modal-limit');
-      if (limEl) limEl.value = t.monthly_limit || '';
+      if (limEl) limEl.value = t.monthly_limit || 100000;
       const maxEl = document.getElementById('modal-max');
       if (maxEl) maxEl.value = t.max_channels || '';
       const durEl = document.getElementById('modal-dur');
-      if (durEl) durEl.value = t.call_duration || '';
+      if (durEl) durEl.value = t.call_duration || 600;
       const ctxEl = document.getElementById('modal-ctx');
       if (ctxEl) ctxEl.value = t.context || 'testcall';
 
@@ -1474,13 +1326,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         // Instant local sync
         if (trunksData[id]) {
           trunksData[id] = { ...trunksData[id], ...d };
-          if (trunksData[id].used_minutes >= trunksData[id].monthly_limit) {
-            trunksData[id].running = false;
-            trunksData[id].active_calls = 0;
-            trunksData[id].limit_reached = true;
-          } else {
-            trunksData[id].limit_reached = false;
-          }
         }
         updateMetricsOnly(trunksData, false);
 
@@ -1539,6 +1384,9 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
       const flagCode = getRouteFlag(routeName, id);
       const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
+      const maxChan = Number(t.max_channels) || 1;
+      const activeCalls = Number(t.active_calls) || 0;
+
       const card = document.createElement('div');
       card.className = 'trunk-card';
       card.id = 'dash-card-' + id;
@@ -1558,64 +1406,34 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         </div>
 
         <div class="trunk-body">
-          <div class="metric-row">
-            <div>
-              <div class="metric-item-lbl">Active Calls</div>
-              <div class="metric-item-val" id="active-txt-${id}">
-                ${t.active_calls} <span style="font-size:13px;font-weight:500;color:var(--muted);">/ ${t.max_channels}</span>
-              </div>
-            </div>
-            <div>
-              <div class="metric-item-lbl">Minutes Usage</div>
-              <div class="metric-item-val" id="used-txt-${id}">
-                ${Number(t.used_minutes).toLocaleString()} <span style="font-size:12px;font-weight:500;color:var(--muted);">min</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="progress-wrap">
-            <div class="progress-label-row">
-              <span id="limit-lbl-${id}">Monthly Limit: ${Number(t.monthly_limit).toLocaleString()} min</span>
-              <span id="pct-lbl-${id}">0% used</span>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="progress-fill-${id}"></div>
+          <div class="metric-single-box">
+            <div class="metric-item-lbl">Live Concurrent Calls</div>
+            <div class="metric-item-val" id="active-txt-${id}">
+              ${activeCalls} <span style="font-size:14px;font-weight:500;color:var(--muted);">/ ${maxChan} Channels</span>
             </div>
           </div>
 
           <div class="config-summary-box">
             <div class="config-summary-header">
-              <span>Overall Configuration</span>
+              <span>Route Parameters</span>
               <button type="button" class="btn-link-gear" onclick="openConfigModal('${id}')">⚙️ Configure</button>
             </div>
             <div class="config-summary-grid">
               <div class="summary-item">
-                <span class="summary-lbl">Target IP</span>
-                <span class="summary-val" id="disp-ip-${id}">${t.target_ip || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">CC</span>
-                <span class="summary-val" id="disp-cc-${id}">${t.country_code || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Prefix</span>
-                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
+                <span class="summary-lbl">Target Host</span>
+                <span class="summary-val" id="disp-ip-${id}" style="font-family:monospace;font-size:12px;">${t.target_ip || '-'}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-lbl">Dialed Prefix</span>
-                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage);font-weight:700;">${t.prefix_cid || '-'}</span>
+                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage-dark);font-weight:800;font-family:monospace;font-size:12px;">${t.prefix_cid || '-'}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-lbl">Month Limit</span>
-                <span class="summary-val" id="disp-limit-${id}">${Number(t.monthly_limit).toLocaleString()}m</span>
+                <span class="summary-lbl">Country Code</span>
+                <span class="summary-val" id="disp-cc-${id}">${t.country_code ? '+' + t.country_code : '-'}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-lbl">Max Calls</span>
-                <span class="summary-val" id="disp-max-${id}">${t.max_channels}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Context</span>
-                <span class="summary-val" id="disp-ctx-${id}">${t.context || 'testcall'}</span>
+                <span class="summary-lbl">Route Prefix</span>
+                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
               </div>
             </div>
           </div>
@@ -1637,26 +1455,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         totalActive += (t.active_calls || 0);
         if (t.running) runningCount++;
 
-        const isLimitReached = (t.used_minutes >= t.monthly_limit);
-        const percent = t.monthly_limit > 0 ? Math.min(100, Math.round((t.used_minutes / t.monthly_limit) * 100)) : 0;
         const curName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
         const flagCode = getRouteFlag(curName, id);
-
-        // Tab and Heading updates
-        const tabLabel = document.getElementById('tab-label-' + id);
-        if (tabLabel) tabLabel.textContent = curName + ' Configuration';
-        const tabFlag = document.getElementById('tab-flag-' + id);
-        if (tabFlag) tabFlag.textContent = flagCode;
-
-        const cfgHdr = document.getElementById('cfg-hdr-title-' + id);
-        if (cfgHdr) cfgHdr.textContent = curName + ' Configuration';
-        const cfgFlag = document.getElementById('cfg-hdr-flag-' + id);
-        if (cfgFlag) cfgFlag.textContent = flagCode;
-
-        const cfgCardFlag = document.getElementById('cfg-card-flag-' + id);
-        if (cfgCardFlag) cfgCardFlag.textContent = flagCode;
-        const cfgCardName = document.getElementById('cfg-card-name-' + id);
-        if (cfgCardName) cfgCardName.textContent = curName + ' Parameters';
+        const maxChan = Number(t.max_channels) || 1;
+        const activeCalls = Number(t.active_calls) || 0;
 
         // Dashboard Card updates
         const dashName = document.getElementById('dash-name-' + id);
@@ -1666,89 +1468,42 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
         if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + curName + ' Trunk';
 
-        // Config Card field input update
-        const nameInput = document.getElementById('input-name-' + id);
-        if (nameInput && document.activeElement !== nameInput && (forceSyncInputs || !nameInput.dataset.modified)) {
-          nameInput.value = curName;
-        }
-
         // 1. Status badges
         const updateBadge = (badgeEl) => {
           if (!badgeEl) return;
-          if (isLimitReached) {
-            badgeEl.className = 'trunk-status status-limit';
-            badgeEl.textContent = '⛔ LIMIT REACHED';
-          } else if (t.running) {
+          if (t.running) {
             badgeEl.className = 'trunk-status status-running';
-            badgeEl.textContent = '● RUNNING';
+            badgeEl.textContent = '● ACTIVE';
           } else {
             badgeEl.className = 'trunk-status status-stopped';
-            badgeEl.textContent = '○ STOPPED';
+            badgeEl.textContent = '○ STANDBY';
           }
         };
         updateBadge(document.getElementById('badge-' + id));
         updateBadge(document.getElementById('config-badge-' + id));
         updateBadge(document.getElementById('cfg-hdr-status-' + id));
 
-        // 2. Active calls count & minutes usage (strictly MINUTES USAGE)
+        // 2. Active calls count
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          const maxChan = t.max_channels;
-          activeTxt.innerHTML = `${t.active_calls} <span style="font-size:13px;font-weight:500;color:var(--muted);">/ ${maxChan}</span>`;
-          activeTxt.style.color = (t.running && !isLimitReached) ? 'var(--green)' : 'var(--muted)';
+          activeTxt.innerHTML = `${activeCalls} <span style="font-size:14px;font-weight:500;color:var(--muted);">/ ${maxChan} Channels</span>`;
+          activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
         }
 
-        const usedTxt = document.getElementById('used-txt-' + id);
-        if (usedTxt) {
-          usedTxt.innerHTML = `${Number(t.used_minutes).toLocaleString()} <span style="font-size:12px;font-weight:500;color:var(--muted);">min</span>`;
-        }
-
-        // 3. Progress bar
-        const limitLbl = document.getElementById('limit-lbl-' + id);
-        if (limitLbl) {
-          limitLbl.innerHTML = isLimitReached 
-            ? `Monthly Limit: <b>${Number(t.monthly_limit).toLocaleString()} min</b> <span style="color:#B42318;font-weight:700;">(Quota Maxed)</span>`
-            : `Monthly Limit: ${Number(t.monthly_limit).toLocaleString()} min`;
-        }
-
-        const pctLbl = document.getElementById('pct-lbl-' + id);
-        if (pctLbl) pctLbl.textContent = `${percent}% used`;
-
-        const progressFill = document.getElementById('progress-fill-' + id);
-        if (progressFill) {
-          progressFill.style.width = percent + '%';
-          progressFill.style.background = isLimitReached ? '#B42318' : (percent > 85 ? 'var(--amber)' : 'var(--sage)');
-        }
-
-        // 4. Overall configuration display on Dashboard card
+        // 3. Overall configuration display on Dashboard card
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = t.target_ip || '-';
         const dispCc = document.getElementById('disp-cc-' + id);
-        if (dispCc) dispCc.textContent = t.country_code || '-';
+        if (dispCc) dispCc.textContent = t.country_code ? `+${t.country_code}` : '-';
         const dispPrefix = document.getElementById('disp-prefix-' + id);
         if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
         const dispDial = document.getElementById('disp-dial-' + id);
         if (dispDial) dispDial.textContent = t.prefix_cid || '-';
-        const dispLimit = document.getElementById('disp-limit-' + id);
-        if (dispLimit) dispLimit.textContent = `${Number(t.monthly_limit).toLocaleString()}m`;
-        const dispMax = document.getElementById('disp-max-' + id);
-        if (dispMax) dispMax.textContent = `${t.max_channels}`;
-        const dispDur = document.getElementById('disp-dur-' + id);
-        if (dispDur) dispDur.textContent = `${t.call_duration}s`;
-        const dispCtx = document.getElementById('disp-ctx-' + id);
-        if (dispCtx) dispCtx.textContent = t.context || 'testcall';
 
-        // 5. Start/Stop Action buttons
+        // 4. Start/Stop Action buttons
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
-          if (isLimitReached) {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for ${curName}. Please increase Monthly Limit (Min) on ${curName} Configuration tab to restart.')">
-                ⛔ Limit Reached (Increase Limit)
-              </button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          } else if (t.running) {
+          if (t.running) {
             actionsDiv.innerHTML = `
               <button class="btn btn-red flex-1" onclick="toggleTrunk('${id}', 'stop')">⏹ Stop Route</button>
               <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
@@ -1759,33 +1514,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
             `;
           }
-        }
-
-        // 6. Input sync only if explicitly requested
-        if (forceSyncInputs) {
-          const inputIp = document.getElementById('input-ip-' + id);
-          if (inputIp && document.activeElement !== inputIp) inputIp.value = t.target_ip;
-
-          const inputCc = document.getElementById('input-cc-' + id);
-          if (inputCc && document.activeElement !== inputCc) inputCc.value = t.country_code || '';
-
-          const inputPrefix = document.getElementById('input-prefix-' + id);
-          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix || '';
-
-          const inputPrefixCid = document.getElementById('input-prefix-cid-' + id);
-          if (inputPrefixCid && document.activeElement !== inputPrefixCid) inputPrefixCid.value = t.prefix_cid || '';
-
-          const inputLimit = document.getElementById('input-limit-' + id);
-          if (inputLimit && document.activeElement !== inputLimit) inputLimit.value = t.monthly_limit;
-
-          const inputMax = document.getElementById('input-max-' + id);
-          if (inputMax && document.activeElement !== inputMax) inputMax.value = t.max_channels;
-
-          const inputDur = document.getElementById('input-dur-' + id);
-          if (inputDur && document.activeElement !== inputDur) inputDur.value = t.call_duration;
-
-          const inputCtx = document.getElementById('input-ctx-' + id);
-          if (inputCtx && document.activeElement !== inputCtx) inputCtx.value = t.context || 'testcall';
         }
       }
 
@@ -1925,17 +1653,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!tbody) return;
 
       if (currentSourceIps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
         return;
       }
 
       tbody.innerHTML = currentSourceIps.map((s, idx) => {
-        const ctxBadge = s.context === 'testcall2'
-          ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:#F5F8F4;color:var(--sage-dark);border:1px solid #D8E2D5;">[testcall2]</span>'
-          : (s.context === 'testcall'
-            ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:#F9F6F0;color:var(--brown);border:1px solid #E8DFD8;">[testcall]</span>'
-            : '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;background:#F2F4F7;color:var(--muted);">Auto (Prefix)</span>');
-
+        const pfxParts = [];
+        if (s.prefix) pfxParts.push(s.prefix);
+        if (s.country_code && !String(s.prefix || '').includes(s.country_code)) pfxParts.push('+' + s.country_code);
+        const pfxDisplay = pfxParts.join(', ');
         return `
           <tr style="border-bottom:1px solid #EAECF0;">
             <td style="padding:9px 12px;font-family:monospace;font-weight:700;color:var(--brown);">
@@ -1946,10 +1672,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               ${s.label || '<span style="color:var(--muted);font-style:italic;">None</span>'}
             </td>
             <td style="padding:9px 12px;font-family:monospace;font-size:11.5px;color:#475467;">
-              ${s.prefix || (s.country_code ? 'CC: +' + s.country_code : '<span style="color:var(--muted);">All (Auto)</span>')}
-            </td>
-            <td style="padding:9px 12px;">
-              ${ctxBadge}
+              ${pfxDisplay || '<span style="color:var(--muted);">All (Auto)</span>'}
             </td>
             <td style="padding:9px 12px;text-align:right;">
               <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
@@ -1970,7 +1693,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!tbody) return;
 
       if (!records) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
         if (tfoot) tfoot.innerHTML = '';
         return;
       }
@@ -2000,9 +1723,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         totalMinutes += (c.minutes || 0);
         totalActive += (c.active || 0);
 
-        const isTestcall2 = c.context === 'testcall2';
-        const ctxBadge = '<span style="font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;background:' + (isTestcall2 ? '#F5F8F4' : '#F9F6F0') + ';color:' + (isTestcall2 ? 'var(--sage-dark)' : 'var(--brown)') + ';border:1px solid ' + (isTestcall2 ? '#D8E2D5' : '#E8DFD8') + ';">[' + c.context + ']</span>';
-
         return `
           <tr style="border-bottom:1px solid #EAECF0;">
             <td style="padding:10px 14px;font-weight:700;color:var(--brown);">
@@ -2011,9 +1731,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </td>
             <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#475467;">
               <b>+${c.code}</b> <span style="color:var(--muted);font-size:11px;">(${c.prefix})</span>
-            </td>
-            <td style="padding:10px 14px;">
-              ${ctxBadge}
             </td>
             <td style="padding:10px 14px;font-weight:600;color:#344054;">
               ${c.calls}
@@ -2038,7 +1755,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (tfoot) {
         tfoot.innerHTML = `
           <tr style="background:#F8F9FA;font-weight:800;border-top:2px solid #EAECF0;color:var(--brown);">
-            <td style="padding:10px 14px;" colspan="3">Monthly Monitored Total</td>
+            <td style="padding:10px 14px;" colspan="2">Monthly Monitored Total</td>
             <td style="padding:10px 14px;">${totalCalls}</td>
             <td style="padding:10px 14px;">${totalAnswered}</td>
             <td style="padding:10px 14px;font-size:14px;color:var(--sage-dark);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--muted);font-weight:600;">min</span></td>
@@ -2049,21 +1766,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     async function persistInboundSettings(notify = false) {
-      const dur1El = document.getElementById('inbound-testcall-dur');
-      const dur2El = document.getElementById('inbound-testcall2-dur');
-      const pfx1El = document.getElementById('inbound-testcall-pfx');
-      const pfx2El = document.getElementById('inbound-testcall2-pfx');
-
-      const dur1 = parseInt(dur1El && dur1El.value ? dur1El.value : '600', 10) || 600;
-      const dur2 = parseInt(dur2El && dur2El.value ? dur2El.value : '550', 10) || 550;
-      const pfx1 = pfx1El ? pfx1El.value.trim() : '4444, 53, 619334, 221';
-      const pfx2 = pfx2El ? pfx2El.value.trim() : '2237';
-
       const d = {
-        testcall_duration: dur1,
-        testcall2_duration: dur2,
-        testcall_prefixes: pfx1,
-        testcall2_prefixes: pfx2,
         source_ips: currentSourceIps
       };
 
@@ -2084,77 +1787,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
-    async function saveInboundConfig(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      const btn = document.getElementById('btn-save-inbound');
-      const origText = btn ? btn.innerHTML : '💾 Apply & Save Inbound Settings';
-      try {
-        if (btn) {
-          btn.innerHTML = '⏳ Applying Rules & Reloading Dialplan...';
-          btn.disabled = true;
-        }
-
-        const res = await persistInboundSettings(false);
-        addLog('[INBOUND] ' + (res.message || 'Inbound duration limits and prefixes updated.'));
-
-        if (btn) {
-          btn.innerHTML = '✓ Inbound Settings Active!';
-          btn.style.background = 'var(--green)';
-          btn.style.color = '#FFFFFF';
-
-          setTimeout(() => {
-            btn.innerHTML = origText;
-            btn.style.background = '';
-            btn.style.color = '';
-            btn.disabled = false;
-          }, 1800);
-        }
-
-      } catch (err) {
-        console.error('Inbound save error:', err);
-        addLog('[INBOUND] Error: ' + err.message);
-        if (btn) {
-          btn.innerHTML = '❌ ' + (err.message || 'Save Failed');
-          btn.style.background = 'var(--red)';
-          btn.style.color = '#FFFFFF';
-          setTimeout(() => {
-            btn.innerHTML = origText;
-            btn.style.background = '';
-            btn.style.color = '';
-            btn.disabled = false;
-          }, 3000);
-        }
-        alert('Inbound Save Error: ' + err.message);
-      }
-    }
-
     function renderInboundSection(inbound, forceSync = false) {
       if (!inbound) return;
 
-      // 1. Sync form inputs if not focused
-      if (forceSync) {
-        const dur1El = document.getElementById('inbound-testcall-dur');
-        if (dur1El && document.activeElement !== dur1El) {
-          dur1El.value = inbound.testcall_duration !== undefined ? inbound.testcall_duration : 600;
-        }
-
-        const dur2El = document.getElementById('inbound-testcall2-dur');
-        if (dur2El && document.activeElement !== dur2El) {
-          dur2El.value = inbound.testcall2_duration !== undefined ? inbound.testcall2_duration : 550;
-        }
-
-        const pfx2El = document.getElementById('inbound-testcall2-pfx');
-        if (pfx2El && document.activeElement !== pfx2El) {
-          pfx2El.value = inbound.testcall2_prefixes !== undefined ? inbound.testcall2_prefixes : '2237';
-        }
-
-        const pfx1El = document.getElementById('inbound-testcall-pfx');
-        if (pfx1El && document.activeElement !== pfx1El) {
-          pfx1El.value = inbound.testcall_prefixes !== undefined ? inbound.testcall_prefixes : '4444, 53, 619334, 221';
-        }
-      }
-
-      // 2. Active calls badge
+      // 1. Active calls badge
       const activeCount = inbound.active_channels || (inbound.active_calls ? inbound.active_calls.length : 0);
       const activeBadge = document.getElementById('inbound-active-badge');
       if (activeBadge) {
@@ -2169,7 +1805,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       }
 
-      // 3. Source IPs Table
+      // 2. Source IPs Table
       if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
         currentSourceIps = inbound.source_ips;
         renderSourceIpsTable();
@@ -2178,16 +1814,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           id: 'src-1',
           ip: inbound.source_ip || '192.168.1.13',
           label: 'Default Gateway',
-          prefix: '2237, 4444, 53, 619334, 221',
+          prefix: '444453, 619334221, 2237',
           country_code: '223, 53, 221',
           context: 'auto'
         }];
         renderSourceIpsTable();
       }
 
-      // 4. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
+      // 3. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
       renderCountryRecordsTable(inbound.country_records);
-
     }
 
         async function refreshAll(forceSync = false) {

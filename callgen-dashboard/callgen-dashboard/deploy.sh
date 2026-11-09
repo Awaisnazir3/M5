@@ -37,8 +37,27 @@ else
 fi
 echo "Detected web user: ${WEB_USER}"
 
-# 2. Install Binaries
-echo "Installing route generation scripts..."
+# 2. Install Binaries and Database
+echo "Installing route generation scripts and database module..."
+mkdir -p /var/lib/callgen
+chown -R asterisk:${WEB_USER} /var/lib/callgen 2>/dev/null || true
+chmod 2775 /var/lib/callgen 2>/dev/null || true
+
+install -m 750 "${SCRIPT_DIR}/bin/callgen_db.py" /usr/local/sbin/callgen_db.py
+mkdir -p /usr/local/lib/python3.9/site-packages 2>/dev/null || true
+ln -sfn /usr/local/sbin/callgen_db.py /usr/local/lib/python3.9/site-packages/callgen_db.py 2>/dev/null || true
+
+# Initialize SQLite schema and CDR symlink
+python3 /usr/local/sbin/callgen_db.py init 2>/dev/null || true
+if [ -d /var/log/asterisk ]; then
+    ln -sfn /var/lib/callgen/callgen.db /var/log/asterisk/master.db 2>/dev/null || true
+    chown -h asterisk:asterisk /var/log/asterisk/master.db 2>/dev/null || true
+fi
+if [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ] && [ -d /etc/asterisk ]; then
+    cp "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" /etc/asterisk/ 2>/dev/null || true
+    chmod 640 /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
+fi
+
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_callgen.sh
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
 install -m 750 "${SCRIPT_DIR}/bin/asterisk_callgen3.sh" /usr/local/bin/asterisk_callgen3.sh
@@ -137,7 +156,7 @@ chown -R "${WEB_USER}:${WEB_USER}" "$WEB_ROOT"
 SUDOERS_FILE="/etc/sudoers.d/callgen-dashboard"
 echo "Configuring sudoers permissions..."
 cat > "$SUDOERS_FILE" <<EOF
-${WEB_USER} ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control
+${WEB_USER} ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
 EOF
 chmod 440 "$SUDOERS_FILE"
 

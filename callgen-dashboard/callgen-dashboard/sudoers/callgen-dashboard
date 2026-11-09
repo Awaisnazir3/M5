@@ -1,2 +1,2 @@
-# Change apache to the actual PHP web-server user if different.
-apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control start, /usr/local/sbin/callgen-control stop, /usr/local/sbin/callgen-control status, /usr/local/sbin/callgen-control reload
+# Allow apache PHP user to run callgen management utilities without password
+apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py

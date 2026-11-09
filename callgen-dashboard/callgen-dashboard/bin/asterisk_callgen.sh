@@ -20,58 +20,61 @@ chown -R asterisk:asterisk "$TMP_DIR" 2>/dev/null || true
 chmod 775 "$TMP_DIR" 2>/dev/null || true
 
 while true; do
-    # 1. Read dynamic parameters from JSON config or fallback to defaults
-    if [ -f "$CONF" ]; then
-        readarray -t C < <(python3 - "$CONF" <<'PY'
-import json, sys
+    # 1. Read dynamic parameters from SQLite DB (with fallback)
+    readarray -t C < <(python3 - "$TRUNK" <<'PY'
+import sys, json, os
 try:
-    c = json.load(open(sys.argv[1]))
-    pfx = c.get('prefix_cid') or ((c.get('prefix') or '') + (c.get('country_code') or '')) or '2237'
-    print(c.get('target_ip', '202.125.153.97'))
-    print(c.get('monthly_limit', 100000))
-    print(c.get('max_channels', 150))
-    print(c.get('call_duration', 600))
-    print(c.get('context', 'testcall2'))
-    print(pfx)
+    import callgen_db
+    conn = callgen_db.get_connection()
+    row = conn.execute("SELECT target_ip, monthly_limit, max_channels, call_duration, context, prefix_cid FROM trunks WHERE id=?", (sys.argv[1],)).fetchone()
+    conn.close()
+    if row:
+        print(row['target_ip'])
+        print(row['monthly_limit'])
+        print(row['max_channels'])
+        print(row['call_duration'])
+        print(row['context'])
+        print(row['prefix_cid'])
+        sys.exit(0)
 except Exception:
-    print("202.125.153.97\n100000\n150\n600\ntestcall2\n2237")
+    pass
+
+conf = f"/etc/callgen-{sys.argv[1]}.json"
+if os.path.exists(conf):
+    try:
+        c = json.load(open(conf))
+        pfx = c.get('prefix_cid') or ((c.get('prefix') or '') + (c.get('country_code') or '')) or '2237'
+        print(c.get('target_ip', '202.125.153.97'))
+        print(c.get('monthly_limit', 100000))
+        print(c.get('max_channels', 150))
+        print(c.get('call_duration', 600))
+        print(c.get('context', 'testcall2'))
+        print(pfx)
+        sys.exit(0)
+    except Exception:
+        pass
+
+print("202.125.153.97\n100000\n150\n600\ntestcall2\n2237")
 PY
-        )
-        TARGET_IP="${C[0]}"
-        LIMIT="${C[1]}"
-        MAXCALLS="${C[2]}"
-        DUR="${C[3]}"
-        CONTEXT="${C[4]}"
-        PREFIX_CID="${C[5]}"
-    else
-        TARGET_IP="202.125.153.97"
-        LIMIT=100000
-        MAXCALLS=150
-        DUR=600
-        CONTEXT="testcall2"
-        PREFIX_CID="2237"
-    fi
+    )
+    TARGET_IP="${C[0]}"
+    LIMIT="${C[1]}"
+    MAXCALLS="${C[2]}"
+    DUR="${C[3]}"
+    CONTEXT="${C[4]}"
+    PREFIX_CID="${C[5]}"
 
     LIMITSEC=$((LIMIT * 60))
 
-    # 2. Check answered CDR usage for this month
+    # 2. Check answered CDR usage for this month from SQLite
     USED=$(python3 - "$TARGET_IP" "$TRUNK" <<'PY'
-import csv, sys, os
-from datetime import datetime
-ip = sys.argv[1]
-t = sys.argv[2]
-f = '/var/log/asterisk/cdr-csv/Master.csv'
-m = datetime.now().strftime('%Y-%m')
-sec = 0
-if os.path.exists(f):
-    with open(f, newline='') as h:
-        for r in csv.reader(h):
-            if len(r) < 15: continue
-            matched = (ip in r[5] or ip in r[6] or f'{t}-trunk' in r[5] or f'{t}-trunk' in r[6])
-            if matched and r[14] == 'ANSWERED' and r[9].startswith(m):
-                try: sec += int(r[13])
-                except: pass
-print(sec)
+import sys
+try:
+    import callgen_db
+    sec = callgen_db.get_month_consumed_seconds(sys.argv[1], sys.argv[2])
+    print(sec)
+except Exception:
+    print(0)
 PY
     )
 
