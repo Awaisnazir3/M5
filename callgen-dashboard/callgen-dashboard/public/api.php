@@ -169,19 +169,28 @@ if ($a === "save") {
 
 // 3. SAVE INBOUND GATEWAY SETTINGS
 if ($a === "save-inbound") {
+    $pdo = get_db();
     $source_ips = $d["source_ips"] ?? [];
     if (!is_array($source_ips) || empty($source_ips)) {
-        $raw_sip = trim($d["source_ip"] ?? "192.168.1.13");
-        $source_ips = [
-            [
-                "id" => "src-1",
-                "ip" => $raw_sip ?: "192.168.1.13",
-                "label" => "Default Inbound Gateway",
-                "prefix" => "2237, 4444, 53, 619334, 221",
-                "country_code" => "223, 53, 221",
-                "context" => "auto"
-            ]
-        ];
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT * FROM gateways WHERE is_active=1");
+                $source_ips = $stmt->fetchAll();
+            } catch (Exception $e) {}
+        }
+        if (empty($source_ips)) {
+            $raw_sip = trim($d["source_ip"] ?? "192.168.1.13");
+            $source_ips = [
+                [
+                    "id" => "src-1",
+                    "ip" => $raw_sip ?: "192.168.1.13",
+                    "label" => "Default Inbound Gateway",
+                    "prefix" => "444453, 619334221",
+                    "country_code" => "",
+                    "context" => "auto"
+                ]
+            ];
+        }
     }
 
     $clean_ips = [];
@@ -308,7 +317,7 @@ if ($a === "save-inbound") {
         done(["ok" => false, "error" => "Failed to write inbound configuration: " . $so], 500);
     }
 
-    done(["ok" => true, "message" => "Saved " . count($clean_ips) . " allowed Source IP(s) to database and updated Asterisk dialplan."]);
+    done(["ok" => true, "message" => "Saved " . count($clean_ips) . " Source IP(s) & duration limits (testcall: {$dur1}s, testcall2: {$dur2}s) to database and updated Asterisk dialplan."]);
 }
 
 // 4. START / STOP

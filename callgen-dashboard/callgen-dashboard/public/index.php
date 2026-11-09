@@ -452,6 +452,22 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       font-weight: 650;
       border-radius: 6px;
     }
+    .preset-pill {
+      background: #F2F4F7;
+      color: #344054;
+      border: 1px solid #D0D5DD;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-pill:hover {
+      background: #E4E7EC;
+      border-color: #98A2B3;
+      color: #1D2939;
+    }
     .config-single-wrap {
       max-width: 680px;
       margin: 0 auto 24px auto;
@@ -966,6 +982,73 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <button type="button" class="btn btn-sage btn-sm" onclick="openAddSourceIpModal()">
               + Add Allowed Source IP
             </button>
+          </div>
+        </div>
+
+        <!-- Inbound Context Duration Limits Control -->
+        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+                ⏱ Inbound Context Call Duration Limits
+              </span>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                Maximum call timeout (in seconds) for incoming breakout routes in Asterisk dialplan
+              </div>
+            </div>
+            <button type="button" class="btn btn-sage btn-sm" id="btn-save-durations" onclick="saveContextDurations()" style="padding:6px 14px;font-size:12px;font-weight:700;">
+              💾 Save Duration Limits
+            </button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;">
+            <!-- [testcall] Context Duration -->
+            <div style="background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.03);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:12px;">[testcall]</span>
+                  <span style="font-size:12px;font-weight:700;color:var(--brown);">Cuba & Senegal Routes</span>
+                </div>
+                <span id="testcall-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">60s (1m)</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 45)">45s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 60)">60s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 90)">90s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 120)">2m</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 300)">5m</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 600)">10m</button>
+              </div>
+            </div>
+
+            <!-- [testcall2] Context Duration -->
+            <div style="background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;padding:14px;box-shadow:0 1px 2px rgba(16,24,40,0.03);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:12px;">[testcall2]</span>
+                  <span style="font-size:12px;font-weight:700;color:var(--brown);">Mali Route (+223)</span>
+                </div>
+                <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">50s</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 45)">45s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 50)">50s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 60)">60s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 90)">90s</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 120)">2m</button>
+                <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 300)">5m</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1765,9 +1848,81 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
+    function formatSecondsHuman(sec) {
+      sec = parseInt(sec, 10);
+      if (isNaN(sec) || sec < 0) return '0s';
+      if (sec < 60) return sec + 's';
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return s > 0 ? (m + 'm ' + s + 's') : (m + 'm');
+    }
+
+    function updateDurHuman(ctx) {
+      const input = document.getElementById('input-' + ctx + '-dur');
+      const el = document.getElementById(ctx + '-human-dur');
+      if (input && el) {
+        el.textContent = formatSecondsHuman(input.value);
+      }
+    }
+
+    function setDurPreset(ctx, seconds) {
+      const input = document.getElementById('input-' + ctx + '-dur');
+      if (input) {
+        input.value = seconds;
+        updateDurHuman(ctx);
+      }
+    }
+
+    async function saveContextDurations() {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur').value, 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur').value, 10);
+
+      if (isNaN(dur1) || dur1 < 1 || isNaN(dur2) || dur2 < 1) {
+        alert('Please enter valid positive duration limits in seconds (e.g. 60)');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-durations');
+      const originalText = btn ? btn.textContent : '💾 Save Duration Limits';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+      }
+
+      try {
+        const payload = {
+          testcall_duration: dur1,
+          testcall2_duration: dur2,
+          source_ips: currentSourceIps
+        };
+        const res = await api('save-inbound', payload);
+        addLog('[DURATIONS] ' + res.message);
+        if (btn) {
+          btn.textContent = '✓ Saved!';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }, 2000);
+        }
+        await refreshAll(true);
+      } catch (err) {
+        console.error('Failed to save durations:', err);
+        addLog('[DURATIONS] Error: ' + err.message);
+        alert('Failed to save context durations: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    }
+
     async function persistInboundSettings(notify = false) {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
       const d = {
-        source_ips: currentSourceIps
+        source_ips: currentSourceIps,
+        testcall_duration: dur1,
+        testcall2_duration: dur2
       };
 
       try {
@@ -1805,7 +1960,23 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       }
 
-      // 2. Source IPs Table
+      // 2. Context Call Duration Limits ([testcall] and [testcall2])
+      const dur1Input = document.getElementById('input-testcall-dur');
+      const dur2Input = document.getElementById('input-testcall2-dur');
+      if (dur1Input && (document.activeElement !== dur1Input || forceSync)) {
+        if (inbound.testcall_duration !== undefined && inbound.testcall_duration !== null) {
+          dur1Input.value = inbound.testcall_duration;
+          updateDurHuman('testcall');
+        }
+      }
+      if (dur2Input && (document.activeElement !== dur2Input || forceSync)) {
+        if (inbound.testcall2_duration !== undefined && inbound.testcall2_duration !== null) {
+          dur2Input.value = inbound.testcall2_duration;
+          updateDurHuman('testcall2');
+        }
+      }
+
+      // 3. Source IPs Table
       if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
         currentSourceIps = inbound.source_ips;
         renderSourceIpsTable();
