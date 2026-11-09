@@ -31,6 +31,7 @@ if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
 echo.
 echo Dashboard is now open in a local window!
 echo URL: http://localhost:3000/
-echo Default Login Password: admin
+echo Username: awais
+echo Password: dancom
 echo.
 
