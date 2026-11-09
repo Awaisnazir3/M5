@@ -540,7 +540,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       gap: 8px;
     }
 
-    /* Destination Routes Row Table */
+    /* Destination Routes Row Table - Enterprise Polish */
     .routes-table {
       width: 100%;
       border-collapse: collapse;
@@ -548,37 +548,96 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       text-align: left;
     }
     .routes-table th {
-      background: #F8F9FA;
-      color: #667085;
+      background: #F9FAFB;
+      color: #475467;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 12px 16px;
+      letter-spacing: 0.6px;
+      padding: 13px 18px;
       border-bottom: 1px solid #EAECF0;
       white-space: nowrap;
       vertical-align: middle;
     }
     .routes-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #EAECF0;
+      padding: 15px 18px;
+      border-bottom: 1px solid #F2F4F7;
       vertical-align: middle;
-      color: var(--brown);
+      color: #101828;
     }
     .routes-table tbody tr {
       transition: background 0.15s ease;
     }
     .routes-table tbody tr:hover {
-      background: #F9FAFB;
+      background: #FAFAFB;
     }
     .routes-table tbody tr:last-child td {
       border-bottom: none;
     }
+
+    /* Clean Enterprise Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .status-pill.active {
+      background: #ECFDF3;
+      color: #027A48;
+      border: 1px solid #A6F4C5;
+    }
+    .status-pill.standby {
+      background: #F2F4F7;
+      color: #344054;
+      border: 1px solid #D0D5DD;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .status-pill.active .dot {
+      background: #12B76A;
+      box-shadow: 0 0 0 2px rgba(18, 183, 106, 0.2);
+    }
+    .status-pill.standby .dot {
+      background: #98A2B3;
+    }
+
+    /* Context Tech Tag */
+    .ctx-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .ctx-pill.testcall {
+      background: #EFF8FF;
+      color: #175CD3;
+      border: 1px solid #B2DDFF;
+    }
+    .ctx-pill.testcall2 {
+      background: #FDF2FA;
+      color: #C11574;
+      border: 1px solid #FCCEEE;
+    }
+
     .btn-action-group {
       display: inline-flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 8px;
       white-space: nowrap;
     }
 
@@ -987,33 +1046,36 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
   </header>
 
   <main class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title">
-          <span>Destination Traffic Routes</span>
+    <!-- Destination Traffic Routes Section Card -->
+    <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;box-shadow:0 1px 3px rgba(16,24,40,0.06);margin-bottom:24px;overflow:hidden;">
+      <!-- Title & Bulk Controls Bar -->
+      <div style="padding:16px 20px;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:24px;">🌐</span>
+          <div>
+            <h2 style="font-size:16px;font-weight:800;color:#101828;margin:0;">Destination Traffic Routes</h2>
+            <div style="font-size:12px;color:#667085;margin-top:2px;">
+              Live Asterisk SIP generation channels, quota monitoring & engine control
+            </div>
+          </div>
         </div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">
-          Live Asterisk channels & quota monitoring
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-sage btn-sm" onclick="startAll()" style="font-weight:700;padding:7px 14px;">▶ Start All Trunks</button>
+          <button class="btn btn-red btn-sm" onclick="stopAll()" style="font-weight:700;padding:7px 14px;">⏹ Stop All Trunks</button>
+          <button class="btn btn-outline btn-sm" onclick="hangupAll()" style="color:#D92D20;border-color:#FDA29B;background:#FFFFFF;font-weight:700;padding:7px 14px;" title="Hangup active calls across all routes">🛑 Hangup All Calls</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
-        <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
-        <button class="btn btn-outline btn-sm" onclick="hangupAll()" style="color:var(--red);border-color:#FECDCA;font-weight:700;" title="Hangup active calls across all routes">🛑 Hangup All Calls</button>
-      </div>
-    </div>
 
-    <!-- Destination Traffic Routes Row Table -->
-    <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;box-shadow:0 1px 3px rgba(16,24,40,0.06);overflow:hidden;margin-bottom:24px;">
+      <!-- Table Body -->
       <div style="overflow-x:auto;">
         <table class="routes-table">
           <thead>
             <tr>
-              <th style="min-width:180px;">Destination Route</th>
-              <th style="min-width:130px;">Status & Context</th>
-              <th style="min-width:145px;">Channels (Live / Max)</th>
-              <th style="min-width:220px;">Monthly Minutes Quota</th>
-              <th style="min-width:160px;">Target & Routing</th>
+              <th style="min-width:210px;">Destination Route</th>
+              <th style="min-width:110px;">Status</th>
+              <th style="min-width:150px;">Live Channels</th>
+              <th style="min-width:230px;">Monthly Minutes Quota</th>
+              <th style="min-width:170px;">Target & Routing</th>
               <th style="min-width:240px;text-align:right;">Actions</th>
             </tr>
           </thead>
@@ -1611,37 +1673,33 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       tr.innerHTML = `
         <!-- 1. Destination Route -->
         <td>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="flag-badge" id="flag-${id}" style="font-size:11px;padding:3px 7px;">${flagCode}</span>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="flag-badge" id="flag-${id}" style="font-size:12px;font-weight:800;padding:4px 8px;border-radius:6px;background:#F2F4F7;color:#344054;">${flagCode}</span>
             <div>
-              <div style="display:flex;align-items:center;gap:6px;">
-                <span style="font-weight:800;font-size:14px;color:var(--brown);" id="tbl-name-${id}">${routeName}</span>
-                <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')" style="font-size:12px;opacity:0.85;">⚙️</button>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:750;font-size:14px;color:var(--brown);" id="tbl-name-${id}">${routeName}</span>
+                <span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span>
               </div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:2px;" id="tbl-script-${id}">
+              <div style="font-size:11.5px;color:var(--muted);font-family:monospace;margin-top:2px;" id="tbl-script-${id}">
                 ${scriptName}
               </div>
             </div>
           </div>
         </td>
 
-        <!-- 2. Status & Context -->
+        <!-- 2. Status -->
         <td>
-          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
-            <span id="badge-${id}" class="trunk-status ${t.running ? 'status-running' : 'status-stopped'}" style="font-size:11px;padding:3px 8px;">
-              ${t.running ? '● ACTIVE' : '○ STANDBY'}
-            </span>
-            <span style="font-size:10.5px;font-weight:700;color:#2D6A28;background:#EBF5EA;padding:1px 6px;border-radius:4px;font-family:monospace;" id="tbl-ctx-${id}">
-              [${ctxName}]
-            </span>
-          </div>
+          <span id="badge-${id}" class="status-pill ${t.running ? 'active' : 'standby'}">
+            <span class="dot"></span>
+            <span>${t.running ? 'Active' : 'Standby'}</span>
+          </span>
         </td>
 
-        <!-- 3. Channels (Live / Max) -->
+        <!-- 3. Live Channels -->
         <td>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <div style="font-weight:800;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)'};" id="active-txt-${id}">
-              ${activeCalls} <span style="font-size:11.5px;font-weight:600;color:var(--muted);">/ ${maxChan} ch</span>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="font-weight:750;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)'};" id="active-txt-${id}">
+              ${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>
             </div>
             <div style="width:110px;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
               <div id="chan-bar-${id}" style="width:${chanPct}%;height:100%;background:${chanPct > 80 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
@@ -1651,19 +1709,19 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
         <!-- 4. Monthly Minutes Quota -->
         <td>
-          <div style="display:flex;flex-direction:column;gap:3px;max-width:240px;">
+          <div style="display:flex;flex-direction:column;gap:4px;max-width:220px;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;">
-              <span style="font-weight:800;font-size:13px;color:var(--brown);" id="used-min-${id}">
-                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:10.5px;font-weight:600;color:var(--muted);">min</span>
+              <span style="font-weight:750;font-size:13px;color:var(--brown);" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--muted);">min</span>
               </span>
-              <span style="font-size:11px;font-weight:700;color:${pct > 90 ? 'var(--red)' : 'var(--sage-dark)'};" id="limit-pct-${id}">
+              <span style="font-size:11px;font-weight:700;color:${pct > 90 ? 'var(--red)' : 'var(--sage-dark)'};background:${pct > 90 ? '#FEF3F2' : '#F2F4F7'};padding:1px 6px;border-radius:4px;" id="limit-pct-${id}">
                 ${pct}% used
               </span>
             </div>
             <div style="width:100%;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
               <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
-            <div style="font-size:10.5px;color:var(--muted);margin-top:1px;" id="limit-txt-${id}">
+            <div style="font-size:11px;color:var(--muted);" id="limit-txt-${id}">
               Monthly Limit: <b>${limitMin.toLocaleString()}</b> min
             </div>
           </div>
@@ -1672,12 +1730,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         <!-- 5. Target & Routing -->
         <td>
           <div style="display:flex;flex-direction:column;gap:2px;">
-            <div style="font-family:monospace;font-size:12px;font-weight:700;color:var(--brown);" id="disp-ip-${id}">
+            <div style="font-family:monospace;font-size:12.5px;font-weight:700;color:var(--brown);" id="disp-ip-${id}">
               ${t.target_ip || '-'}
             </div>
-            <div style="font-size:11px;color:var(--muted);" id="disp-routing-${id}">
+            <div style="font-size:11.5px;color:var(--muted);" id="disp-routing-${id}">
               <span>+${t.country_code || '-'}</span> 
-              <span style="font-family:monospace;font-weight:700;color:var(--sage-dark);" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
+              <span style="font-family:monospace;font-weight:600;color:#344054;" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
             </div>
           </div>
         </td>
@@ -1685,15 +1743,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         <!-- 6. Actions (Config Gear, Start/Stop Route, Hangup Route) -->
         <td style="text-align:right;">
           <div class="btn-action-group">
-            <button type="button" class="btn btn-outline btn-sm" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings" style="padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings" style="padding:5px 11px;font-size:11.5px;font-weight:600;">
               ⚙️ Config
             </button>
             <span id="actions-${id}">
-              <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:6px 12px;font-size:12px;font-weight:700;min-width:78px;">
+              <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:5px 12px;font-size:11.5px;font-weight:700;min-width:74px;">
                 ${t.running ? '⏹ Stop' : '▶ Start'}
               </button>
             </span>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')" title="Terminate all live calls on ${routeName} route" style="padding:6px 11px;font-size:12px;font-weight:700;color:var(--red);border-color:#FECDCA;display:inline-flex;align-items:center;gap:4px;">
+            <button type="button" class="btn btn-outline btn-sm" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')" title="Terminate all live calls on ${routeName} route" style="padding:5px 11px;font-size:11.5px;font-weight:600;color:var(--red);border-color:#FECDCA;">
               🛑 Hangup
             </button>
           </div>
@@ -1729,20 +1787,23 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const badgeEl = document.getElementById('badge-' + id);
         if (badgeEl) {
           if (t.running) {
-            badgeEl.className = 'trunk-status status-running';
-            badgeEl.textContent = '● ACTIVE';
+            badgeEl.className = 'status-pill active';
+            badgeEl.innerHTML = '<span class="dot"></span><span>Active</span>';
           } else {
-            badgeEl.className = 'trunk-status status-stopped';
-            badgeEl.textContent = '○ STANDBY';
+            badgeEl.className = 'status-pill standby';
+            badgeEl.innerHTML = '<span class="dot"></span><span>Standby</span>';
           }
         }
         const tblCtx = document.getElementById('tbl-ctx-' + id);
-        if (tblCtx) tblCtx.textContent = `[${ctxName}]`;
+        if (tblCtx) {
+          tblCtx.className = `ctx-pill ${ctxName}`;
+          tblCtx.textContent = `[${ctxName}]`;
+        }
 
         // 3. Channels count & utilization bar
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:600;color:var(--muted);">/ ${maxChan} ch</span>`;
+          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>`;
           activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
         }
         const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
@@ -1758,13 +1819,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
 
         const usedMinEl = document.getElementById('used-min-' + id);
-        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:10.5px;font-weight:600;color:var(--muted);">min</span>`;
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--muted);">min</span>`;
         const limitTxtEl = document.getElementById('limit-txt-' + id);
         if (limitTxtEl) limitTxtEl.innerHTML = `Monthly Limit: <b>${limitMin.toLocaleString()}</b> min`;
         const limitPctEl = document.getElementById('limit-pct-' + id);
         if (limitPctEl) {
           limitPctEl.textContent = `${pct}% used`;
           limitPctEl.style.color = pct > 90 ? 'var(--red)' : 'var(--sage-dark)';
+          limitPctEl.style.background = pct > 90 ? '#FEF3F2' : '#F2F4F7';
         }
         const progBarEl = document.getElementById('prog-bar-' + id);
         if (progBarEl) {
@@ -1782,7 +1844,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
           actionsDiv.innerHTML = `
-            <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:6px 12px;font-size:11.5px;font-weight:700;min-width:78px;">
+            <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:5px 12px;font-size:11.5px;font-weight:700;min-width:74px;">
               ${t.running ? '⏹ Stop' : '▶ Start'}
             </button>
           `;
