@@ -66,12 +66,23 @@ sudo ./setup_asterisk.sh
 - Deploy the Web Portal (`index.php`) to `/var/www/html/callgen`.
 - Generate inbound security rules and reload Asterisk.
 
-#### Case B: If Asterisk is ALREADY installed on the server
+#### Case B: If Asterisk is ALREADY installed on the server (Recommended for Existing Asterisk)
 If Asterisk is already present on your server, simply run:
 ```bash
 chmod +x deploy.sh callgen-dashboard/callgen-dashboard/deploy.sh callgen-dashboard/callgen-dashboard/bin/*
 sudo ./deploy.sh
 ```
+*This updated script automatically:*
+- Backs up your existing Asterisk configs to `.orig.bak`.
+- Deploys our production `pjsip.conf`, `extensions.conf`, `cdr.conf`, and `cdr_sqlite3_custom.conf` directly to `/etc/asterisk/`.
+- Creates placeholder include files (`pjsip_inbound.conf`, `extensions_inbound.conf`).
+- Sets up system user `asterisk`, group permissions, and shared access with `apache`/`www-data`.
+- Installs Apache, PHP, SQLite, and Python3 dependencies.
+- Initializes `/var/lib/callgen/callgen.db` and symlinks `/var/log/asterisk/master.db`.
+- Configures Apache `callgen.conf` to prevent 403 Forbidden errors.
+- Sets up passwordless and TTY-free sudo permissions for the Web UI.
+- Installs systemd services for Asterisk and all 3 routes (Cuba, Senegal, Mali).
+- Generates dynamic inbound gateway isolation rules and automatically reloads Asterisk (`pjsip reload`, `dialplan reload`, `cdr reload`).
 
 ---
 

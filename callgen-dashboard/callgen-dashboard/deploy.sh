@@ -2,7 +2,7 @@
 # ==============================================================================
 # M5-Traffic Controller - Production Deployment Script
 # VoIP Smart Switch Installation for Rocky Linux / AlmaLinux / CentOS / Debian / Ubuntu
-# Manages Cuba, Senegal, and Mali Call Generation Routes
+# Manages Cuba, Senegal, and Mali Call Generation Routes & Asterisk PJSIP Engine
 # ==============================================================================
 
 set -euo pipefail
@@ -13,7 +13,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "=== Installing M5-Traffic Controller from ${SCRIPT_DIR} ==="
+echo "=== Installing / Updating M5-Traffic Controller from ${SCRIPT_DIR} ==="
 
 # 0. SELinux handling (prevent Apache/sudo permission blocks on RHEL/Rocky)
 if command -v setenforce >/dev/null 2>&1; then
@@ -23,19 +23,61 @@ if command -v setenforce >/dev/null 2>&1; then
     fi
 fi
 
-# Ensure Web Server, PHP, and FastCGI Process Manager are installed
+# 1. Asterisk Binary & User Detection / Configuration
+echo "--- Checking Asterisk Installation ---"
+AST_BIN="$(command -v asterisk 2>/dev/null || echo '')"
+if [ -z "$AST_BIN" ]; then
+    for candidate in /usr/sbin/asterisk /usr/local/sbin/asterisk /usr/bin/asterisk; do
+        if [ -x "$candidate" ]; then
+            AST_BIN="$candidate"
+            break
+        fi
+    done
+fi
+
+if [ -n "$AST_BIN" ]; then
+    echo "Found Asterisk at: ${AST_BIN} ($($AST_BIN -V 2>/dev/null || echo 'installed'))"
+    # Ensure standard binary symlinks so all scripts and systemd find asterisk
+    if [ "$AST_BIN" != "/usr/sbin/asterisk" ] && [ ! -f /usr/sbin/asterisk ]; then
+        ln -sfn "$AST_BIN" /usr/sbin/asterisk 2>/dev/null || true
+    fi
+    if [ "$AST_BIN" != "/usr/local/sbin/asterisk" ] && [ ! -f /usr/local/sbin/asterisk ]; then
+        ln -sfn "$AST_BIN" /usr/local/sbin/asterisk 2>/dev/null || true
+    fi
+else
+    echo "Notice: Asterisk binary not yet found in PATH. Expected in /usr/sbin/asterisk or /usr/local/sbin/asterisk."
+fi
+
+# Ensure asterisk system user and group exist
+if ! id -u asterisk >/dev/null 2>&1; then
+    echo "Creating asterisk system user and group..."
+    groupadd -r asterisk 2>/dev/null || true
+    useradd -r -g asterisk -d /var/lib/asterisk -s /sbin/nologin -c "Asterisk PBX" asterisk 2>/dev/null || \
+    useradd -m -d /var/lib/asterisk -s /sbin/nologin asterisk 2>/dev/null || true
+fi
+
+# Ensure Asterisk systemd unit file is present
+if [ -f "${SCRIPT_DIR}/systemd/asterisk.service" ]; then
+    if [ ! -f /etc/systemd/system/asterisk.service ] && [ ! -f /lib/systemd/system/asterisk.service ] && [ ! -f /usr/lib/systemd/system/asterisk.service ]; then
+        echo "Installing asterisk.service unit..."
+        install -m 644 "${SCRIPT_DIR}/systemd/asterisk.service" /etc/systemd/system/asterisk.service
+        systemctl daemon-reload
+    fi
+fi
+
+# 2. Ensure Web Server, PHP, SQLite, and Python3 are installed
+echo "--- Installing Apache, PHP, SQLite, and Python3 dependencies ---"
 if command -v dnf >/dev/null 2>&1; then
-    echo "Installing Apache, PHP-FPM, SQLite, and Python3..."
+    dnf install -y httpd php php-fpm php-pdo php-sqlite3 php-json php-cli python3 sqlite 2>/dev/null || \
     dnf install -y httpd php php-fpm php-pdo php-json python3 sqlite 2>/dev/null || true
     systemctl enable --now httpd php-fpm 2>/dev/null || true
 elif command -v apt-get >/dev/null 2>&1; then
-    echo "Installing Apache, PHP-FPM, SQLite, and Python3..."
     apt-get update -y 2>/dev/null || true
-    apt-get install -y apache2 php php-fpm php-sqlite3 php-json python3 sqlite3 2>/dev/null || true
+    apt-get install -y apache2 libapache2-mod-php php php-fpm php-sqlite3 php-json php-cli python3 sqlite3 2>/dev/null || true
     systemctl enable --now apache2 2>/dev/null || true
 fi
 
-# 1. Detect Web User (apache or www-data)
+# Detect Web User (apache or www-data)
 if id -u apache >/dev/null 2>&1; then
     WEB_USER="apache"
 elif id -u www-data >/dev/null 2>&1; then
@@ -44,19 +86,21 @@ elif id -u nginx >/dev/null 2>&1; then
     WEB_USER="nginx"
 else
     WEB_USER="apache"
-    echo "Notice: Could not automatically detect web user; defaulting to '${WEB_USER}'."
 fi
 echo "Detected web user: ${WEB_USER}"
 
-# 2. Install Binaries and Database
-echo "Installing route generation scripts and database module..."
+# Add asterisk and web user to each other's groups for SQLite & spool sharing
+usermod -a -G asterisk "${WEB_USER}" 2>/dev/null || true
+usermod -a -G "${WEB_USER}" asterisk 2>/dev/null || true
+
+# 3. Install Binaries and Database
+echo "--- Installing route generation scripts and database module ---"
 mkdir -p /var/lib/callgen
-chown -R asterisk:${WEB_USER} /var/lib/callgen 2>/dev/null || true
+chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
 chmod 2775 /var/lib/callgen 2>/dev/null || true
 
-install -m 750 "${SCRIPT_DIR}/bin/callgen_db.py" /usr/local/sbin/callgen_db.py
-mkdir -p /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.6/site-packages /usr/local/lib/python3.11/site-packages 2>/dev/null || true
-for pydir in /usr/local/lib/python3.*/site-packages; do
+install -m 755 "${SCRIPT_DIR}/bin/callgen_db.py" /usr/local/sbin/callgen_db.py
+for pydir in /usr/local/lib/python3.*/site-packages /usr/lib/python3.*/site-packages; do
     if [ -d "$pydir" ]; then
         ln -sfn /usr/local/sbin/callgen_db.py "$pydir/callgen_db.py" 2>/dev/null || true
     fi
@@ -65,55 +109,75 @@ done
 # Initialize SQLite schema and CDR symlink
 python3 /usr/local/sbin/callgen_db.py init 2>/dev/null || true
 chmod 666 /var/lib/callgen/callgen.db* 2>/dev/null || true
+chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
 
-if [ -d /var/log/asterisk ]; then
-    ln -sfn /var/lib/callgen/callgen.db /var/log/asterisk/master.db 2>/dev/null || true
-    chown -h asterisk:asterisk /var/log/asterisk/master.db 2>/dev/null || true
-fi
-
-# Ensure Asterisk base configs exist
-if [ -d /etc/asterisk ]; then
-    if [ ! -f /etc/asterisk/pjsip.conf ] && [ -f "${SCRIPT_DIR}/asterisk/pjsip.conf" ]; then
-        cp "${SCRIPT_DIR}/asterisk/pjsip.conf" /etc/asterisk/pjsip.conf
-    fi
-    if [ ! -f /etc/asterisk/extensions.conf ] && [ -f "${SCRIPT_DIR}/asterisk/extensions.conf" ]; then
-        cp "${SCRIPT_DIR}/asterisk/extensions.conf" /etc/asterisk/extensions.conf
-    fi
-    if [ -f "${SCRIPT_DIR}/asterisk/cdr.conf" ]; then
-        cp "${SCRIPT_DIR}/asterisk/cdr.conf" /etc/asterisk/cdr.conf 2>/dev/null || true
-    fi
-    if [ -f "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" ]; then
-        cp "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
-    elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
-        cp "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf 2>/dev/null || true
-    fi
-    chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
-fi
+mkdir -p /var/log/asterisk /var/log/asterisk/cdr-csv
+ln -sfn /var/lib/callgen/callgen.db /var/log/asterisk/master.db 2>/dev/null || true
+chown -h asterisk:asterisk /var/log/asterisk/master.db 2>/dev/null || true
+chown -R asterisk:asterisk /var/log/asterisk 2>/dev/null || true
 
 # Spool and temporary call directories
-mkdir -p /var/spool/asterisk/outgoing /tmp/asterisk_calls_cuba /tmp/asterisk_calls_senegal /tmp/asterisk_calls_mali /var/log/asterisk/cdr-csv
+mkdir -p /var/spool/asterisk/outgoing /tmp/asterisk_calls_cuba /tmp/asterisk_calls_senegal /tmp/asterisk_calls_mali
 chmod 777 /var/spool/asterisk/outgoing /tmp/asterisk_calls_* 2>/dev/null || true
-chown -R asterisk:asterisk /var/spool/asterisk /var/log/asterisk 2>/dev/null || true
+chown -R asterisk:asterisk /var/spool/asterisk 2>/dev/null || true
 
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_callgen.sh
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen3.sh" /usr/local/bin/asterisk_callgen3.sh
 install -m 755 "${SCRIPT_DIR}/bin/callgen-control" /usr/local/sbin/callgen-control
+ln -sfn /usr/local/sbin/callgen-control /usr/local/bin/callgen-control 2>/dev/null || true
+ln -sfn /usr/local/sbin/callgen-control /usr/bin/callgen-control 2>/dev/null || true
 if [ -f "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" ]; then
     install -m 755 "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" /usr/local/sbin/callgen-sync-inbound.py
 fi
 
-# 3. Install Systemd Services
-echo "Installing systemd services for all 3 routes..."
+# 4. Deploy Asterisk Configurations (Forced copy + backup)
+echo "--- Deploying Asterisk PJSIP, Dialplan, and CDR configurations ---"
+mkdir -p /etc/asterisk
+
+# Backup existing configs once if not backed up yet
+for cfg in pjsip.conf extensions.conf cdr.conf cdr_sqlite3_custom.conf; do
+    if [ -f "/etc/asterisk/$cfg" ] && [ ! -f "/etc/asterisk/${cfg}.orig.bak" ]; then
+        cp "/etc/asterisk/$cfg" "/etc/asterisk/${cfg}.orig.bak" 2>/dev/null || true
+    fi
+done
+
+if [ -f "${SCRIPT_DIR}/asterisk/pjsip.conf" ]; then
+    echo "  -> Deploying /etc/asterisk/pjsip.conf"
+    cp -f "${SCRIPT_DIR}/asterisk/pjsip.conf" /etc/asterisk/pjsip.conf
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/extensions.conf" ]; then
+    echo "  -> Deploying /etc/asterisk/extensions.conf"
+    cp -f "${SCRIPT_DIR}/asterisk/extensions.conf" /etc/asterisk/extensions.conf
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/cdr.conf" ]; then
+    echo "  -> Deploying /etc/asterisk/cdr.conf"
+    cp -f "${SCRIPT_DIR}/asterisk/cdr.conf" /etc/asterisk/cdr.conf
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" ]; then
+    echo "  -> Deploying /etc/asterisk/cdr_sqlite3_custom.conf"
+    cp -f "${SCRIPT_DIR}/asterisk/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf
+elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
+    echo "  -> Deploying /etc/asterisk/cdr_sqlite3_custom.conf"
+    cp -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" /etc/asterisk/cdr_sqlite3_custom.conf
+fi
+
+# Ensure include files exist with proper permissions before Asterisk reads them
+touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf
+chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
+chmod 644 /etc/asterisk/*.conf 2>/dev/null || true
+
+# 5. Install Systemd Services for Call Generators
+echo "--- Installing systemd services for Cuba, Senegal, and Mali routes ---"
 install -m 644 "${SCRIPT_DIR}/systemd/asterisk-callgen-cuba.service" /etc/systemd/system/
 install -m 644 "${SCRIPT_DIR}/systemd/asterisk-callgen-senegal.service" /etc/systemd/system/
 install -m 644 "${SCRIPT_DIR}/systemd/asterisk-callgen-mali.service" /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable asterisk-callgen-cuba.service
-systemctl enable asterisk-callgen-senegal.service
-systemctl enable asterisk-callgen-mali.service
+systemctl enable asterisk-callgen-cuba.service 2>/dev/null || true
+systemctl enable asterisk-callgen-senegal.service 2>/dev/null || true
+systemctl enable asterisk-callgen-mali.service 2>/dev/null || true
 
-# 4. Initialize Config Files matching production working server
+# 6. Initialize Trunk Config Files
 TRUNKS=("mali" "cuba" "senegal")
 declare -A DEFAULT_IPS=( ["mali"]="192.168.1.210" ["cuba"]="192.168.1.210" ["senegal"]="178.22.15.201" )
 declare -A DEFAULT_PREFIX=( ["mali"]="" ["cuba"]="4444" ["senegal"]="619334" )
@@ -144,12 +208,8 @@ for t in "${TRUNKS[@]}"; do
 }
 EOF
     fi
-    if id -u asterisk >/dev/null 2>&1; then
-        chown root:asterisk "$CONF"
-        chmod 640 "$CONF"
-    else
-        chmod 644 "$CONF"
-    fi
+    chown root:asterisk "$CONF" 2>/dev/null || true
+    chmod 664 "$CONF" 2>/dev/null || true
 done
 
 # Initialize Inbound Configuration if not present
@@ -176,62 +236,124 @@ if [ ! -f "$INBOUND_CONF" ]; then
 }
 EOF
     chmod 664 "$INBOUND_CONF"
-    if id -g "${WEB_USER}" >/dev/null 2>&1; then
-        chown root:"${WEB_USER}" "$INBOUND_CONF"
-    fi
+    chown root:"${WEB_USER}" "$INBOUND_CONF" 2>/dev/null || true
 fi
 
 # Sync configs into SQLite database
 python3 /usr/local/sbin/callgen_db.py seed 2>/dev/null || true
 
+# Generate inbound PJSIP endpoints and dialplan rules
 if [ -x /usr/local/sbin/callgen-sync-inbound.py ]; then
     /usr/local/sbin/callgen-sync-inbound.py || true
-    if command -v asterisk >/dev/null 2>&1 && systemctl is-active --quiet asterisk 2>/dev/null; then
-        asterisk -rx "core reload" 2>/dev/null || true
-    fi
 fi
 
-# 5. Deploy Web Dashboard (STRICTLY index.php, remove any index.html)
+# 7. Start / Restart Asterisk & Apply All Configurations
+echo "--- Starting and Applying Asterisk Configurations ---"
+if systemctl list-unit-files 2>/dev/null | grep -q "^asterisk\.service" || [ -f /etc/systemd/system/asterisk.service ]; then
+    systemctl daemon-reload
+    systemctl enable asterisk 2>/dev/null || true
+    systemctl restart asterisk 2>/dev/null || true
+elif command -v asterisk >/dev/null 2>&1; then
+    asterisk -rx "core reload" 2>/dev/null || true
+fi
+
+# Wait briefly for Asterisk socket
+sleep 2
+
+if command -v asterisk >/dev/null 2>&1; then
+    echo "Applying live reload to Asterisk..."
+    asterisk -rx "core reload" 2>/dev/null || true
+    asterisk -rx "module reload cdr_sqlite3_custom.so" 2>/dev/null || true
+    asterisk -rx "pjsip reload" 2>/dev/null || true
+    asterisk -rx "dialplan reload" 2>/dev/null || true
+    asterisk -rx "cdr reload" 2>/dev/null || true
+fi
+
+# 8. Deploy Web Dashboard (STRICTLY index.php, remove any index.html)
 WEB_ROOT="/var/www/html/callgen"
-echo "Deploying M5-Traffic Controller Web UI to ${WEB_ROOT}..."
+echo "--- Deploying Web UI to ${WEB_ROOT} ---"
 mkdir -p "$WEB_ROOT"
-# Remove legacy index.html so Apache serves index.php
 rm -f "$WEB_ROOT/index.html"
 cp -r "${SCRIPT_DIR}/public/"* "$WEB_ROOT/"
 rm -f "$WEB_ROOT/index.html"
-# Ensure Apache DirectoryIndex prioritizes index.php
 cat > "$WEB_ROOT/.htaccess" <<EOF
 DirectoryIndex index.php
 EOF
 chown -R "${WEB_USER}:${WEB_USER}" "$WEB_ROOT"
 chmod -R 755 "$WEB_ROOT"
 
-# 6. Sudoers Configuration
+# Ensure Apache DirectoryIndex and permissions are configured globally
+if [ -d /etc/httpd/conf.d ]; then
+    cat > /etc/httpd/conf.d/callgen.conf <<EOF
+<Directory "$WEB_ROOT">
+    Options -Indexes +FollowSymLinks
+    DirectoryIndex index.php
+    AllowOverride All
+    Require all granted
+</Directory>
+EOF
+    systemctl restart httpd php-fpm 2>/dev/null || true
+elif [ -d /etc/apache2/conf-available ]; then
+    cat > /etc/apache2/conf-available/callgen.conf <<EOF
+<Directory "$WEB_ROOT">
+    Options -Indexes +FollowSymLinks
+    DirectoryIndex index.php
+    AllowOverride All
+    Require all granted
+</Directory>
+EOF
+    a2enconf callgen 2>/dev/null || true
+    a2enmod rewrite 2>/dev/null || true
+    systemctl restart apache2 2>/dev/null || true
+fi
+
+# 9. Sudoers Configuration (Allow Web User to manage switch)
 SUDOERS_FILE="/etc/sudoers.d/callgen-dashboard"
-echo "Configuring sudoers permissions..."
+echo "--- Configuring sudoers permissions ---"
 cat > "$SUDOERS_FILE" <<EOF
-${WEB_USER} ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+Defaults:apache !requiretty
+Defaults:www-data !requiretty
+Defaults:nginx !requiretty
+apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
 EOF
 chmod 440 "$SUDOERS_FILE"
-
 if command -v visudo >/dev/null 2>&1; then
     visudo -cf "$SUDOERS_FILE"
+fi
+
+# 10. Firewall Configuration
+if command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld 2>/dev/null; then
+    echo "--- Configuring firewall (firewalld) ---"
+    firewall-cmd --permanent --add-service=http 2>/dev/null || true
+    firewall-cmd --permanent --add-service=https 2>/dev/null || true
+    firewall-cmd --permanent --add-port=5060/udp 2>/dev/null || true
+    firewall-cmd --permanent --add-port=10000-20000/udp 2>/dev/null || true
+    firewall-cmd --reload 2>/dev/null || true
+elif command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
+    echo "--- Configuring firewall (ufw) ---"
+    ufw allow http 2>/dev/null || true
+    ufw allow https 2>/dev/null || true
+    ufw allow 5060/udp 2>/dev/null || true
+    ufw allow 10000:20000/udp 2>/dev/null || true
 fi
 
 echo ""
 echo "=================================================================="
 echo " M5-Traffic Controller Installation Complete!"
 echo "=================================================================="
+echo " Asterisk Version : $(asterisk -V 2>/dev/null || echo 'Running')"
 echo " Credentials:"
 echo "   Username: awais"
 echo "   Password: dancom"
 echo ""
 echo " Management CLI:"
-echo "   /usr/local/sbin/callgen-control status"
-echo "   /usr/local/sbin/callgen-control start all"
-echo "   /usr/local/sbin/callgen-control stop cuba"
-echo "   /usr/local/sbin/callgen-control hangup all"
+echo "   callgen-control status all"
+echo "   callgen-control start all"
+echo "   callgen-control stop all"
+echo "   callgen-control hangup all"
 echo ""
 echo " Web UI:"
-echo "   http://<your-server-ip>/callgen/"
+echo "   http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo '<your-server-ip>')/callgen/"
 echo "=================================================================="

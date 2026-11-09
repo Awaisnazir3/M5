@@ -6,6 +6,7 @@
 
 set -euo pipefail
 
+AST="$(command -v asterisk 2>/dev/null || echo '/usr/sbin/asterisk')"
 CMD="${1:-status}"
 TRUNK="${2:-all}"
 
@@ -85,21 +86,21 @@ case "$CMD" in
             rm -f /var/spool/asterisk/outgoing/callgen_* /var/spool/asterisk/outgoing/*_callgen_* /tmp/callgen_* || true
             for t in "${TRUNKS[@]}"; do
                 rm -f /var/spool/asterisk/outgoing/${t}_* /tmp/${t}_* || true
-                /usr/sbin/asterisk -rx "channel request hangup /^PJSIP\/${t}-trunk/" || true
+                "$AST" -rx "channel request hangup /^PJSIP\/${t}-trunk/" || true
             done
-            chs=$(/usr/sbin/asterisk -rx "core show channels concise" 2>/dev/null | cut -d'!' -f1 || true)
+            chs=$("$AST" -rx "core show channels concise" 2>/dev/null | cut -d'!' -f1 || true)
             for c in $chs; do
                 if echo "$c" | grep -qE "PJSIP/(mali|cuba|senegal)-trunk"; then
-                    /usr/sbin/asterisk -rx "channel request hangup $c" 2>/dev/null || true
+                    "$AST" -rx "channel request hangup $c" 2>/dev/null || true
                 fi
             done
             echo "Requested hangup for all active channels across all routes."
         else
             rm -f /var/spool/asterisk/outgoing/${TRUNK}_* /tmp/${TRUNK}_* /var/spool/asterisk/outgoing/*_${TRUNK}_* || true
-            out=$(/usr/sbin/asterisk -rx "channel request hangup /^PJSIP\/${TRUNK}-trunk/" 2>&1 || true)
-            chs=$(/usr/sbin/asterisk -rx "core show channels concise" 2>/dev/null | grep -E "PJSIP/${TRUNK}-trunk" | cut -d'!' -f1 || true)
+            out=$("$AST" -rx "channel request hangup /^PJSIP\/${TRUNK}-trunk/" 2>&1 || true)
+            chs=$("$AST" -rx "core show channels concise" 2>/dev/null | grep -E "PJSIP/${TRUNK}-trunk" | cut -d'!' -f1 || true)
             for c in $chs; do
-                /usr/sbin/asterisk -rx "channel request hangup $c" 2>/dev/null || true
+                "$AST" -rx "channel request hangup $c" 2>/dev/null || true
             done
             echo "Hangup signal sent to ${TRUNK} route channels. ${out}"
         fi
@@ -209,10 +210,11 @@ PY
 
     status)
         python3 - "$TRUNK" <<'PY'
-import json, subprocess, os, sys, re
+import json, subprocess, os, sys, re, shutil
 from datetime import datetime
 import callgen_db
 
+ast_bin = shutil.which('asterisk') or '/usr/sbin/asterisk'
 target_trunk = sys.argv[1] if len(sys.argv) > 1 else 'all'
 trunks = ['mali', 'cuba', 'senegal']
 
@@ -223,7 +225,7 @@ except Exception:
     pass
 
 try:
-    s = subprocess.run(['/usr/sbin/asterisk', '-rx', 'core show channels'], capture_output=True, text=True).stdout
+    s = subprocess.run([ast_bin, '-rx', 'core show channels'], capture_output=True, text=True).stdout
 except Exception:
     s = ""
 
@@ -276,7 +278,7 @@ country_records = callgen_db.get_country_records()
 # Active Inbound Channels
 active_inbound = []
 try:
-    sc = subprocess.run(['/usr/sbin/asterisk', '-rx', 'core show channels concise'], capture_output=True, text=True).stdout
+    sc = subprocess.run([ast_bin, '-rx', 'core show channels concise'], capture_output=True, text=True).stdout
     for line in sc.splitlines():
         parts = line.strip().split('!')
         if len(parts) >= 9:

@@ -9,7 +9,7 @@ set -u
 exec 200>/var/run/callgen_cuba.lock
 flock -n 200 || exit 0
 
-AST="/usr/sbin/asterisk"
+AST="$(command -v asterisk 2>/dev/null || echo '/usr/sbin/asterisk')"
 SPOOL="/var/spool/asterisk/outgoing"
 TMP_DIR="/tmp/asterisk_calls_cuba"
 CONF="/etc/callgen-cuba.json"

@@ -399,8 +399,10 @@ with open('/etc/asterisk/extensions_inbound.conf', 'w') as f:
 os.chmod('/etc/asterisk/extensions_inbound.conf', 0o644)
 
 # 7. Apply to Asterisk
-subprocess.run(['/usr/sbin/asterisk', '-rx', 'pjsip reload'], capture_output=True)
-subprocess.run(['/usr/sbin/asterisk', '-rx', 'dialplan reload'], capture_output=True)
+import shutil
+ast_bin = shutil.which('asterisk') or '/usr/sbin/asterisk'
+subprocess.run([ast_bin, '-rx', 'pjsip reload'], capture_output=True)
+subprocess.run([ast_bin, '-rx', 'dialplan reload'], capture_output=True)
 
 print(f"Synced inbound: Gateways={len(gateways)}, Authorized IPs={[g['ip'] for g in gateways]}, testcall={testcall_dur}s, testcall2={testcall2_dur}s")
 for gw in gateways:

@@ -117,11 +117,22 @@ def init_schema():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_cdr_userfield ON cdr(userfield);")
 
     # Set proper permissions for web & asterisk access
+    for ext in ['', '-wal', '-shm']:
+        f = DB_PATH + ext
+        if os.path.exists(f):
+            try:
+                os.chmod(f, 0o666)
+            except Exception:
+                pass
     try:
         import grp
-        gid = grp.getgrnam("apache").gr_gid
-        os.chown(DB_PATH, 0, gid)
-        os.chmod(DB_PATH, 0o664)
+        for gname in ['asterisk', 'apache', 'www-data', 'nginx']:
+            try:
+                gid = grp.getgrnam(gname).gr_gid
+                os.chown(DB_PATH, -1, gid)
+                break
+            except Exception:
+                continue
     except Exception:
         pass
     conn.close()

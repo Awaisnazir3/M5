@@ -36,6 +36,7 @@ if command -v dnf >/dev/null 2>&1; then
     # 2. Enable CRB (CodeReady Builder) & EPEL repos and install Web server & PHP
     echo "[2/7] Enabling CRB & EPEL repositories..."
     dnf config-manager --set-enabled crb 2>/dev/null || true
+    dnf install -y epel-release httpd php php-fpm php-pdo php-sqlite3 php-json php-cli python3 sqlite 2>/dev/null || \
     dnf install -y epel-release httpd php php-fpm php-pdo php-json python3 sqlite
     systemctl enable --now httpd php-fpm
 

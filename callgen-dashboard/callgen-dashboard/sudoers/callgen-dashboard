@@ -1,2 +1,7 @@
-# Allow apache PHP user to run callgen management utilities without password
+# Allow apache / www-data PHP user to run callgen management utilities without password or tty
+Defaults:apache !requiretty
+Defaults:www-data !requiretty
+Defaults:nginx !requiretty
 apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
