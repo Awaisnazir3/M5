@@ -80,6 +80,31 @@ case "$CMD" in
         fi
         ;;
 
+    hangup)
+        if [ "$TRUNK" = "all" ]; then
+            rm -f /var/spool/asterisk/outgoing/callgen_* /var/spool/asterisk/outgoing/*_callgen_* /tmp/callgen_* || true
+            for t in "${TRUNKS[@]}"; do
+                rm -f /var/spool/asterisk/outgoing/${t}_* /tmp/${t}_* || true
+                /usr/sbin/asterisk -rx "channel request hangup /^PJSIP\/${t}-trunk/" || true
+            done
+            chs=$(/usr/sbin/asterisk -rx "core show channels concise" 2>/dev/null | cut -d'!' -f1 || true)
+            for c in $chs; do
+                if echo "$c" | grep -qE "PJSIP/(mali|cuba|senegal)-trunk"; then
+                    /usr/sbin/asterisk -rx "channel request hangup $c" 2>/dev/null || true
+                fi
+            done
+            echo "Requested hangup for all active channels across all routes."
+        else
+            rm -f /var/spool/asterisk/outgoing/${TRUNK}_* /tmp/${TRUNK}_* /var/spool/asterisk/outgoing/*_${TRUNK}_* || true
+            out=$(/usr/sbin/asterisk -rx "channel request hangup /^PJSIP\/${TRUNK}-trunk/" 2>&1 || true)
+            chs=$(/usr/sbin/asterisk -rx "core show channels concise" 2>/dev/null | grep -E "PJSIP/${TRUNK}-trunk" | cut -d'!' -f1 || true)
+            for c in $chs; do
+                /usr/sbin/asterisk -rx "channel request hangup $c" 2>/dev/null || true
+            done
+            echo "Hangup signal sent to ${TRUNK} route channels. ${out}"
+        fi
+        ;;
+
     reload)
         /usr/local/sbin/callgen-sync-inbound.py || true
         echo "Configuration reloaded. Engine updates within 5s."

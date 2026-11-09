@@ -320,9 +320,9 @@ if ($a === "save-inbound") {
     done(["ok" => true, "message" => "Saved " . count($clean_ips) . " Source IP(s) & duration limits (testcall: {$dur1}s, testcall2: {$dur2}s) to database and updated Asterisk dialplan."]);
 }
 
-// 4. START / STOP
-if (in_array($a, ["start", "stop"], true)) {
-    $trunk = trim($d["trunk"] ?? "all");
+// 4. START / STOP / HANGUP
+if (in_array($a, ["start", "stop", "hangup"], true)) {
+    $trunk = trim($d["trunk"] ?? ($_GET["trunk"] ?? "all"));
     [$r, $o] = ctl([$a, $trunk]);
     done(["ok" => !$r, "message" => $o], $r ? 500 : 200);
 }

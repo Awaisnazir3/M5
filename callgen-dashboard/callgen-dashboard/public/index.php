@@ -540,6 +540,48 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       gap: 8px;
     }
 
+    /* Destination Routes Row Table */
+    .routes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .routes-table th {
+      background: #F8F9FA;
+      color: #667085;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #EAECF0;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .routes-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #EAECF0;
+      vertical-align: middle;
+      color: var(--brown);
+    }
+    .routes-table tbody tr {
+      transition: background 0.15s ease;
+    }
+    .routes-table tbody tr:hover {
+      background: #F9FAFB;
+    }
+    .routes-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .btn-action-group {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
     /* 3-Column Trunk Grid */
     .trunk-grid {
       display: grid;
@@ -954,12 +996,33 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           Live Asterisk channels & quota monitoring
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
         <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
+        <button class="btn btn-outline btn-sm" onclick="hangupAll()" style="color:var(--red);border-color:#FECDCA;font-weight:700;" title="Hangup active calls across all routes">🛑 Hangup All Calls</button>
       </div>
     </div>
-    <div class="trunk-grid" id="trunk-container"></div>
+
+    <!-- Destination Traffic Routes Row Table -->
+    <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;box-shadow:0 1px 3px rgba(16,24,40,0.06);overflow:hidden;margin-bottom:24px;">
+      <div style="overflow-x:auto;">
+        <table class="routes-table">
+          <thead>
+            <tr>
+              <th style="min-width:180px;">Destination Route</th>
+              <th style="min-width:130px;">Status & Context</th>
+              <th style="min-width:145px;">Channels (Live / Max)</th>
+              <th style="min-width:220px;">Monthly Minutes Quota</th>
+              <th style="min-width:160px;">Target & Routing</th>
+              <th style="min-width:240px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="routes-table-tbody">
+            <!-- Populated via buildRouteTableRow() -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Dedicated Inbound Call Gateway & Prefix Routing -->
     <section class="inbound-section" style="margin-top:28px;">
@@ -1531,107 +1594,112 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
-    function buildDashboardCard(id, t) {
+    function buildRouteTableRow(id, t) {
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
       const flagCode = getRouteFlag(routeName, id);
       const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
       const maxChan = Number(t.max_channels) || 1;
       const activeCalls = Number(t.active_calls) || 0;
+      const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
       const limitMin = Number(t.monthly_limit) || 100000;
       const usedMin = Number(t.used_minutes) || 0;
       const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
       const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
 
-      const card = document.createElement('div');
-      card.className = 'trunk-card';
-      card.id = 'dash-card-' + id;
-      card.innerHTML = `
-        <div class="trunk-header">
-          <div class="trunk-identity">
-            <span class="flag-badge" id="flag-${id}">${flagCode}</span>
+      const tr = document.createElement('tr');
+      tr.id = 'route-row-' + id;
+      tr.innerHTML = `
+        <!-- 1. Destination Route -->
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="flag-badge" id="flag-${id}" style="font-size:11px;padding:3px 7px;">${flagCode}</span>
             <div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <div class="trunk-name" id="dash-name-${id}">${routeName}</div>
-                <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')">⚙️</button>
+                <span style="font-weight:800;font-size:14px;color:var(--brown);" id="tbl-name-${id}">${routeName}</span>
+                <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')" style="font-size:12px;opacity:0.85;">⚙️</button>
               </div>
-              <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-                <span style="font-size:11px;color:var(--muted);font-family:monospace;" id="hdr-script-${id}">${scriptName}</span>
-                <span style="font-size:10.5px;font-weight:700;color:#2D6A28;background:#EBF5EA;padding:1px 7px;border-radius:4px;font-family:monospace;" id="hdr-ctx-${id}">[${ctxName}]</span>
+              <div style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:2px;" id="tbl-script-${id}">
+                ${scriptName}
               </div>
             </div>
           </div>
-          <span id="badge-${id}" class="trunk-status"></span>
-        </div>
+        </td>
 
-        <div class="trunk-body">
-          <div class="metric-single-box">
-            <div class="metric-item-lbl">Live Concurrent Calls</div>
-            <div class="metric-item-val" id="active-txt-${id}">
-              ${activeCalls} <span style="font-size:14px;font-weight:500;color:var(--muted);">/ ${maxChan} Channels</span>
+        <!-- 2. Status & Context -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+            <span id="badge-${id}" class="trunk-status ${t.running ? 'status-running' : 'status-stopped'}" style="font-size:11px;padding:3px 8px;">
+              ${t.running ? '● ACTIVE' : '○ STANDBY'}
+            </span>
+            <span style="font-size:10.5px;font-weight:700;color:#2D6A28;background:#EBF5EA;padding:1px 6px;border-radius:4px;font-family:monospace;" id="tbl-ctx-${id}">
+              [${ctxName}]
+            </span>
+          </div>
+        </td>
+
+        <!-- 3. Channels (Live / Max) -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-weight:800;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)'};" id="active-txt-${id}">
+              ${activeCalls} <span style="font-size:11.5px;font-weight:600;color:var(--muted);">/ ${maxChan} ch</span>
+            </div>
+            <div style="width:110px;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
+              <div id="chan-bar-${id}" style="width:${chanPct}%;height:100%;background:${chanPct > 80 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
           </div>
+        </td>
 
-          <!-- Monthly Minutes Quota Limit -->
-          <div class="metric-single-box" style="margin-top:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div class="metric-item-lbl">Monthly Minutes Quota</div>
-              <div style="font-size:11px;font-weight:700;color:${pct > 90 ? 'var(--red)' : 'var(--sage-dark)'};" id="limit-pct-${id}">
+        <!-- 4. Monthly Minutes Quota -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:3px;max-width:240px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-weight:800;font-size:13px;color:var(--brown);" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:10.5px;font-weight:600;color:var(--muted);">min</span>
+              </span>
+              <span style="font-size:11px;font-weight:700;color:${pct > 90 ? 'var(--red)' : 'var(--sage-dark)'};" id="limit-pct-${id}">
                 ${pct}% used
-              </div>
+              </span>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;">
-              <div style="font-size:15px;font-weight:800;color:var(--brown);" id="used-min-${id}">
-                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>
-              </div>
-              <div style="font-size:11.5px;font-weight:600;color:var(--muted);" id="limit-txt-${id}">
-                Limit: <b>${limitMin.toLocaleString()}</b> min
-              </div>
+            <div style="width:100%;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
+              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
-            <div style="width:100%;height:6px;background:#EAECF0;border-radius:3px;margin-top:6px;overflow:hidden;">
-              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s ease;"></div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:1px;" id="limit-txt-${id}">
+              Monthly Limit: <b>${limitMin.toLocaleString()}</b> min
             </div>
           </div>
+        </td>
 
-          <div class="config-summary-box" style="margin-top:10px;">
-            <div class="config-summary-header">
-              <span>Route Parameters</span>
-              <button type="button" class="btn-link-gear" onclick="openConfigModal('${id}')">⚙️ Configure</button>
+        <!-- 5. Target & Routing -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <div style="font-family:monospace;font-size:12px;font-weight:700;color:var(--brown);" id="disp-ip-${id}">
+              ${t.target_ip || '-'}
             </div>
-            <div class="config-summary-grid">
-              <div class="summary-item">
-                <span class="summary-lbl">Target Host</span>
-                <span class="summary-val" id="disp-ip-${id}" style="font-family:monospace;font-size:12px;">${t.target_ip || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Dialed Prefix</span>
-                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage-dark);font-weight:800;font-family:monospace;font-size:12px;">${t.prefix_cid || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Country Code</span>
-                <span class="summary-val" id="disp-cc-${id}">${t.country_code ? '+' + t.country_code : '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Route Prefix</span>
-                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Assigned Context</span>
-                <span class="summary-val" id="disp-ctx-${id}" style="color:#2D6A28;font-weight:800;font-family:monospace;font-size:12px;">[${ctxName}]</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Engine Script</span>
-                <span class="summary-val" id="disp-script-${id}" style="color:var(--brown);font-weight:700;font-family:monospace;font-size:11.5px;">${scriptName}</span>
-              </div>
+            <div style="font-size:11px;color:var(--muted);" id="disp-routing-${id}">
+              <span>+${t.country_code || '-'}</span> 
+              <span style="font-family:monospace;font-weight:700;color:var(--sage-dark);" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
             </div>
           </div>
+        </td>
 
-          <div class="card-actions" id="actions-${id}"></div>
-          <button class="btn btn-outline" id="dash-cfg-btn-${id}" style="width:100%;margin-top:8px;font-size:12px;padding:9px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="openConfigModal('${id}')">
-            ⚙️ Configure ${routeName} Trunk
-          </button>
-        </div>
+        <!-- 6. Actions (Config Gear, Start/Stop Route, Hangup Route) -->
+        <td style="text-align:right;">
+          <div class="btn-action-group">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings" style="padding:6px 11px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
+              ⚙️ Config
+            </button>
+            <span id="actions-${id}">
+              <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:6px 12px;font-size:12px;font-weight:700;min-width:78px;">
+                ${t.running ? '⏹ Stop' : '▶ Start'}
+              </button>
+            </span>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')" title="Terminate all live calls on ${routeName} route" style="padding:6px 11px;font-size:12px;font-weight:700;color:var(--red);border-color:#FECDCA;display:inline-flex;align-items:center;gap:4px;">
+              🛑 Hangup
+            </button>
+          </div>
+        </td>
       `;
-      return card;
+      return tr;
     }
 
     function updateMetricsOnly(trunks, forceSyncInputs = false) {
@@ -1646,18 +1714,20 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const flagCode = getRouteFlag(curName, id);
         const maxChan = Number(t.max_channels) || 1;
         const activeCalls = Number(t.active_calls) || 0;
+        const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
+        const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
 
-        // Dashboard Card updates
-        const dashName = document.getElementById('dash-name-' + id);
-        if (dashName) dashName.textContent = curName;
+        // 1. Route Name & Script
+        const tblName = document.getElementById('tbl-name-' + id);
+        if (tblName) tblName.textContent = curName;
         const flagEl = document.getElementById('flag-' + id);
         if (flagEl) flagEl.textContent = flagCode;
-        const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
-        if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + curName + ' Trunk';
+        const tblScript = document.getElementById('tbl-script-' + id);
+        if (tblScript) tblScript.textContent = scriptName;
 
-        // 1. Status badges
-        const updateBadge = (badgeEl) => {
-          if (!badgeEl) return;
+        // 2. Status badge & context badge
+        const badgeEl = document.getElementById('badge-' + id);
+        if (badgeEl) {
           if (t.running) {
             badgeEl.className = 'trunk-status status-running';
             badgeEl.textContent = '● ACTIVE';
@@ -1665,27 +1735,32 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             badgeEl.className = 'trunk-status status-stopped';
             badgeEl.textContent = '○ STANDBY';
           }
-        };
-        updateBadge(document.getElementById('badge-' + id));
-        updateBadge(document.getElementById('config-badge-' + id));
-        updateBadge(document.getElementById('cfg-hdr-status-' + id));
+        }
+        const tblCtx = document.getElementById('tbl-ctx-' + id);
+        if (tblCtx) tblCtx.textContent = `[${ctxName}]`;
 
-        // 2. Active calls count
+        // 3. Channels count & utilization bar
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          activeTxt.innerHTML = `${activeCalls} <span style="font-size:14px;font-weight:500;color:var(--muted);">/ ${maxChan} Channels</span>`;
+          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:600;color:var(--muted);">/ ${maxChan} ch</span>`;
           activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
         }
+        const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
+        const chanBar = document.getElementById('chan-bar-' + id);
+        if (chanBar) {
+          chanBar.style.width = chanPct + '%';
+          chanBar.style.background = chanPct > 80 ? 'var(--red)' : 'var(--sage)';
+        }
 
-        // 3. Monthly Minutes Quota update
+        // 4. Monthly Minutes Quota update
         const limitMin = Number(t.monthly_limit) || 100000;
         const usedMin = Number(t.used_minutes) || 0;
         const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
 
         const usedMinEl = document.getElementById('used-min-' + id);
-        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>`;
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:10.5px;font-weight:600;color:var(--muted);">min</span>`;
         const limitTxtEl = document.getElementById('limit-txt-' + id);
-        if (limitTxtEl) limitTxtEl.innerHTML = `Limit: <b>${limitMin.toLocaleString()}</b> min`;
+        if (limitTxtEl) limitTxtEl.innerHTML = `Monthly Limit: <b>${limitMin.toLocaleString()}</b> min`;
         const limitPctEl = document.getElementById('limit-pct-' + id);
         if (limitPctEl) {
           limitPctEl.textContent = `${pct}% used`;
@@ -1697,39 +1772,20 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--sage)';
         }
 
-        // 4. Overall configuration display on Dashboard card
-        const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
-        const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
-
+        // 5. Target IP & Routing prefix
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = t.target_ip || '-';
-        const dispCc = document.getElementById('disp-cc-' + id);
-        if (dispCc) dispCc.textContent = t.country_code ? `+${t.country_code}` : '-';
-        const dispPrefix = document.getElementById('disp-prefix-' + id);
-        if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
         const dispDial = document.getElementById('disp-dial-' + id);
-        if (dispDial) dispDial.textContent = t.prefix_cid || '-';
-        const dispCtx = document.getElementById('disp-ctx-' + id);
-        if (dispCtx) dispCtx.textContent = `[${ctxName}]`;
-        const hdrCtx = document.getElementById('hdr-ctx-' + id);
-        if (hdrCtx) hdrCtx.textContent = `[${ctxName}]`;
-        const dispScript = document.getElementById('disp-script-' + id);
-        if (dispScript) dispScript.textContent = scriptName;
+        if (dispDial) dispDial.textContent = `(${t.prefix_cid || t.prefix || '-'})`;
 
-        // 4. Start/Stop Action buttons
+        // 6. Start/Stop Action button
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
-          if (t.running) {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-red flex-1" onclick="toggleTrunk('${id}', 'stop')">⏹ Stop Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          } else {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-sage flex-1" onclick="toggleTrunk('${id}', 'start')">▶ Start Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          }
+          actionsDiv.innerHTML = `
+            <button type="button" class="btn ${t.running ? 'btn-red' : 'btn-sage'} btn-sm" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')" style="padding:6px 12px;font-size:11.5px;font-weight:700;min-width:78px;">
+              ${t.running ? '⏹ Stop' : '▶ Start'}
+            </button>
+          `;
         }
       }
 
@@ -2169,11 +2225,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         trunksData = res.trunks;
 
         if (!isInitialized) {
-          const dashContainer = document.getElementById('trunk-container');
-          dashContainer.innerHTML = '';
-
-          for (const [id, t] of Object.entries(trunksData)) {
-            dashContainer.appendChild(buildDashboardCard(id, t));
+          const tableBody = document.getElementById('routes-table-tbody');
+          if (tableBody) {
+            tableBody.innerHTML = '';
+            for (const id of ['cuba', 'mali', 'senegal']) {
+              if (trunksData[id]) {
+                tableBody.appendChild(buildRouteTableRow(id, trunksData[id]));
+              }
+            }
           }
           isInitialized = true;
           updateMetricsOnly(trunksData, true);
@@ -2190,13 +2249,65 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     async function toggleTrunk(id, action) {
+      const btn = document.getElementById('btn-toggle-' + id);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = action === 'start' ? 'Starting...' : 'Stopping...';
+      }
       try {
         const res = await api(action, { trunk: id });
         addLog(`[${id.toUpperCase()}] ${res.message}`);
-        refreshAll(false);
+        setTimeout(() => refreshAll(false), 500);
       } catch (e) {
         addLog(`[${id.toUpperCase()}] Error: ${e.message}`);
         alert(e.message);
+        refreshAll(false);
+      }
+    }
+
+    async function hangupTrunk(id) {
+      const t = trunksData[id];
+      const name = t ? (t.name || id) : id;
+      const btn = document.getElementById('btn-hangup-' + id);
+      const origHtml = btn ? btn.innerHTML : '🛑 Hangup';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Hanging up...';
+      }
+      try {
+        const res = await api('hangup', { trunk: id });
+        addLog(`[${id.toUpperCase()}] Hangup: ${res.message || 'Calls terminated'}`);
+        if (btn) {
+          btn.innerHTML = '✓ Terminated';
+          btn.style.color = 'var(--green)';
+          btn.style.borderColor = 'var(--green)';
+          setTimeout(() => {
+            btn.innerHTML = origHtml;
+            btn.style.color = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 1800);
+        }
+        setTimeout(() => refreshAll(false), 600);
+      } catch (err) {
+        console.error('Hangup error:', err);
+        addLog(`[${id.toUpperCase()}] Hangup error: ${err.message}`);
+        alert(`Failed to hangup calls on ${name}: ${err.message}`);
+        if (btn) {
+          btn.innerHTML = origHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function hangupAll() {
+      if (!confirm('Are you sure you want to hangup ALL active calls across all routes?')) return;
+      try {
+        const res = await api('hangup', { trunk: 'all' });
+        addLog('[SYSTEM] All calls hangup requested: ' + (res.message || 'OK'));
+        refreshAll(false);
+      } catch (err) {
+        alert('Hangup All failed: ' + err.message);
       }
     }
 
