@@ -98,7 +98,9 @@ PY
     if ((REM >= DUR)) && [ "$((ACTIVE + PENDING))" -lt "$MAXCALLS" ]; then
         # Exact callerid and ANI pattern for Cuba (Prefix 4444 + CC 53)
         CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
-        TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
+        SIP_DEST="$TARGET_IP"
+        [[ "$SIP_DEST" != *:* ]] && SIP_DEST="${SIP_DEST}:5060"
+        TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$SIP_DEST"
         ANI="96655$((RANDOM % 9000000 + 1000000))"
 
         CALLFILE="cuba_$(date +%s%N).call"

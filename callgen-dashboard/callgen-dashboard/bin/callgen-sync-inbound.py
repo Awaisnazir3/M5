@@ -208,6 +208,8 @@ pjsip_lines = [
 for gw in gateways:
     ep_name = f"trunk-inbound-{gw['index']}"
     gw_ctx = f"from-inbound-{gw['index']}"
+    gw_target = gw['ip']
+    contact_uri = f"sip:{gw_target}" if ":" in gw_target else f"sip:{gw_target}:5060"
     pjsip_lines.extend([
         f"; Authorized Gateway #{gw['index']}: {gw['ip']} ({gw['label']})",
         f"[{ep_name}]",
@@ -224,7 +226,7 @@ for gw in gateways:
         "",
         f"[{ep_name}]",
         "type=aor",
-        f"contact=sip:{gw['ip']}:5060",
+        f"contact={contact_uri}",
         "",
         f"[{ep_name}]",
         "type=identify",

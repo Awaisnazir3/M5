@@ -97,7 +97,9 @@ PY
     # 4. Dispatch 1 call every 2 seconds if under capacity limits
     if ((REM >= DUR)) && [ "$((ACTIVE + PENDING))" -lt "$MAXCALLS" ]; then
         CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 8)"
-        TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$TARGET_IP:5060"
+        SIP_DEST="$TARGET_IP"
+        [[ "$SIP_DEST" != *:* ]] && SIP_DEST="${SIP_DEST}:5060"
+        TARGET="PJSIP/${TRUNK}-trunk/sip:$CALLERID@$SIP_DEST"
         ANI="442$(tr -dc '1-9' < /dev/urandom 2>/dev/null | head -c 9)"
 
         CALLFILE="mali_$(date +%s%N).call"
