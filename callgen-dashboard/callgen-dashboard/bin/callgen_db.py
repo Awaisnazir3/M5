@@ -130,8 +130,8 @@ def seed_defaults():
     """Migrates existing JSON configs or seeds defaults into SQLite."""
     conn = get_connection()
     default_trunks = [
-        ('mali', 'Mali', '202.125.153.97', '', '2237', '2237', 100000, 150, 600, 'testcall2'),
-        ('cuba', 'Cuba', '206.251.255.21', '4444', '53', '444453', 250000, 400, 600, 'testcall'),
+        ('mali', 'Mali', '192.168.1.210', '', '2237', '2237', 100000, 6, 700, 'testcall2'),
+        ('cuba', 'Cuba', '192.168.1.210', '4444', '53', '444453', 3800, 100, 600, 'testcall'),
         ('senegal', 'Senegal', '178.22.15.201', '619334', '221', '619334221', 150000, 220, 600, 'testcall')
     ]
 
@@ -184,7 +184,7 @@ def seed_defaults():
                     'context': 'auto'
                 }
             ],
-            'testcall_duration': 60,
+            'testcall_duration': 120,
             'testcall2_duration': 50,
             'testcall_prefixes': '444453, 619334221',
             'testcall2_prefixes': '2237'

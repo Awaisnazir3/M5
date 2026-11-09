@@ -17,6 +17,14 @@ echo "=================================================================="
 echo " Starting M5 Asterisk VoIP Engine Installation"
 echo "=================================================================="
 
+# 0. SELinux handling (prevent permission blocks on RHEL/Rocky)
+if command -v setenforce >/dev/null 2>&1; then
+    setenforce 0 2>/dev/null || true
+    if [ -f /etc/selinux/config ]; then
+        sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 2>/dev/null || true
+    fi
+fi
+
 # 1. Optimize DNF package manager (Fast mirrors & IPv4 preferred)
 if command -v dnf >/dev/null 2>&1; then
     echo "[1/7] Configuring DNF package manager..."
@@ -28,8 +36,8 @@ if command -v dnf >/dev/null 2>&1; then
     # 2. Enable CRB (CodeReady Builder) & EPEL repos and install Web server & PHP
     echo "[2/7] Enabling CRB & EPEL repositories..."
     dnf config-manager --set-enabled crb 2>/dev/null || true
-    dnf install -y epel-release httpd php php-json python3 sqlite
-    systemctl enable --now httpd
+    dnf install -y epel-release httpd php php-fpm php-pdo php-json python3 sqlite
+    systemctl enable --now httpd php-fpm
 
     # 3. Install build tools and Asterisk dependencies
     echo "[3/7] Installing build dependencies..."

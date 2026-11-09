@@ -43,7 +43,7 @@ This Git repository contains the complete production-grade system:
 ```bash
 dnf install -y git
 git clone https://github.com/Awaisnazir3/M5.git /root/M5
-cd /root/M5/callgen-dashboard/callgen-dashboard
+cd /root/M5
 ```
 
 ### Step 3: Run the Automated Installer
@@ -51,24 +51,25 @@ cd /root/M5/callgen-dashboard/callgen-dashboard
 #### Case A: If Asterisk is NOT installed yet (Fresh Server)
 Run the complete automated Asterisk & M5 installer:
 ```bash
-chmod +x setup_asterisk.sh deploy.sh bin/*
+chmod +x setup_asterisk.sh deploy.sh callgen-dashboard/callgen-dashboard/deploy.sh callgen-dashboard/callgen-dashboard/setup_asterisk.sh callgen-dashboard/callgen-dashboard/bin/*
 sudo ./setup_asterisk.sh
 ```
 *This will automatically:*
+- Configure SELinux into permissive mode (preventing Apache sudo execution blocks).
 - Enable CRB & EPEL repositories.
-- Install compilation dependencies, Apache (`httpd`), PHP, SQLite, and Python3.
+- Install compilation dependencies, Apache (`httpd`), PHP-FPM, PHP-PDO, SQLite, and Python3.
 - Download and compile Asterisk LTS with bundled pjproject.
 - Install `asterisk.service` and configure `/var/spool/asterisk` permissions.
 - Deploy Asterisk configs (`pjsip.conf`, `extensions.conf`, `cdr_sqlite3_custom.conf`).
 - Initialize `/var/lib/callgen/callgen.db` with permissions and symlink `/var/log/asterisk/master.db`.
 - Install systemd services and configure sudoers.
-- Deploy the Web Portal to `/var/www/html/callgen`.
+- Deploy the Web Portal (`index.php`) to `/var/www/html/callgen`.
 - Generate inbound security rules and reload Asterisk.
 
 #### Case B: If Asterisk is ALREADY installed on the server
 If Asterisk is already present on your server, simply run:
 ```bash
-chmod +x deploy.sh bin/*
+chmod +x deploy.sh callgen-dashboard/callgen-dashboard/deploy.sh callgen-dashboard/callgen-dashboard/bin/*
 sudo ./deploy.sh
 ```
 

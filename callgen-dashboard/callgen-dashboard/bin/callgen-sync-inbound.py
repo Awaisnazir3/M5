@@ -22,13 +22,13 @@ default_inbound = {
             "id": "src-1",
             "ip": "192.168.1.13",
             "label": "Node-13 Forwarder",
-            "prefix": "444453, 619334221",
+            "prefix": "444453, 619334221, 2237",
             "country_code": "",
             "context": "auto"
         }
     ],
     "source_ip": "192.168.1.13",
-    "testcall_duration": 60,
+    "testcall_duration": 120,
     "testcall2_duration": 50,
     "testcall2_prefixes": "2237",
     "testcall_prefixes": "444453, 619334221"
