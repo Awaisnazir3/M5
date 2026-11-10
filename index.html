@@ -2026,6 +2026,14 @@
         if (s.country_code && !String(s.prefix || '').includes(s.country_code)) pfxParts.push('+' + s.country_code);
         const pfxDisplay = pfxParts.join(', ');
         const curCtx = s.context || 'auto';
+        let ctxBadge = '';
+        if (curCtx === 'testcall2') {
+          ctxBadge = '<span class="ctx-pill testcall2" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#FDF2FA;color:#C11574;border:1px solid #FCCEEE;">[testcall2] Mali</span>';
+        } else if (curCtx === 'testcall') {
+          ctxBadge = '<span class="ctx-pill testcall" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#EFF8FF;color:#175CD3;border:1px solid #B2DDFF;">[testcall] Cuba & Senegal</span>';
+        } else {
+          ctxBadge = '<span class="ctx-pill auto" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#F2F4F7;color:#344054;border:1px solid #EAECF0;">⚡ Auto (Prefix)</span>';
+        }
         return `
           <tr style="border-bottom:1px solid #EAECF0;">
             <td style="padding:9px 12px;font-family:monospace;font-weight:700;color:var(--brown);">
@@ -2039,11 +2047,7 @@
               ${pfxDisplay || '<span style="color:var(--muted);">All (Auto)</span>'}
             </td>
             <td style="padding:9px 12px;">
-              <select onchange="changeSourceIpContext(${idx}, this.value)" style="padding:4px 8px;font-size:11.5px;font-weight:700;border-radius:6px;border:1px solid #D0D5DD;background:#FFFFFF;color:${curCtx === 'testcall2' ? '#C11574' : (curCtx === 'testcall' ? '#175CD3' : '#344054')};cursor:pointer;" title="Change routing context for ${s.ip}">
-                <option value="auto" ${curCtx === 'auto' ? 'selected' : ''}>⚡ Auto (Prefix)</option>
-                <option value="testcall" ${curCtx === 'testcall' ? 'selected' : ''}>[testcall] Cuba & Senegal</option>
-                <option value="testcall2" ${curCtx === 'testcall2' ? 'selected' : ''}>[testcall2] Mali</option>
-              </select>
+              ${ctxBadge}
             </td>
             <td style="padding:9px 12px;text-align:right;">
               <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
