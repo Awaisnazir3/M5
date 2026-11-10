@@ -1465,8 +1465,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <label>Target Dialplan Context (Where calls route)</label>
               <select id="sip-input-context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);background:#FFFFFF;font-size:13px;">
                 <option value="auto">⚡ Auto-Route by Prefix (Default)</option>
-                <option value="testcall">📞 [testcall] - Cuba & Senegal (60s cap)</option>
-                <option value="testcall2">📞 [testcall2] - Mali Route (50s cap)</option>
+                <option value="testcall">[testcall]</option>
+                <option value="testcall2">[testcall2]</option>
               </select>
               <span style="font-size:10px;color:var(--muted);margin-top:2px;">Select which dialplan context handles incoming calls from this gateway</span>
             </div>
@@ -1547,8 +1547,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div class="field-group">
               <label>Assigned Dialplan Context</label>
               <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);">
-                <option value="testcall">[testcall] - Cuba & Senegal (Default)</option>
-                <option value="testcall2">[testcall2] - Mali Route</option>
+                <option value="testcall">[testcall]</option>
+                <option value="testcall2">[testcall2]</option>
               </select>
             </div>
             <input type="hidden" id="modal-dur" name="call_duration" value="600">
@@ -2197,9 +2197,9 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const curCtx = s.context || 'auto';
         let ctxBadge = '';
         if (curCtx === 'testcall2') {
-          ctxBadge = '<span class="ctx-pill testcall2" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#FDF2FA;color:#C11574;border:1px solid #FCCEEE;">[testcall2] Mali</span>';
+          ctxBadge = '<span class="ctx-pill testcall2" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#FDF2FA;color:#C11574;border:1px solid #FCCEEE;">[testcall2]</span>';
         } else if (curCtx === 'testcall') {
-          ctxBadge = '<span class="ctx-pill testcall" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#EFF8FF;color:#175CD3;border:1px solid #B2DDFF;">[testcall] Cuba & Senegal</span>';
+          ctxBadge = '<span class="ctx-pill testcall" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#EFF8FF;color:#175CD3;border:1px solid #B2DDFF;">[testcall]</span>';
         } else {
           ctxBadge = '<span class="ctx-pill auto" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#F2F4F7;color:#344054;border:1px solid #EAECF0;">⚡ Auto (Prefix)</span>';
         }
