@@ -64,7 +64,7 @@
       {
         "id": "src-1",
         "ip": "192.168.1.13",
-        "port": 5080,
+        "port": 5010,
         "label": "Node-13 PBX",
         "prefix": "444453, 619334221",
         "country_code": "",
@@ -82,7 +82,7 @@
     ],
     "testcall_prefixes": "444453, 619334221",
     "testcall2_prefixes": "2237",
-    "testcall_duration": 60,
+    "testcall_duration": 600,
     "testcall2_duration": 50,
     "active_channels": 0,
     "active_calls": [],

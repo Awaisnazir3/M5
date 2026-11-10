@@ -165,6 +165,15 @@ for idx, s in enumerate(source_ips_raw):
     label = str(s.get('label', f'Gateway {idx+1}')).strip()
     ctx_mode = str(s.get('context', 'auto')).strip().lower()
 
+    gw_port = int(s.get('port') or 5060)
+    if ':' in ip:
+        parts = ip.split(':', 1)
+        ip = parts[0]
+        if not s.get('port') and parts[1].isdigit():
+            gw_port = int(parts[1])
+    if gw_port < 1 or gw_port > 65535:
+        gw_port = 5060
+
     # Prefixes explicitly allowed for this source IP (merge prefix and country_code fields)
     raw_pfx = f"{s.get('prefix', '')}, {s.get('country_code', '')}"
     pfx_list = parse_pfx_list(raw_pfx)
@@ -188,6 +197,7 @@ for idx, s in enumerate(source_ips_raw):
         'id': gid,
         'index': idx + 1,
         'ip': ip,
+        'port': gw_port,
         'label': label,
         'context_mode': ctx_mode,
         'prefixes': pfx_map
@@ -405,6 +415,56 @@ ext_lines.extend([
 with open('/etc/asterisk/extensions_inbound.conf', 'w') as f:
     f.write('\n'.join(ext_lines) + '\n')
 os.chmod('/etc/asterisk/extensions_inbound.conf', 0o644)
+
+# 6b. Keep /etc/asterisk/pjsip.conf trunk AOR and identify contacts in sync with trunk settings
+pjsip_main_file = '/etc/asterisk/pjsip.conf'
+if os.path.exists(pjsip_main_file):
+    try:
+        with open(pjsip_main_file, 'r') as pf:
+            main_cfg = pf.read()
+        trunks_info = {}
+        if DB_MODE:
+            try:
+                for td in callgen_db.get_all_trunks():
+                    trunks_info[td['id']] = td
+            except Exception:
+                pass
+        for t in ['mali', 'cuba', 'senegal']:
+            tip = ""
+            tport = 5060
+            if t in trunks_info:
+                tip = trunks_info[t].get('target_ip', '')
+                tport = int(trunks_info[t].get('sip_port') or 5060)
+            elif os.path.exists(f'/etc/callgen-{t}.json'):
+                try:
+                    with open(f'/etc/callgen-{t}.json') as jf:
+                        jd = json.load(jf)
+                        tip = jd.get('target_ip', '')
+                        tport = int(jd.get('sip_port') or 5060)
+                except Exception:
+                    pass
+            if tip:
+                thost = tip.split(':')[0] if ':' in tip else tip
+                if ':' in tip:
+                    p_part = tip.split(':')[1]
+                    if p_part.isdigit(): tport = int(p_part)
+                if not tport or tport < 1 or tport > 65535: tport = 5060
+                main_cfg = re.sub(
+                    rf'(\[{t}-trunk\][\s\S]*?type=aor[\s\S]*?contact=sip:)[^\s\n]+',
+                    rf'\g<1>{thost}:{tport}',
+                    main_cfg,
+                    count=1
+                )
+                main_cfg = re.sub(
+                    rf'(\[{t}-trunk\][\s\S]*?type=identify[\s\S]*?match=)[^\s\n]+',
+                    rf'\g<1>{thost}',
+                    main_cfg,
+                    count=1
+                )
+        with open(pjsip_main_file, 'w') as pf:
+            pf.write(main_cfg)
+    except Exception as e:
+        print(f"Notice: sync trunk endpoints in pjsip.conf: {e}")
 
 # 7. Apply to Asterisk
 import shutil

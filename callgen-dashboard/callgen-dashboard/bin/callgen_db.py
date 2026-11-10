@@ -284,7 +284,6 @@ def seed_defaults():
                 s.get('country_code', ''),
                 s.get('context', 'auto')
             ))
-            ))
 
         conn.execute("INSERT OR REPLACE INTO inbound_config (key, value) VALUES ('testcall_duration', ?)", (str(inbound_data.get('testcall_duration', 60)),))
         conn.execute("INSERT OR REPLACE INTO inbound_config (key, value) VALUES ('testcall2_duration', ?)", (str(inbound_data.get('testcall2_duration', 50)),))
