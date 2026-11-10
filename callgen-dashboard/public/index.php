@@ -1,7 +1,14 @@
 <?php
 session_start();
+
+$auth_file = "/etc/callgen/auth.json";
 $user_req = getenv("CALLGEN_USERNAME") ?: "awais";
 $pass_req = getenv("CALLGEN_PASSWORD") ?: "dancom";
+if (file_exists($auth_file)) {
+    $j = json_decode(@file_get_contents($auth_file), true);
+    if (!empty($j["password"])) $pass_req = $j["password"];
+    if (!empty($j["username"])) $user_req = $j["username"];
+}
 
 if (isset($_POST["login"])) {
     $u = trim($_POST["username"] ?? "");
@@ -30,62 +37,67 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>M5-Traffic Controller | Sign In</title>
+  <title>M5 Traffic Controller | Sign In</title>
   <style>
     :root {
-      --sage: #7C8E76;
-      --sage-dark: #65755F;
-      --brown: #4B3830;
-      --brown-dark: #372822;
-      --bg: #F5F6F4;
+      --bg: #F4F6F9;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --cyan: #0284C7;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --red: #DC2626;
+      --red-bg: #FEF2F2;
+      --red-border: #FECACA;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      color: #2E231E;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
     }
     .login-container {
-      background: #FFFFFF;
+      background: var(--card-bg);
       border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(75, 56, 48, 0.08);
-      border: 1px solid #E2E5DF;
-      width: 380px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      border: 1px solid var(--border);
+      width: 400px;
       overflow: hidden;
     }
     .header {
-      background: var(--brown);
+      background: #0F172A;
       color: #FFFFFF;
-      padding: 28px 24px 24px;
+      padding: 28px 24px 22px;
       text-align: center;
-      border-bottom: 3px solid var(--sage);
+      border-bottom: 3px solid #0284C7;
     }
     .header .badge {
       display: inline-block;
-      background: var(--sage);
-      color: #FFFFFF;
-      font-size: 11px;
-      font-weight: 700;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 10.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 4px;
       margin-bottom: 10px;
     }
     .header h1 {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 850;
       letter-spacing: -0.3px;
     }
     .header p {
-      font-size: 13px;
-      opacity: 0.85;
+      font-size: 12.5px;
+      color: #94A3B8;
       margin-top: 4px;
-      color: #EADCD6;
     }
     .form-wrap {
       padding: 28px 24px;
@@ -95,56 +107,63 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
     .field label {
       display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--brown);
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
       margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .field input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #CCD2C8;
+      padding: 11px 14px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
       border-radius: 8px;
       font-size: 14px;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      color: #0F172A;
+      transition: all 0.15s ease;
       outline: none;
     }
     .field input:focus {
-      border-color: var(--sage);
-      box-shadow: 0 0 0 3px rgba(124, 142, 118, 0.25);
+      border-color: #0284C7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
     }
     button {
       width: 100%;
-      background: var(--sage);
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
       color: #FFFFFF;
       border: 0;
-      padding: 13px;
+      padding: 12px;
       border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 750;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
     }
     button:hover {
-      background: var(--sage-dark);
+      background: #0369A1;
+      transform: translateY(-1px);
     }
     .error-msg {
-      background: #FDF0F0;
-      border: 1px solid #F6D3D3;
-      color: #A62B2B;
-      font-size: 13px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: var(--red);
+      font-size: 12.5px;
       padding: 10px;
       border-radius: 6px;
       margin-bottom: 16px;
       text-align: center;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
     <div class="header">
-      <span class="badge">VoIP Smart Switch</span>
-      <h1>M5-Traffic Controller</h1>
+      <span class="badge">Carrier VoIP Portal</span>
+      <h1>M5 Traffic Controller</h1>
       <p>Trunk Routing & Call Flow Administration</p>
     </div>
     <div class="form-wrap">
@@ -153,14 +172,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       <?php endif; ?>
       <form method="post">
         <div class="field">
-          <label for="username">Username</label>
-          <input id="username" type="text" name="username" value="awais" required autofocus autocomplete="username">
+          <label for="username">Operator ID</label>
+          <input id="username" type="text" name="username" value="" placeholder="Enter operator ID" required autofocus autocomplete="username">
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" name="password" value="dancom" required autocomplete="current-password">
+          <input id="password" type="password" name="password" value="" placeholder="Enter password" required autocomplete="current-password">
         </div>
-        <button type="submit" name="login" value="1">Access Controller</button>
+        <button type="submit" name="login" value="1">Sign In to Controller</button>
       </form>
     </div>
   </div>
@@ -172,46 +191,80 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>M5-Traffic Controller | VoIP Smart Switch</title>
+  <title>M5 Traffic Controller | Carrier VoIP Smart Switch</title>
   <style>
     :root {
-      --sage: #7C8E76;
-      --sage-dark: #65755F;
-      --sage-light: #EDF2EC;
-      --brown: #4B3830;
-      --brown-dark: #372822;
-      --brown-light: #F4EFEB;
-      --bg: #F5F6F4;
-      --card-bg: #FFFFFF;
-      --border: #DFE3DD;
-      --text: #2D231E;
-      --muted: #6C726A;
-      --red: #A62B2B;
-      --red-bg: #FDF0F0;
-      --green: #24753D;
-      --green-bg: #EDF7F0;
-      --amber: #B54708;
-      --amber-bg: #FFFAEB;
+      --bg: #F4F6F9;
+      --bg-card: #FFFFFF;
+      --bg-card-subtle: #F8FAFC;
+      --bg-header: #0F172A;
+      --border: #E2E8F0;
+      --border-subtle: #EDF2F7;
+      --border-accent: rgba(2, 132, 199, 0.3);
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --text-dim: #94A3B8;
+      --cyan: #0284C7;
+      --cyan-glow: rgba(2, 132, 199, 0.15);
+      --emerald: #059669;
+      --emerald-dark: #047857;
+      --emerald-bg: #ECFDF5;
+      --emerald-border: #A7F3D0;
+      --red: #DC2626;
+      --red-dark: #B91C1C;
+      --red-bg: #FEF2F2;
+      --red-border: #FECACA;
+      --amber: #D97706;
+      --amber-dark: #B45309;
+      --amber-bg: #FFFBEB;
+      --amber-border: #FDE68A;
+      --blue: #0284C7;
+      --blue-bg: #F0F9FF;
+      --blue-border: #BAE6FD;
+      --purple: #9333EA;
+      --purple-bg: #FAF5FF;
+      --purple-border: #E9D5FF;
+      --input-bg: #FFFFFF;
+      --input-border: #CBD5E1;
+      --table-hover: #F8FAFC;
+      --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.05), 0 1px 2px rgba(16, 24, 40, 0.03);
+      --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.07), 0 2px 4px rgba(16, 24, 40, 0.04);
+      --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.06);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-size: 14px;
+      font-size: 13.5px;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
+
     /* Top Navbar */
     .navbar {
-      background: var(--brown);
+      background: var(--bg-header);
       color: #FFFFFF;
-      padding: 0 24px;
+      padding: 0 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       height: 64px;
-      border-bottom: 3px solid var(--sage);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+    }
+    .navbar::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #0284C7 0%, #059669 50%, #7C3AED 100%);
     }
     .brand {
       display: flex;
@@ -219,328 +272,200 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       gap: 12px;
     }
     .brand-icon {
-      background: var(--sage);
+      background: linear-gradient(135deg, #0284C7 0%, #059669 100%);
       width: 38px;
       height: 38px;
-      border-radius: 8px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
+      font-weight: 900;
+      font-size: 17px;
       color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+      letter-spacing: -0.5px;
     }
     .brand-text h1 {
-      font-size: 18px;
-      font-weight: 750;
-      letter-spacing: -0.3px;
+      font-size: 16.5px;
+      font-weight: 850;
+      letter-spacing: -0.2px;
       line-height: 1.2;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .brand-text span {
-      font-size: 11px;
-      color: #EADCD6;
+      font-size: 10.5px;
+      color: #94A3B8;
       text-transform: uppercase;
       letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .core-pill {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 12px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #E2E8F0;
+    }
+    .core-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulseGreen 2.2s infinite;
+    }
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .nav-clock {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94A3B8;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
+    }
+    .btn-pwd {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #E2E8F0;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-pwd:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
     }
     .user-pill {
-      background: rgba(255,255,255,0.1);
-      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
     }
-    .user-dot {
-      width: 8px;
-      height: 8px;
-      background: #4ADE80;
+    .user-avatar {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
+      background: #0284C7;
+      color: #FFFFFF;
+      font-size: 10.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .btn-logout {
-      background: var(--sage);
-      color: #FFFFFF;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #FCA5A5;
       text-decoration: none;
-      padding: 7px 15px;
+      padding: 6px 12px;
       border-radius: 6px;
-      font-weight: 600;
-      font-size: 13px;
-      transition: background 0.15s;
+      font-weight: 650;
+      font-size: 12px;
+      transition: all 0.15s ease;
     }
     .btn-logout:hover {
-      background: var(--sage-dark);
+      background: rgba(239, 68, 68, 0.25);
+      color: #FFFFFF;
     }
 
-    /* Container */
+    /* Main Container */
     .container {
       max-width: 1320px;
-      margin: 24px auto;
-      padding: 0 20px 40px;
+      margin: 24px auto 48px auto;
+      padding: 0 20px;
     }
 
-    /* Master Summary Bar */
-    .master-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
+    /* Dashboard Cards */
+    .dashboard-card {
+      background: var(--bg-card);
       border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .card-topbar {
       padding: 16px 20px;
-      margin-bottom: 22px;
-      box-shadow: 0 2px 8px rgba(75, 56, 48, 0.04);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
       flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-card-subtle);
     }
-    .master-stats {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      flex: 1;
-    }
-    .stat-card {
-      background: #F8FAF7;
-      border: 1px solid #E4E8E2;
-      border-radius: 10px;
-      padding: 10px 16px;
+    .card-title-group {
       display: flex;
       align-items: center;
       gap: 12px;
-      min-width: 185px;
-      transition: all 0.15s ease;
     }
-    .stat-card:hover {
-      border-color: #CFD7CC;
-      background: #F3F7F1;
-    }
-    .stat-icon-wrap {
-      width: 38px;
-      height: 38px;
+    .card-icon-badge {
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
-      background: #EAF0E8;
+      background: rgba(2, 132, 199, 0.1);
+      color: var(--cyan);
+      border: 1px solid var(--border-accent);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
       flex-shrink: 0;
     }
-    .stat-details {
-      display: flex;
-      flex-direction: column;
-    }
-    .stat-label {
-      font-size: 10.5px;
-      font-weight: 750;
-      text-transform: uppercase;
-      color: var(--muted);
-      letter-spacing: 0.6px;
-    }
-    .stat-val {
-      font-size: 21px;
+    .card-title-group h2 {
+      font-size: 16px;
       font-weight: 800;
-      color: var(--brown);
-      line-height: 1.2;
+      color: var(--text);
+      margin: 0;
+      letter-spacing: -0.2px;
+    }
+    .card-title-group .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
       margin-top: 2px;
     }
-    .stat-val-status {
-      font-size: 13.5px;
-      font-weight: 750;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 3px;
-    }
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #9AA096;
-      display: inline-block;
-    }
-    .stat-val-status.active {
-      color: var(--green);
-    }
-    .stat-val-status.active .badge-dot {
-      background: #16B364;
-      box-shadow: 0 0 0 3px rgba(22, 179, 100, 0.2);
-    }
-    .stat-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .master-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .btn-lg {
-      padding: 11px 18px;
-      font-size: 13.5px;
-      font-weight: 700;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
-    }
 
-    /* Tabs Navigation - Small Tab Buttons */
-    .tabs-nav {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 18px;
-      border-bottom: 2px solid #DFE3DD;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      background: #F4F6F3;
-      border: 1px solid #DFE3DD;
-      border-bottom: none;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 650;
-      color: var(--muted);
-      cursor: pointer;
-      border-radius: 6px 6px 0 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      position: relative;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-    .tab-btn:hover {
-      color: var(--brown);
-      background: #EAEFE8;
-    }
-    .tab-btn.active {
-      color: var(--brown);
-      background: #FFFFFF;
-      font-weight: 700;
-      box-shadow: 0 -2px 6px rgba(75, 56, 48, 0.04);
-      border-color: #DFE3DD;
-      border-top: 2px solid var(--sage);
-      border-bottom: 2px solid #FFFFFF;
-      margin-bottom: -2px;
-    }
-    .tab-view {
-      display: block;
-    }
-    .tab-view.hidden {
-      display: none;
-    }
-    .tab-flag {
-      background: var(--brown-light);
-      color: var(--brown);
-      font-weight: 800;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 4px;
-      border: 1px solid #DBCFC9;
-      display: inline-block;
-      line-height: 1.3;
-    }
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 650;
-      border-radius: 6px;
-    }
-    .preset-pill {
-      background: #F2F4F7;
-      color: #344054;
-      border: 1px solid #D0D5DD;
-      border-radius: 12px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .preset-pill:hover {
-      background: #E4E7EC;
-      border-color: #98A2B3;
-      color: #1D2939;
-    }
-    .config-single-wrap {
-      max-width: 680px;
-      margin: 0 auto 24px auto;
-    }
-    .config-card-solo {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-    }
-
-    /* Config Summary Grid on Dashboard Cards */
-    .config-summary-box {
-      background: #F8F9F7;
-      border: 1px solid #E6EAE3;
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-    .config-summary-header {
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .config-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px 16px;
-    }
-    .summary-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .summary-lbl {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .summary-val {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--brown);
-      font-family: inherit;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Section Title */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .section-title {
-      font-size: 17px;
-      font-weight: 750;
-      color: var(--brown);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Destination Routes Row Table - Enterprise Polish */
+    /* Table Styles */
     .routes-table {
       width: 100%;
       border-collapse: collapse;
@@ -548,34 +473,34 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       text-align: left;
     }
     .routes-table th {
-      background: #F9FAFB;
-      color: #475467;
-      font-size: 11px;
-      font-weight: 700;
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 750;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       padding: 13px 18px;
-      border-bottom: 1px solid #EAECF0;
+      border-bottom: 1px solid var(--border);
       white-space: nowrap;
       vertical-align: middle;
     }
     .routes-table td {
-      padding: 15px 18px;
-      border-bottom: 1px solid #F2F4F7;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
       vertical-align: middle;
-      color: #101828;
+      color: var(--text);
     }
     .routes-table tbody tr {
       transition: background 0.15s ease;
     }
     .routes-table tbody tr:hover {
-      background: #FAFAFB;
+      background: var(--table-hover);
     }
     .routes-table tbody tr:last-child td {
       border-bottom: none;
     }
 
-    /* Clean Enterprise Status Pills */
+    /* Status Pills */
     .status-pill {
       display: inline-flex;
       align-items: center;
@@ -588,14 +513,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       white-space: nowrap;
     }
     .status-pill.active {
-      background: #ECFDF3;
-      color: #027A48;
-      border: 1px solid #A6F4C5;
+      background: var(--emerald-bg);
+      color: var(--emerald-dark);
+      border: 1px solid var(--emerald-border);
     }
     .status-pill.standby {
-      background: #F2F4F7;
-      color: #344054;
-      border: 1px solid #D0D5DD;
+      background: #F1F5F9;
+      color: var(--text-muted);
+      border: 1px solid #CBD5E1;
     }
     .status-pill .dot {
       width: 7px;
@@ -603,36 +528,99 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       border-radius: 50%;
     }
     .status-pill.active .dot {
-      background: #12B76A;
-      box-shadow: 0 0 0 2px rgba(18, 183, 106, 0.2);
+      background: var(--emerald);
+      box-shadow: 0 0 6px var(--emerald);
     }
     .status-pill.standby .dot {
-      background: #98A2B3;
+      background: var(--text-dim);
     }
 
     /* Context Tech Tag */
     .ctx-pill {
       display: inline-flex;
       align-items: center;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-family: monospace;
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 750;
       letter-spacing: 0.2px;
       white-space: nowrap;
     }
     .ctx-pill.testcall {
-      background: #EFF8FF;
-      color: #175CD3;
-      border: 1px solid #B2DDFF;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-border);
     }
     .ctx-pill.testcall2 {
-      background: #FDF2FA;
-      color: #C11574;
-      border: 1px solid #FCCEEE;
+      background: var(--purple-bg);
+      color: var(--purple);
+      border: 1px solid var(--purple-border);
+    }
+    .ctx-pill.auto {
+      background: #F1F5F9;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
     }
 
+    /* Buttons */
+    .btn {
+      border: none;
+      border-radius: 7px;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 650;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 650;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+    }
+    .btn-primary:hover {
+      background: #0369A1;
+      transform: translateY(-1px);
+    }
+    .btn-start-all {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
+    }
+    .btn-start-all:hover {
+      background: #047857;
+      transform: translateY(-1px);
+    }
+    .btn-stop-all {
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.25);
+    }
+    .btn-stop-all:hover {
+      background: #B91C1C;
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      background: var(--bg-card-subtle);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
     .btn-action-group {
       display: inline-flex;
       align-items: center;
@@ -640,401 +628,177 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       gap: 8px;
       white-space: nowrap;
     }
-
-    /* Enterprise Clean Action Buttons */
     .btn-config {
       display: inline-flex;
       align-items: center;
       gap: 5px;
       background: #FFFFFF;
-      border: 1px solid #D0D5DD;
-      color: #344054;
-      font-weight: 600;
+      border: 1px solid #CBD5E1;
+      color: var(--text);
+      font-weight: 650;
       font-size: 12px;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
       transition: all 0.15s ease;
     }
     .btn-config:hover {
-      background: #F9FAFB;
-      border-color: #98A2B3;
-      color: #1D2939;
+      border-color: var(--cyan);
+      color: var(--cyan);
     }
-
     .btn-start {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: #60735A;
-      border: 1px solid #4D5C48;
-      color: #FFFFFF;
-      font-weight: 700;
+      background: var(--emerald-bg);
+      border: 1px solid var(--emerald-border);
+      color: var(--emerald-dark);
+      font-weight: 750;
       font-size: 12px;
       padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
       transition: all 0.15s ease;
       min-width: 74px;
       justify-content: center;
     }
     .btn-start:hover {
-      background: #4D5C48;
+      background: var(--emerald);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
-
     .btn-stop {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: #D92D20;
-      border: 1px solid #B42318;
-      color: #FFFFFF;
-      font-weight: 700;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: var(--red-dark);
+      font-weight: 750;
       font-size: 12px;
       padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
       transition: all 0.15s ease;
       min-width: 74px;
       justify-content: center;
     }
     .btn-stop:hover {
-      background: #B42318;
+      background: var(--red);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
-
     .btn-hangup {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       background: #FFFFFF;
-      border: 1px solid #FDA29B;
-      color: #B42318;
-      font-weight: 600;
+      border: 1px solid var(--red-border);
+      color: var(--red-dark);
+      font-weight: 650;
       font-size: 12px;
       padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
       transition: all 0.15s ease;
     }
     .btn-hangup:hover {
-      background: #FEF3F2;
-      border-color: #FECDCA;
-      color: #912018;
+      background: var(--red-bg);
     }
     .hangup-dot {
-      width: 7px;
-      height: 7px;
+      width: 6.5px;
+      height: 6.5px;
       border-radius: 50%;
-      background: #D92D20;
+      background: var(--red);
       display: inline-block;
       flex-shrink: 0;
     }
-
-    /* Reset Quota Button */
     .btn-reset-quota {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: #FFF9F5;
-      border: 1px solid #FED7AA;
-      color: #C2410C;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-dark);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 750;
       padding: 3px 8px;
       border-radius: 5px;
       cursor: pointer;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
       transition: all 0.15s ease;
       line-height: 1.2;
     }
     .btn-reset-quota:hover {
-      background: #FFEDD5;
-      border-color: #FB923C;
-      color: #9A3412;
+      background: var(--amber);
+      color: #FFFFFF;
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(194, 65, 12, 0.12);
-    }
-    .btn-reset-quota:active {
-      transform: translateY(0);
     }
 
-    /* 3-Column Trunk Grid */
-    .trunk-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .trunk-card {
-      background: var(--card-bg);
+    /* Preset duration pills */
+    .preset-pill {
+      background: #F1F5F9;
+      color: var(--text-muted);
       border: 1px solid var(--border);
       border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .trunk-card:hover {
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-    }
-    .trunk-header {
-      background: #FAFBF9;
-      border-bottom: 1px solid var(--border);
-      padding: 16px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .trunk-identity {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-    .flag-badge {
-      background: var(--brown-light);
-      color: var(--brown);
-      font-weight: 800;
-      font-size: 13px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      letter-spacing: 0.5px;
-      border: 1px solid #DBCFC9;
-      min-width: 32px;
-      text-align: center;
-      transition: all 0.2s ease;
-    }
-    .trunk-title-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .trunk-title-input {
-      font-size: 17px;
-      font-weight: 750;
-      color: var(--brown);
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 6px;
-      padding: 2px 6px;
-      width: 130px;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    .trunk-title-input:hover {
-      background: #FFFFFF;
-      border-color: #D2D7CF;
-    }
-    .trunk-title-input:focus {
-      background: #FFFFFF;
-      border-color: var(--sage);
-      box-shadow: 0 0 0 2px rgba(124, 142, 118, 0.25);
-      outline: none;
-      width: 150px;
-    }
-    .title-edit-icon {
+      padding: 3px 9px;
       font-size: 11px;
-      color: var(--muted);
-      opacity: 0.35;
+      font-weight: 650;
       cursor: pointer;
-      user-select: none;
-      transition: opacity 0.15s;
+      transition: all 0.15s ease;
     }
-    .trunk-title-wrap:hover .title-edit-icon {
-      opacity: 0.9;
-    }
-    .trunk-name {
-      font-size: 17px;
-      font-weight: 750;
-      color: var(--brown);
-    }
-    .trunk-status {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      display: inline-block;
-    }
-    .status-running {
-      background: var(--green-bg);
-      color: var(--green);
-      border: 1px solid #C4E7D0;
-    }
-    .status-stopped {
-      background: var(--red-bg);
-      color: var(--red);
-      border: 1px solid #F8CCCC;
-    }
-    .status-limit {
-      background: #FEF3F2;
-      color: #B42318;
-      border: 1px solid #FECDCA;
-      font-weight: 800;
-    }
-
-    .trunk-body {
-      padding: 18px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    /* Live Channel Status Box */
-    .metric-single-box {
-      background: #F8F9FA;
-      padding: 14px 18px;
-      border-radius: 8px;
-      border: 1px solid #EAECF0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .metric-item-val {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--brown);
-      letter-spacing: -0.3px;
-    }
-    .metric-item-lbl {
-      font-size: 11px;
-      font-weight: 700;
-      color: #667085;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .preset-pill:hover {
+      background: #E2E8F0;
+      border-color: #94A3B8;
+      color: var(--text);
     }
 
     /* Form Fields */
-    .fields-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
     .field-group {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
     }
     .field-group.full {
       grid-column: span 2;
     }
     .field-group label {
       font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
+      font-weight: 750;
+      color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .field-group input, .field-group select {
-      padding: 8px 10px;
-      border: 1px solid #CCD2C8;
-      border-radius: 6px;
+      padding: 9px 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 7px;
       font-size: 13px;
       font-family: inherit;
       color: var(--text);
-      background: #FFFFFF;
+      background: var(--input-bg);
       outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .field-group input:focus {
-      border-color: var(--sage);
-      box-shadow: 0 0 0 2px rgba(124, 142, 118, 0.2);
+    .field-group input:focus, .field-group select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px var(--cyan-glow);
     }
-
-    /* Card Actions */
-    .card-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid #EBEFEA;
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
-    /* Buttons */
-    .btn {
-      border: none;
-      border-radius: 6px;
-      padding: 9px 14px;
-      font-size: 13px;
-      font-weight: 650;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: background 0.15s, opacity 0.15s;
-    }
-    .btn-sage {
-      background: var(--sage);
-      color: #FFFFFF;
-    }
-    .btn-sage:hover {
-      background: var(--sage-dark);
-    }
-    .btn-brown {
-      background: var(--brown);
-      color: #FFFFFF;
-    }
-    .btn-brown:hover {
-      background: var(--brown-dark);
-    }
-    .btn-red {
-      background: var(--red);
-      color: #FFFFFF;
-    }
-    .btn-red:hover {
-      background: #8D1F1F;
-    }
-    .btn-outline {
-      background: #FFFFFF;
-      color: var(--brown);
-      border: 1px solid #CCD2C8;
-    }
-    .btn-outline:hover {
-      background: #F4F6F3;
-    }
-    .flex-1 { flex: 1; }
-
-    /* Bottom Console */
-    .console-card {
-      background: #1B1815;
+    /* Breakout Cards */
+    .breakout-card {
+      background: var(--bg-card);
       border-radius: 10px;
-      border: 1px solid #2F2A25;
-      padding: 12px 18px;
-      color: #D6DDD3;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    }
-    .console-header {
+      border: 1px solid var(--border);
+      padding: 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-    .console-title {
-      font-size: 11px;
-      font-weight: 750;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #9AB094;
-    }
-    .console-logs {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11.5px;
-      height: 80px;
-      overflow-y: auto;
-      line-height: 1.55;
-      color: #A3E6A1;
-    }
-    .console-logs div {
-      white-space: pre-wrap;
-      word-break: break-all;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
     }
 
     /* Modal Styles */
@@ -1044,9 +808,9 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(30, 25, 22, 0.52);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1062,12 +826,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       pointer-events: none;
     }
     .modal-dialog {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+      box-shadow: var(--shadow-lg);
       width: 100%;
-      max-width: 600px;
+      max-width: 580px;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
@@ -1075,11 +839,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       overflow: hidden;
     }
     @keyframes modalFadeIn {
-      from { transform: scale(0.96) translateY(8px); opacity: 0; }
+      from { transform: scale(0.97) translateY(6px); opacity: 0; }
       to { transform: scale(1) translateY(0); opacity: 1; }
     }
     .modal-header {
-      background: #FAFBF9;
+      background: var(--bg-card-subtle);
       border-bottom: 1px solid var(--border);
       padding: 16px 22px;
       display: flex;
@@ -1091,75 +855,60 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       border: none;
       font-size: 24px;
       line-height: 1;
-      color: var(--muted);
+      color: var(--text-muted);
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
-      transition: background 0.15s, color 0.15s;
+      transition: all 0.15s ease;
     }
     .modal-close:hover {
-      background: #F0ECE8;
-      color: var(--brown);
+      background: #E2E8F0;
+      color: var(--text);
     }
     .modal-body {
       padding: 22px 24px;
       overflow-y: auto;
     }
-    .btn-gear {
-      background: transparent;
-      border: 1px solid transparent;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 6px;
-      color: var(--muted);
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }
-    .btn-gear:hover {
-      background: var(--brown-light);
-      border-color: #DBCFC9;
-      color: var(--brown);
-      transform: rotate(30deg);
-    }
-    .btn-link-gear {
-      background: transparent;
-      border: none;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--sage);
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .btn-link-gear:hover {
-      background: #E8EFEA;
-      color: var(--sage-hover);
-    }
 
-    @media(max-width: 1080px) {
-      .trunk-grid { grid-template-columns: 1fr; }
-      .master-bar { grid-template-columns: 1fr 1fr; }
+    @media(max-width: 1024px) {
+      .nav-center { display: none; }
+    }
+    @media(max-width: 640px) {
+      .fields-grid { grid-template-columns: 1fr; }
+      .field-group.full { grid-column: span 1; }
     }
   </style>
 </head>
 <body>
-  <!-- Top Navigation -->
+  <!-- Top Navigation Bar -->
   <header class="navbar">
     <div class="brand">
       <div class="brand-icon">M5</div>
       <div class="brand-text">
-        <h1>M5-Traffic Controller</h1>
-        <span>VoIP Smart Switch</span>
+        <h1>M5 TRAFFIC CONTROLLER</h1>
+        <span>CARRIER VOIP SMART SWITCH & GATEWAY</span>
       </div>
     </div>
+    
+    <div class="nav-center">
+      <div class="core-pill">
+        <span class="core-dot"></span>
+        <span>Asterisk 20 PJSIP Core</span>
+      </div>
+      <div class="nav-clock" id="nav-clock">
+        <span>⏱</span>
+        <span id="live-clock">--:--:--</span>
+      </div>
+    </div>
+
     <div class="nav-actions">
+      <!-- Change Password Button -->
+      <button type="button" class="btn-pwd" onclick="openPasswordModal()" title="Change operator password">
+        🔑 Change Password
+      </button>
+
       <div class="user-pill">
-        <div class="user-dot"></div>
+        <div class="user-avatar">A</div>
         <span>Operator: <b><?= htmlspecialchars($_SESSION["operator"] ?? "awais") ?></b></span>
       </div>
       <a href="?logout=1" class="btn-logout">Sign Out</a>
@@ -1168,23 +917,17 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
   <main class="container">
     <!-- Destination Traffic Routes Section Card -->
-    <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;box-shadow:0 1px 3px rgba(16,24,40,0.06);margin-bottom:24px;overflow:hidden;">
-      <!-- Title & Bulk Controls Bar -->
-      <div style="padding:16px 20px;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:24px;">🌐</span>
+    <section class="dashboard-card">
+      <!-- Title Bar -->
+      <div class="card-topbar">
+        <div class="card-title-group">
+          <div class="card-icon-badge">🌐</div>
           <div>
-            <h2 style="font-size:16px;font-weight:800;color:#101828;margin:0;">Destination Traffic Routes</h2>
-            <div style="font-size:12px;color:#667085;margin-top:2px;">
+            <h2>Destination Traffic Routes</h2>
+            <div class="card-subtitle">
               Live Asterisk SIP generation channels, quota monitoring & engine control
             </div>
           </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button class="btn btn-sage btn-sm" onclick="startAll()" style="font-weight:700;padding:7px 14px;">▶ Start All Trunks</button>
-          <button class="btn btn-red btn-sm" onclick="stopAll()" style="font-weight:700;padding:7px 14px;">⏹ Stop All Trunks</button>
-          <button class="btn btn-outline btn-sm" onclick="hangupAll()" style="color:#B42318;border-color:#FDA29B;background:#FFFFFF;font-weight:700;padding:7px 14px;display:inline-flex;align-items:center;gap:6px;" title="Hangup active calls across all routes"><span style="width:7px;height:7px;border-radius:50%;background:#D92D20;display:inline-block;"></span> Hangup All Calls</button>
-          <button class="btn btn-outline btn-sm" onclick="resetAllQuotas()" style="color:#C2410C;border-color:#FED7AA;background:#FFF9F5;font-weight:700;padding:7px 14px;" title="Reset consumed monthly minutes to 0 for all routes">↺ Reset All Quotas</button>
         </div>
       </div>
 
@@ -1193,12 +936,13 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         <table class="routes-table">
           <thead>
             <tr>
-              <th style="min-width:210px;">Destination Route</th>
-              <th style="min-width:110px;">Status</th>
-              <th style="min-width:150px;">Live Channels</th>
-              <th style="min-width:230px;">Monthly Minutes Quota</th>
-              <th style="min-width:170px;">Target & Routing</th>
-              <th style="min-width:240px;text-align:right;">Actions</th>
+              <th style="width:13%;min-width:120px;">Destination</th>
+              <th style="width:11%;min-width:100px;">Context</th>
+              <th style="width:16%;min-width:145px;">Live Channels</th>
+              <th style="width:24%;min-width:210px;">Monthly Minutes Quota</th>
+              <th style="width:14%;min-width:145px;">Target IP</th>
+              <th style="width:12%;min-width:120px;">Dialing Prefix</th>
+              <th style="width:10%;min-width:215px;text-align:right;">Action</th>
             </tr>
           </thead>
           <tbody id="routes-table-tbody">
@@ -1206,72 +950,104 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
 
     <!-- Dedicated Inbound Call Gateway & Prefix Routing -->
-    <section class="inbound-section" style="margin-top:28px;">
-      <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;padding:22px;box-shadow:0 1px 3px rgba(16,24,40,0.06);">
+    <section class="dashboard-card">
+      <div style="padding:22px;">
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:24px;">📥</span>
+          <div class="card-title-group">
+            <div class="card-icon-badge">📥</div>
             <div>
-              <h2 style="font-size:16px;font-weight:800;color:var(--brown);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+              <h2 style="font-size:16px;font-weight:800;color:var(--text);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
+              <div class="card-subtitle">
                 Manage authorized inbound source IPs and allowed breakout prefixes
               </div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <span id="inbound-active-badge" style="background:#F2F4F7;color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
+            <span id="inbound-active-badge" style="background:#F1F5F9;color:var(--text-muted);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
               ○ 0 Active Inbound Calls
             </span>
           </div>
         </div>
 
+        <!-- 1. Allowed Inbound Source IPs Table (Multiple IPs) -->
+        <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);overflow:hidden;">
+          <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:750;color:var(--text);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="source-ips-count" style="font-weight:700;color:var(--cyan);background:#FFFFFF;border:1px solid var(--border);padding:3px 10px;border-radius:12px;font-size:11px;text-transform:none;">
+                2 IPs authorized
+              </span>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openAddSourceIpModal()" style="padding:6px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px;text-transform:none;">
+                + Add Allowed Source IP
+              </button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
+                  <th style="padding:11px 16px;width:24%;">Source IP Address</th>
+                  <th style="padding:11px 16px;width:20%;">Gateway Label / Note</th>
+                  <th style="padding:11px 16px;width:22%;">Allowed CC & Prefixes</th>
+                  <th style="padding:11px 16px;width:18%;">Assigned Context</th>
+                  <th style="padding:11px 16px;width:16%;text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="source-ips-tbody">
+                <!-- Populated via renderSourceIpsTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        
         <!-- Inbound Breakout Prefix Routing & Context Duration Limits -->
-        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;padding:16px;">
+        <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);padding:18px;">
           <div style="margin-bottom:14px;">
-            <span style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+            <span style="font-size:12px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
               ⏱ Inbound Breakout Prefix Routing & Context Duration Limits
             </span>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+            <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
               Configure allowed breakout prefixes and maximum call timeouts in Asterisk dialplan
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px;">
             <!-- [testcall] Breakout Card -->
-            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+            <div class="breakout-card">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:14px;font-weight:800;color:var(--brown);">testcall Breakout</div>
+                <div style="font-size:14px;font-weight:800;color:var(--text);">testcall Breakout</div>
                 <div style="display:flex;gap:6px;align-items:center;">
-                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall]</span>
-                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                  <span class="ctx-pill testcall">[testcall]</span>
+                  <span style="background:var(--emerald-bg);color:var(--emerald-dark);border:1px solid var(--emerald-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
                 </div>
               </div>
 
               <div>
-                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
                   <span>ALLOWED BREAKOUT PREFIXES / CC</span>
-                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
                 </label>
-                <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
-                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
                   Allowed breakout prefixes. Unlisted prefixes are rejected.
                 </div>
               </div>
 
-              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+              <div style="border-top:1px solid var(--border);padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
                     MAX CALL DURATION LIMIT
                   </label>
-                  <span id="testcall-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">60s (1m)</span>
+                  <span id="testcall-human-dur" style="font-size:11.5px;color:var(--cyan);font-weight:700;">60s (1m)</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                  <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
-                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                  <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
                 </div>
                 <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
                   <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
@@ -1286,36 +1062,36 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
 
             <!-- [testcall2] Breakout Card -->
-            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+            <div class="breakout-card">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:14px;font-weight:800;color:var(--brown);">testcall2 Breakout</div>
+                <div style="font-size:14px;font-weight:800;color:var(--text);">testcall2 Breakout</div>
                 <div style="display:flex;gap:6px;align-items:center;">
-                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall2]</span>
-                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                  <span class="ctx-pill testcall2">[testcall2]</span>
+                  <span style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
                 </div>
               </div>
 
               <div>
-                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
                   <span>ALLOWED BREAKOUT PREFIXES / CC</span>
-                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
                 </label>
-                <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
-                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
                   Allowed breakout prefixes. Unlisted prefixes are rejected.
                 </div>
               </div>
 
-              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+              <div style="border-top:1px solid var(--border);padding-top:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
                     MAX CALL DURATION LIMIT
                   </label>
-                  <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">50s</span>
+                  <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--purple);font-weight:700;">50s</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                  <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
-                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                  <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
                 </div>
                 <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
                   <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
@@ -1331,53 +1107,24 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
 
           <div style="margin-top:14px;display:flex;justify-content:flex-end;">
-            <button type="button" class="btn btn-sage btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:7px 16px;font-size:12.5px;font-weight:700;">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:7px 20px;font-size:12.5px;font-weight:750;">
               💾 Save Settings
             </button>
           </div>
         </div>
 
-        <!-- 1. Allowed Inbound Source IPs Table (Multiple IPs) -->
-        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;">
-          <div style="padding:10px 14px;background:#F2F4F7;font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span id="source-ips-count" style="font-weight:600;color:var(--muted);text-transform:none;font-size:11px;">1 IP active</span>
-              <button type="button" class="btn btn-sage btn-sm" onclick="openAddSourceIpModal()" style="padding:5px 12px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;text-transform:none;">
-                + Add Allowed Source IP
-              </button>
-            </div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
-              <thead>
-                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10px;text-transform:uppercase;">
-                  <th style="padding:10px 14px;width:22%;">Source IP Address</th>
-                  <th style="padding:10px 14px;width:20%;">Gateway Label / Note</th>
-                  <th style="padding:10px 14px;width:24%;">Allowed CC & Prefixes</th>
-                  <th style="padding:10px 14px;width:20%;">Assigned Context</th>
-                  <th style="padding:10px 14px;width:14%;text-align:right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="source-ips-tbody">
-                <!-- Populated via renderSourceIpsTable() -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- 2. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
-        <div style="margin-bottom:0;background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,0.04);">
-          <div style="padding:12px 16px;background:#F8F9FA;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="background:var(--bg-card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);">
+          <div style="padding:12px 16px;background:var(--bg-card-subtle);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
             <div>
-              <span style="font-size:13px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+              <span style="font-size:12.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
                 📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
               </span>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                Live minutes accrued from SQLite Database (<code>/var/lib/callgen/callgen.db</code>) for current calendar month
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+                Accrued CDR minutes from Asterisk SQLite database for the current calendar month
               </div>
             </div>
-            <span style="font-size:11px;color:var(--sage-dark);font-weight:700;background:#F5F8F4;padding:4px 10px;border-radius:6px;border:1px solid #D8E2D5;">
+            <span style="font-size:11px;color:var(--cyan);font-weight:750;background:var(--blue-bg);padding:4px 10px;border-radius:6px;border:1px solid var(--blue-border);">
               ● Monitored Destinations
             </span>
           </div>
@@ -1385,13 +1132,13 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           <div style="overflow-x:auto;">
             <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
               <thead>
-                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10.5px;text-transform:uppercase;background:#FAFAFA;">
-                  <th style="padding:10px 14px;">Destination Country</th>
-                  <th style="padding:10px 14px;">Country Code & Prefix</th>
-                  <th style="padding:10px 14px;">Total Inbound Calls</th>
-                  <th style="padding:10px 14px;">Answered Calls</th>
-                  <th style="padding:10px 14px;">Total Consumed Minutes</th>
-                  <th style="padding:10px 14px;">Active Channels</th>
+                <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
+                  <th style="padding:10px 16px;">Destination Route</th>
+                  <th style="padding:10px 16px;">Country Code & Prefix</th>
+                  <th style="padding:10px 16px;">Total Inbound Calls</th>
+                  <th style="padding:10px 16px;">Answered Calls</th>
+                  <th style="padding:10px 16px;">Total Consumed Minutes</th>
+                  <th style="padding:10px 16px;">Active Channels</th>
                 </tr>
               </thead>
               <tbody id="country-records-tbody">
@@ -1408,15 +1155,63 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     </section>
   </main>
 
+  <!-- Change Password Modal Dialog -->
+  <div id="password-modal-overlay" class="modal-overlay hidden" onclick="handlePasswordOverlayClick(event)">
+    <div class="modal-dialog" style="max-width:440px;" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;color:var(--cyan);">🔑</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);">Change Password</div>
+            <div style="font-size:11px;color:var(--text-muted);">Update access password for your operator account</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closePasswordModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="password-form" onsubmit="savePasswordItem(event)">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div id="pwd-msg" style="display:none;padding:10px 12px;border-radius:6px;font-size:12px;font-weight:600;"></div>
+            
+            <div class="field-group">
+              <label>Current Password</label>
+              <input type="password" id="pwd-current" required placeholder="Enter current password" autocomplete="current-password">
+            </div>
+
+            <div class="field-group">
+              <label>New Password (Min. 4 characters)</label>
+              <input type="password" id="pwd-new" required minlength="4" placeholder="Enter new password" autocomplete="new-password">
+            </div>
+
+            <div class="field-group">
+              <label>Confirm New Password</label>
+              <input type="password" id="pwd-confirm" required minlength="4" placeholder="Re-enter new password" autocomplete="new-password">
+            </div>
+          </div>
+
+          <div style="margin-top:22px;display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-outline" style="padding:9px 18px;font-size:13px;" onclick="closePasswordModal()">
+              Cancel
+            </button>
+            <button type="submit" id="btn-save-pwd" class="btn btn-primary" style="padding:9px 20px;font-size:13px;font-weight:700;">
+              💾 Update Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Add / Edit Allowed Inbound Source IP Modal Dialog -->
   <div id="source-ip-modal-overlay" class="modal-overlay hidden" onclick="handleSourceIpOverlayClick(event)">
     <div class="modal-dialog" style="max-width:480px;" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">🌐</span>
+          <span style="font-size:20px;color:var(--cyan);">🌐</span>
           <div>
-            <div style="font-weight:800;font-size:16px;color:var(--brown);" id="source-ip-modal-title">Allowed Source IP</div>
-            <div style="font-size:11px;color:var(--muted);">Configure remote authorized gateway & prefixes</div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="source-ip-modal-title">Allowed Source IP</div>
+            <div style="font-size:11px;color:var(--text-muted);">Configure remote authorized gateway & prefixes</div>
           </div>
         </div>
         <button type="button" class="modal-close" onclick="closeSourceIpModal()" title="Close">&times;</button>
@@ -1429,12 +1224,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <div class="field-group">
                 <label>Source IP Address / Host</label>
                 <input type="text" id="sip-input-ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.1.13">
-                <span style="font-size:10px;color:var(--muted);">Remote PBX address sending incoming calls</span>
+                <span style="font-size:10px;color:var(--text-dim);">Remote PBX address sending incoming calls</span>
               </div>
               <div class="field-group">
                 <label>SIP Port</label>
-                <input type="number" id="sip-input-port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:monospace;font-weight:700;text-align:center;">
-                <span style="font-size:10px;color:var(--muted);">Default: 5060</span>
+                <input type="number" id="sip-input-port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;text-align:center;">
+                <span style="font-size:10px;color:var(--text-dim);">Default: 5060</span>
               </div>
             </div>
 
@@ -1446,9 +1241,9 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div class="field-group">
               <label>Allowed CC & Prefixes (Comma Separated)</label>
               <input type="text" id="sip-input-prefix" placeholder="e.g. 444453, 619334221, 2237">
-              <span style="font-size:10px;color:var(--muted);">Prefixes/CC associated with this gateway</span>
+              <span style="font-size:10px;color:var(--text-dim);">Prefixes/CC associated with this gateway</span>
               <div style="display:flex;gap:5px;margin-top:6px;align-items:center;flex-wrap:wrap;">
-                <span style="font-size:10.5px;color:var(--muted);font-weight:600;">Quick Insert:</span>
+                <span style="font-size:10.5px;color:var(--text-muted);font-weight:600;">Quick Insert:</span>
                 <button type="button" class="preset-pill" onclick="insertSipPfx('444453, 619334221, 2237')">All Breakouts</button>
                 <button type="button" class="preset-pill" onclick="insertSipPfx('444453')">Cuba (444453)</button>
                 <button type="button" class="preset-pill" onclick="insertSipPfx('619334221')">Senegal (619334221)</button>
@@ -1463,20 +1258,20 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
             <div class="field-group">
               <label>Target Dialplan Context (Where calls route)</label>
-              <select id="sip-input-context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);background:#FFFFFF;font-size:13px;">
+              <select id="sip-input-context" style="width:100%;padding:10px 14px;border-radius:8px;font-weight:600;font-size:13px;">
                 <option value="auto">⚡ Auto-Route by Prefix (Default)</option>
                 <option value="testcall">[testcall]</option>
                 <option value="testcall2">[testcall2]</option>
               </select>
-              <span style="font-size:10px;color:var(--muted);margin-top:2px;">Select which dialplan context handles incoming calls from this gateway</span>
+              <span style="font-size:10px;color:var(--text-dim);margin-top:2px;">Select which dialplan context handles incoming calls from this gateway</span>
             </div>
           </div>
 
           <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
-            <button type="button" class="btn btn-outline" style="padding:10px 18px;font-size:13px;" onclick="closeSourceIpModal()">
+            <button type="button" class="btn btn-outline" style="padding:9px 18px;font-size:13px;" onclick="closeSourceIpModal()">
               Cancel
             </button>
-            <button type="submit" id="btn-save-sip-item" class="btn btn-sage" style="padding:10px 20px;font-size:13px;font-weight:700;">
+            <button type="submit" id="btn-save-sip-item" class="btn btn-primary" style="padding:9px 20px;font-size:13px;font-weight:700;">
               💾 Save Source IP
             </button>
           </div>
@@ -1490,14 +1285,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     <div class="modal-dialog" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span class="flag-badge" id="modal-flag">XX</span>
+          <span style="font-size:22px;color:var(--cyan);">⚙</span>
           <div>
-            <div style="font-weight:800;font-size:16px;color:var(--brown);" id="modal-title">Configure Trunk</div>
-            <div style="font-size:11px;color:var(--muted);font-family:monospace;" id="modal-script">Engine Script</div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="modal-title">Configure Trunk</div>
+            <div style="font-size:11.5px;color:var(--text-muted);" id="modal-script">Trunk parameters & destination routing</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span id="modal-status" class="trunk-status"></span>
+          <span id="modal-status" class="status-pill"></span>
           <button type="button" class="modal-close" onclick="closeConfigModal()" title="Close">&times;</button>
         </div>
       </div>
@@ -1517,7 +1312,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
             <div class="field-group">
               <label>SIP Port</label>
-              <input type="number" id="modal-port" name="sip_port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:monospace;font-weight:700;">
+              <input type="number" id="modal-port" name="sip_port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;">
             </div>
             <div class="field-group">
               <label>Country Code (CC)</label>
@@ -1546,7 +1341,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
             <div class="field-group">
               <label>Assigned Dialplan Context</label>
-              <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);">
+              <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border-radius:8px;font-weight:600;">
                 <option value="testcall">[testcall]</option>
                 <option value="testcall2">[testcall2]</option>
               </select>
@@ -1555,10 +1350,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
 
           <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
-            <button type="button" class="btn btn-outline" style="padding:11px 20px;font-size:13px;" onclick="closeConfigModal()">
+            <button type="button" class="btn btn-outline" style="padding:10px 20px;font-size:13px;" onclick="closeConfigModal()">
               Cancel
             </button>
-            <button type="submit" id="modal-save-btn" class="btn btn-sage" style="padding:11px 24px;font-size:14px;font-weight:700;">
+            <button type="submit" id="modal-save-btn" class="btn btn-primary" style="padding:10px 24px;font-size:13.5px;font-weight:750;">
               💾 Save Settings
             </button>
           </div>
@@ -1568,52 +1363,97 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
   </div>
 
   <script>
-    const TRUNK_META = {
-      mali: { script: "asterisk_callgen.sh" },
-      cuba: { script: "asterisk_callgen2.sh" },
-      senegal: { script: "asterisk_callgen3.sh" }
-    };
 
-    const COUNTRY_CODES = {
-      'cuba': 'CU',
-      'senegal': 'SN',
-      'mali': 'ML',
-      'china': 'CN',
-      'united states': 'US',
-      'usa': 'US',
-      'united kingdom': 'GB',
-      'uk': 'UK',
-      'germany': 'DE',
-      'france': 'FR',
-      'canada': 'CA',
-      'india': 'IN',
-      'pakistan': 'PK',
-      'brazil': 'BR',
-      'spain': 'ES',
-      'italy': 'IT',
-      'russia': 'RU',
-      'japan': 'JP',
-      'turkey': 'TR',
-      'australia': 'AU',
-      'singapore': 'SG',
-      'uae': 'AE',
-      'dubai': 'AE',
-      'egypt': 'EG',
-      'south africa': 'ZA',
-      'nigeria': 'NG',
-      'bangladesh': 'BD'
-    };
-
-    function getRouteFlag(name, id) {
-      if (!name || !name.trim()) return (id || 'XX').slice(0, 2).toUpperCase();
-      const lower = name.trim().toLowerCase();
-      if (COUNTRY_CODES[lower]) return COUNTRY_CODES[lower];
-      const words = name.trim().split(/s+/);
-      if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
-      return name.trim().slice(0, 2).toUpperCase();
-    }
 
     let currentModalTrunkId = null;
+
+    // Password Modal Logic
+    function openPasswordModal() {
+      const overlay = document.getElementById('password-modal-overlay');
+      const form = document.getElementById('password-form');
+      const msg = document.getElementById('pwd-msg');
+      if (form) form.reset();
+      if (msg) {
+        msg.style.display = 'none';
+        msg.textContent = '';
+      }
+      if (overlay) overlay.classList.remove('hidden');
+    }
+
+    function closePasswordModal() {
+      const overlay = document.getElementById('password-modal-overlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    function handlePasswordOverlayClick(e) {
+      if (e.target && e.target.id === 'password-modal-overlay') {
+        closePasswordModal();
+      }
+    }
+
+    async function savePasswordItem(e) {
+      e.preventDefault();
+      const curPass = (document.getElementById('pwd-current')?.value || '').trim();
+      const newPass = (document.getElementById('pwd-new')?.value || '').trim();
+      const confirmPass = (document.getElementById('pwd-confirm')?.value || '').trim();
+      const msg = document.getElementById('pwd-msg');
+      const btn = document.getElementById('btn-save-pwd');
+
+      if (!curPass) {
+        showPwdMsg('Please enter current password', true);
+        return;
+      }
+      if (newPass.length < 4) {
+        showPwdMsg('New password must be at least 4 characters', true);
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showPwdMsg('New passwords do not match', true);
+        return;
+      }
+
+      try {
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Updating...';
+        }
+        const res = await api('change-password', {
+          current_password: curPass,
+          new_password: newPass
+        });
+        showPwdMsg(res.message || 'Password updated successfully!', false);
+        if (btn) btn.textContent = '✓ Updated!';
+        setTimeout(() => {
+          closePasswordModal();
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = '💾 Update Password';
+          }
+        }, 1200);
+      } catch (err) {
+        showPwdMsg(err.message || 'Failed to update password', true);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '💾 Update Password';
+        }
+      }
+    }
+
+    function showPwdMsg(text, isError) {
+      const msg = document.getElementById('pwd-msg');
+      if (!msg) return;
+      msg.style.display = 'block';
+      msg.textContent = text;
+      if (isError) {
+        msg.style.background = 'var(--red-bg)';
+        msg.style.color = 'var(--red-dark)';
+        msg.style.border = '1px solid var(--red-border)';
+      } else {
+        msg.style.background = 'var(--emerald-bg)';
+        msg.style.color = 'var(--emerald-dark)';
+        msg.style.border = '1px solid var(--emerald-border)';
+      }
+    }
 
     function openConfigModal(id) {
       const t = trunksData[id];
@@ -1621,26 +1461,20 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       currentModalTrunkId = id;
 
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
-      const flagCode = getRouteFlag(routeName, id);
-      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
 
       const idEl = document.getElementById('modal-trunk-id');
       if (idEl) idEl.value = id;
       const titleEl = document.getElementById('modal-title');
       if (titleEl) titleEl.textContent = `${routeName} Configuration`;
-      const scriptEl = document.getElementById('modal-script');
-      if (scriptEl) scriptEl.textContent = `Engine Script: ${scriptName}`;
-      const flagEl = document.getElementById('modal-flag');
-      if (flagEl) flagEl.textContent = flagCode;
 
       const modalStatus = document.getElementById('modal-status');
       if (modalStatus) {
         if (t.running) {
-          modalStatus.className = 'trunk-status status-running';
-          modalStatus.textContent = '● ACTIVE';
+          modalStatus.className = 'status-pill active';
+          modalStatus.innerHTML = '<span class="dot"></span><span>Active</span>';
         } else {
-          modalStatus.className = 'trunk-status status-stopped';
-          modalStatus.textContent = '○ STANDBY';
+          modalStatus.className = 'status-pill standby';
+          modalStatus.innerHTML = '<span class="dot"></span><span>Standby</span>';
         }
       }
 
@@ -1699,7 +1533,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeConfigModal();
+      if (e.key === 'Escape') {
+        closeConfigModal();
+        closeSourceIpModal();
+        closePasswordModal();
+      }
     });
 
     function handleModalPrefixCCChange() {
@@ -1711,11 +1549,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
     function handleModalNameChange(val) {
       const displayName = val.trim() || 'Trunk';
-      const flagCode = getRouteFlag(displayName, currentModalTrunkId);
       const titleEl = document.getElementById('modal-title');
       if (titleEl) titleEl.textContent = `${displayName} Configuration`;
-      const flagEl = document.getElementById('modal-flag');
-      if (flagEl) flagEl.textContent = flagCode;
     }
 
     async function saveTrunkModal(e) {
@@ -1748,11 +1583,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         d.call_duration = Number(d.call_duration || (trunksData[id] && trunksData[id].call_duration) || 600);
 
         const res = await api('save', d);
-        addLog(`[${(d.name || id).toUpperCase()}] ${res.message}`);
 
         if (saveBtn) {
           saveBtn.innerHTML = '✓ Settings Saved!';
-          saveBtn.style.background = 'var(--green)';
+          saveBtn.style.background = 'var(--emerald)';
           saveBtn.style.color = '#FFFFFF';
         }
 
@@ -1766,10 +1600,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           closeConfigModal();
           refreshAll(true);
         }, 600);
-
       } catch (err) {
         console.error("Save error:", err);
-        addLog(`[${id.toUpperCase()}] Save error: ${err.message}`);
         if (saveBtn) {
           saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
           saveBtn.style.background = "var(--red)";
@@ -1800,23 +1632,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       return data;
     }
 
-    function addLog(msg) {
-      console.log(msg);
-      const el = document.getElementById('console-logs');
-      if (el) {
-        const time = new Date().toLocaleTimeString();
-        const div = document.createElement('div');
-        div.textContent = `[${time}] ${msg}`;
-        el.insertBefore(div, el.firstChild);
-        const logTime = document.getElementById('log-time');
-        if (logTime) logTime.textContent = 'Last event: ' + time;
-      }
-    }
-
     function buildRouteTableRow(id, t) {
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
-      const flagCode = getRouteFlag(routeName, id);
-      const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
       const maxChan = Number(t.max_channels) || 1;
       const activeCalls = Number(t.active_calls) || 0;
       const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
@@ -1835,35 +1652,24 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const tr = document.createElement('tr');
       tr.id = 'route-row-' + id;
       tr.innerHTML = `
-        <!-- 1. Destination Route -->
+        <!-- 1. Destination -->
         <td>
-          <div style="display:flex;flex-direction:column;gap:3px;justify-content:center;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-weight:750;font-size:14px;color:var(--brown);" id="tbl-name-${id}">${routeName}</span>
-              <span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span>
-            </div>
-            <div style="font-size:11.5px;color:var(--muted);font-family:monospace;" id="tbl-script-${id}">
-              ${scriptName}
-            </div>
-          </div>
+          <span style="font-weight:750;font-size:14px;color:var(--text);" id="tbl-name-${id}">${routeName}</span>
         </td>
 
-        <!-- 2. Status -->
+        <!-- 2. Context -->
         <td>
-          <span id="badge-${id}" class="status-pill ${t.running ? 'active' : 'standby'}">
-            <span class="dot"></span>
-            <span>${t.running ? 'Active' : 'Standby'}</span>
-          </span>
+          <span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span>
         </td>
 
         <!-- 3. Live Channels -->
         <td>
           <div style="display:flex;flex-direction:column;gap:5px;">
-            <div style="font-weight:750;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)'};" id="active-txt-${id}">
-              ${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>
+            <div style="font-weight:750;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--emerald-dark)' : 'var(--text)'};" id="active-txt-${id}">
+              ${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--text-muted);">/ ${maxChan} ch</span>
             </div>
-            <div style="width:110px;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
-              <div id="chan-bar-${id}" style="width:${chanPct}%;height:100%;background:${chanPct > 80 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
+            <div style="width:110px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;">
+              <div id="chan-bar-${id}" style="width:${chanPct}%;height:100%;background:${chanPct > 80 ? 'var(--red)' : 'var(--cyan)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
           </div>
         </td>
@@ -1872,18 +1678,18 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         <td>
           <div style="display:flex;flex-direction:column;gap:5px;max-width:240px;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;">
-              <span style="font-weight:750;font-size:13.5px;color:#101828;letter-spacing:-0.2px;" id="used-min-${id}">
-                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:#667085;">min</span>
+              <span style="font-weight:750;font-size:13.5px;color:var(--text);letter-spacing:-0.2px;" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--text-muted);">min</span>
               </span>
-              <span style="font-size:11px;font-weight:700;color:${pct > 90 ? '#D92D20' : '#344054'};background:${pct > 90 ? '#FEF3F2' : '#F2F4F7'};padding:1px 6px;border-radius:4px;border:1px solid ${pct > 90 ? '#FECDCA' : '#EAECF0'};" id="limit-pct-${id}">
+              <span style="font-size:11px;font-weight:750;color:${pct > 90 ? 'var(--red)' : '#334155'};background:${pct > 90 ? 'var(--red-bg)' : '#F1F5F9'};padding:1px 6px;border-radius:4px;border:1px solid ${pct > 90 ? 'var(--red-border)' : 'var(--border)'};" id="limit-pct-${id}">
                 ${pct}% used
               </span>
             </div>
-            <div style="width:100%;height:6px;background:#EAECF0;border-radius:3px;overflow:hidden;">
-              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? '#D92D20' : '#60735A'};border-radius:3px;transition:width 0.3s;"></div>
+            <div style="width:100%;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;">
+              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--cyan)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-              <div style="font-size:11px;color:#667085;" id="limit-txt-${id}">
+              <div style="font-size:11px;color:var(--text-muted);" id="limit-txt-${id}">
                 Monthly Limit: <b>${limitMin.toLocaleString()}</b> min
               </div>
               <button type="button" class="btn-reset-quota" onclick="resetQuota('${id}')" title="Reset consumed minutes for ${routeName} to 0">
@@ -1893,20 +1699,22 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
         </td>
 
-        <!-- 5. Target & Routing -->
+        <!-- 5. Target IP -->
         <td>
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <div style="font-family:monospace;font-size:12.5px;font-weight:700;color:var(--brown);" id="disp-ip-${id}">
-              ${targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-')}
-            </div>
-            <div style="font-size:11.5px;color:var(--muted);" id="disp-routing-${id}">
-              <span>+${t.country_code || '-'}</span> 
-              <span style="font-family:monospace;font-weight:600;color:#344054;" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
-            </div>
+          <span style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;color:var(--text);" id="disp-ip-${id}">
+            ${targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-')}
+          </span>
+        </td>
+
+        <!-- 6. Dialing Prefix -->
+        <td>
+          <div style="display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12.5px;">
+            <span style="color:var(--text-muted);font-weight:600;" id="disp-cc-${id}">+${t.country_code || '-'}</span>
+            <span style="font-weight:750;color:#0F172A;" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
           </div>
         </td>
 
-        <!-- 6. Actions (Config Gear, Start/Stop Route, Hangup Route) -->
+        <!-- 7. Action -->
         <td style="text-align:right;">
           <div class="btn-action-group">
             <button type="button" class="btn-config" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings">
@@ -1927,46 +1735,22 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     function updateMetricsOnly(trunks, forceSyncInputs = false) {
-      let totalActive = 0;
-      let runningCount = 0;
-
       for (const [id, t] of Object.entries(trunks)) {
-        totalActive += (t.active_calls || 0);
-        if (t.running) runningCount++;
-
         const curName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
-        const flagCode = getRouteFlag(curName, id);
         const maxChan = Number(t.max_channels) || 1;
         const activeCalls = Number(t.active_calls) || 0;
         const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
-      let targetHost = t.target_ip || '';
-      let targetPort = t.sip_port || 5060;
-      if (targetHost.includes(':')) {
-        const parts = targetHost.split(':');
-        targetHost = parts[0];
-        targetPort = parseInt(parts[1], 10) || targetPort;
-      }
-        const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
-
-        // 1. Route Name & Script
+        let targetHost = t.target_ip || '';
+        let targetPort = t.sip_port || 5060;
+        if (targetHost.includes(':')) {
+          const parts = targetHost.split(':');
+          targetHost = parts[0];
+          targetPort = parseInt(parts[1], 10) || targetPort;
+        }
+        // 1. Route Name & context badge
         const tblName = document.getElementById('tbl-name-' + id);
         if (tblName) tblName.textContent = curName;
-        const flagEl = document.getElementById('flag-' + id);
-        if (flagEl) flagEl.textContent = flagCode;
-        const tblScript = document.getElementById('tbl-script-' + id);
-        if (tblScript) tblScript.textContent = scriptName;
 
-        // 2. Status badge & context badge
-        const badgeEl = document.getElementById('badge-' + id);
-        if (badgeEl) {
-          if (t.running) {
-            badgeEl.className = 'status-pill active';
-            badgeEl.innerHTML = '<span class="dot"></span><span>Active</span>';
-          } else {
-            badgeEl.className = 'status-pill standby';
-            badgeEl.innerHTML = '<span class="dot"></span><span>Standby</span>';
-          }
-        }
         const tblCtx = document.getElementById('tbl-ctx-' + id);
         if (tblCtx) {
           tblCtx.className = `ctx-pill ${ctxName}`;
@@ -1976,14 +1760,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         // 3. Channels count & utilization bar
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>`;
-          activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
+          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--text-muted);">/ ${maxChan} ch</span>`;
+          activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--emerald-dark)' : 'var(--text)';
         }
         const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
         const chanBar = document.getElementById('chan-bar-' + id);
         if (chanBar) {
           chanBar.style.width = chanPct + '%';
-          chanBar.style.background = chanPct > 80 ? 'var(--red)' : 'var(--sage)';
+          chanBar.style.background = chanPct > 80 ? 'var(--red)' : 'var(--cyan)';
         }
 
         // 4. Monthly Minutes Quota update
@@ -1992,24 +1776,26 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
 
         const usedMinEl = document.getElementById('used-min-' + id);
-        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--muted);">min</span>`;
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--text-muted);">min</span>`;
         const limitTxtEl = document.getElementById('limit-txt-' + id);
         if (limitTxtEl) limitTxtEl.innerHTML = `Monthly Limit: <b>${limitMin.toLocaleString()}</b> min`;
         const limitPctEl = document.getElementById('limit-pct-' + id);
         if (limitPctEl) {
           limitPctEl.textContent = `${pct}% used`;
-          limitPctEl.style.color = pct > 90 ? 'var(--red)' : 'var(--sage-dark)';
-          limitPctEl.style.background = pct > 90 ? '#FEF3F2' : '#F2F4F7';
+          limitPctEl.style.color = pct > 90 ? 'var(--red)' : '#334155';
+          limitPctEl.style.background = pct > 90 ? 'var(--red-bg)' : '#F1F5F9';
         }
         const progBarEl = document.getElementById('prog-bar-' + id);
         if (progBarEl) {
           progBarEl.style.width = pct + '%';
-          progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--sage)';
+          progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--cyan)';
         }
 
-        // 5. Target IP & Routing prefix
+        // 5. Target IP & Dialing Prefix
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-');
+        const dispCc = document.getElementById('disp-cc-' + id);
+        if (dispCc) dispCc.textContent = `+${t.country_code || '-'}`;
         const dispDial = document.getElementById('disp-dial-' + id);
         if (dispDial) dispDial.textContent = `(${t.prefix_cid || t.prefix || '-'})`;
 
@@ -2021,28 +1807,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               ${t.running ? '⏹ Stop' : '▶ Start'}
             </button>
           `;
-        }
-      }
-
-      // Master bar update (if elements exist)
-      const totalActiveEl = document.getElementById('total-active');
-      if (totalActiveEl) totalActiveEl.textContent = totalActive;
-      const runningCountEl = document.getElementById('running-count');
-      if (runningCountEl) runningCountEl.textContent = `${runningCount} / ${Object.keys(trunks).length}`;
-      const switchStateEl = document.getElementById('switch-state');
-      if (switchStateEl) switchStateEl.textContent = runningCount > 0 ? `${runningCount} Routes Online` : 'All Routes Standby';
-
-      const modeBadge = document.getElementById('system-mode-badge');
-      if (modeBadge) {
-        if (runningCount === Object.keys(trunks).length && runningCount > 0) {
-          modeBadge.className = 'stat-val-status active';
-          modeBadge.innerHTML = '<span class="badge-dot"></span> All Trunks Live';
-        } else if (runningCount > 0) {
-          modeBadge.className = 'stat-val-status active';
-          modeBadge.innerHTML = `<span class="badge-dot"></span> Partial (${runningCount}/${Object.keys(trunks).length})`;
-        } else {
-          modeBadge.className = 'stat-val-status';
-          modeBadge.innerHTML = '<span class="badge-dot"></span> All Standby';
         }
       }
     }
@@ -2175,7 +1939,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       await persistInboundSettings(true);
     }
 
-
     function renderSourceIpsTable() {
       const tbody = document.getElementById('source-ips-tbody');
       const countEl = document.getElementById('source-ips-count');
@@ -2185,7 +1948,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!tbody) return;
 
       if (currentSourceIps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
         return;
       }
 
@@ -2197,32 +1960,32 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const curCtx = s.context || 'auto';
         let ctxBadge = '';
         if (curCtx === 'testcall2') {
-          ctxBadge = '<span class="ctx-pill testcall2" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#FDF2FA;color:#C11574;border:1px solid #FCCEEE;">[testcall2]</span>';
+          ctxBadge = '<span class="ctx-pill testcall2">[testcall2]</span>';
         } else if (curCtx === 'testcall') {
-          ctxBadge = '<span class="ctx-pill testcall" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#EFF8FF;color:#175CD3;border:1px solid #B2DDFF;">[testcall]</span>';
+          ctxBadge = '<span class="ctx-pill testcall">[testcall]</span>';
         } else {
-          ctxBadge = '<span class="ctx-pill auto" style="display:inline-block;padding:3px 8px;font-size:11.5px;font-weight:700;border-radius:6px;background:#F2F4F7;color:#344054;border:1px solid #EAECF0;">⚡ Auto (Prefix)</span>';
+          ctxBadge = '<span class="ctx-pill auto">⚡ Auto (Prefix)</span>';
         }
         return `
-          <tr style="border-bottom:1px solid #EAECF0;">
-            <td style="padding:9px 12px;font-family:monospace;font-weight:700;color:var(--brown);">
-              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sage);margin-right:6px;"></span>
+          <tr style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:11px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;color:var(--text);">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--emerald);margin-right:8px;"></span>
               ${s.ip}:${s.port || 5060}
             </td>
-            <td style="padding:9px 12px;font-weight:600;color:#344054;">
-              ${s.label || '<span style="color:var(--muted);font-style:italic;">None</span>'}
+            <td style="padding:11px 16px;font-weight:600;color:var(--text);">
+              ${s.label || '<span style="color:var(--text-dim);font-style:italic;">None</span>'}
             </td>
-            <td style="padding:9px 12px;font-family:monospace;font-size:11.5px;color:#475467;">
-              ${pfxDisplay || '<span style="color:var(--muted);">All (Auto)</span>'}
+            <td style="padding:11px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;color:var(--text-muted);">
+              ${pfxDisplay || '<span style="color:var(--text-dim);">All (Auto)</span>'}
             </td>
-            <td style="padding:9px 12px;">
+            <td style="padding:11px 16px;">
               ${ctxBadge}
             </td>
-            <td style="padding:9px 12px;text-align:right;">
+            <td style="padding:11px 16px;text-align:right;">
               <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
                 ✏ Edit
               </button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="deleteSourceIp(${idx})" style="padding:4px 8px;font-size:11px;color:var(--red);border-color:#FECDCA;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="deleteSourceIp(${idx})" style="padding:4px 8px;font-size:11px;color:var(--red);border-color:var(--red-border);">
                 🗑 Delete
               </button>
             </td>
@@ -2231,29 +1994,13 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }).join('');
     }
 
-    async function changeSourceIpContext(idx, newCtx) {
-      if (currentSourceIps[idx]) {
-        const oldCtx = currentSourceIps[idx].context || 'auto';
-        currentSourceIps[idx].context = newCtx;
-        addLog(`[INBOUND] Changed context for ${currentSourceIps[idx].ip} to [${newCtx}]`);
-        renderSourceIpsTable();
-        try {
-          await persistInboundSettings(true);
-        } catch (err) {
-          currentSourceIps[idx].context = oldCtx;
-          renderSourceIpsTable();
-          alert('Failed to update context: ' + err.message);
-        }
-      }
-    }
-
     function renderCountryRecordsTable(records) {
       const tbody = document.getElementById('country-records-tbody');
       const tfoot = document.getElementById('country-records-tfoot');
       if (!tbody) return;
 
       if (!records) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
         if (tfoot) tfoot.innerHTML = '';
         return;
       }
@@ -2270,8 +2017,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           name: key.charAt(0).toUpperCase() + key.slice(1),
           code: key === 'cuba' ? '53' : (key === 'mali' ? '223' : '221'),
           prefix: key === 'cuba' ? '4444, 53' : (key === 'mali' ? '2237' : '619334, 221'),
-          flag: key === 'cuba' ? 'CU' : (key === 'mali' ? 'ML' : 'SN'),
-          context: key === 'mali' ? 'testcall2' : 'testcall',
           calls: 0,
           answered: 0,
           minutes: 0,
@@ -2284,27 +2029,26 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         totalActive += (c.active || 0);
 
         return `
-          <tr style="border-bottom:1px solid #EAECF0;">
-            <td style="padding:10px 14px;font-weight:700;color:var(--brown);">
-              <span class="flag-badge" style="font-size:10px;padding:2px 6px;margin-right:6px;">${c.flag || 'XX'}</span>
+          <tr style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 16px;font-weight:750;color:var(--text);">
               ${c.name}
             </td>
-            <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#475467;">
-              <b>+${c.code}</b> <span style="color:var(--muted);font-size:11px;">(${c.prefix})</span>
+            <td style="padding:10px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;color:var(--text-muted);">
+              <b>+${c.code}</b> <span style="color:var(--text-dim);font-size:11px;">(${c.prefix})</span>
             </td>
-            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+            <td style="padding:10px 16px;font-weight:600;color:var(--text);">
               ${c.calls}
             </td>
-            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+            <td style="padding:10px 16px;font-weight:600;color:var(--text);">
               ${c.answered}
             </td>
-            <td style="padding:10px 14px;font-size:14px;font-weight:800;color:var(--sage-dark);">
-              ${Number(c.minutes).toFixed(2)} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>
+            <td style="padding:10px 16px;font-size:13.5px;font-weight:800;color:var(--cyan);">
+              ${Number(c.minutes).toFixed(2)} <span style="font-size:11px;font-weight:600;color:var(--text-muted);">min</span>
             </td>
-            <td style="padding:10px 14px;">
+            <td style="padding:10px 16px;">
               ${c.active > 0 
-                ? '<span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🟢 ' + c.active + ' Live</span>' 
-                : '<span style="color:var(--muted);font-size:11px;">0 active</span>'}
+                ? '<span style="background:var(--emerald-bg);color:var(--emerald-dark);border:1px solid var(--emerald-border);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🟢 ' + c.active + ' Live</span>' 
+                : '<span style="color:var(--text-dim);font-size:11px;">0 active</span>'}
             </td>
           </tr>
         `;
@@ -2314,12 +2058,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
       if (tfoot) {
         tfoot.innerHTML = `
-          <tr style="background:#F8F9FA;font-weight:800;border-top:2px solid #EAECF0;color:var(--brown);">
-            <td style="padding:10px 14px;" colspan="2">Monthly Monitored Total</td>
-            <td style="padding:10px 14px;">${totalCalls}</td>
-            <td style="padding:10px 14px;">${totalAnswered}</td>
-            <td style="padding:10px 14px;font-size:14px;color:var(--sage-dark);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--muted);font-weight:600;">min</span></td>
-            <td style="padding:10px 14px;">${totalActive > 0 ? '<span style="color:#2D6A28;">🟢 ' + totalActive + ' Live</span>' : '0 active'}</td>
+          <tr style="background:var(--bg-card-subtle);font-weight:800;border-top:2px solid var(--border);color:var(--text);">
+            <td style="padding:10px 16px;" colspan="2">Monthly Monitored Total</td>
+            <td style="padding:10px 16px;">${totalCalls}</td>
+            <td style="padding:10px 16px;">${totalAnswered}</td>
+            <td style="padding:10px 16px;font-size:13.5px;color:var(--cyan);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--text-muted);font-weight:600;">min</span></td>
+            <td style="padding:10px 16px;">${totalActive > 0 ? '<span style="color:var(--emerald);">🟢 ' + totalActive + ' Live</span>' : '0 active'}</td>
           </tr>
         `;
       }
@@ -2361,7 +2105,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         return;
       }
 
-      const btn = document.getElementById('btn-save-breakout') || document.getElementById('btn-save-durations');
+      const btn = document.getElementById('btn-save-breakout');
       const originalText = btn ? btn.textContent : '💾 Save Settings';
       if (btn) {
         btn.disabled = true;
@@ -2377,7 +2121,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           source_ips: currentSourceIps
         };
         const res = await api('save-inbound', payload);
-        addLog('[BREAKOUT] ' + res.message);
         if (btn) {
           btn.textContent = '✓ Saved!';
           setTimeout(() => {
@@ -2388,7 +2131,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         await refreshAll(true);
       } catch (err) {
         console.error('Failed to save breakout settings:', err);
-        addLog('[BREAKOUT] Error: ' + err.message);
         alert('Failed to save breakout settings: ' + err.message);
         if (btn) {
           btn.disabled = false;
@@ -2396,7 +2138,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         }
       }
     }
-    const saveContextDurations = saveBreakoutSettings;
 
     async function persistInboundSettings(notify = false) {
       const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
@@ -2413,15 +2154,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 
       try {
         const res = await api('save-inbound', d);
-        if (notify) {
-          addLog('[INBOUND] ' + res.message);
-        }
         await refreshAll(true);
         return res;
       } catch (err) {
         console.error('Failed to persist inbound settings:', err);
         if (notify) {
-          addLog('[INBOUND] Error: ' + err.message);
           alert('Inbound Save Error: ' + err.message);
         }
         throw err;
@@ -2436,12 +2173,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const activeBadge = document.getElementById('inbound-active-badge');
       if (activeBadge) {
         if (activeCount > 0) {
-          activeBadge.style.background = '#EBF5EA';
-          activeBadge.style.color = '#2D6A28';
+          activeBadge.style.background = 'var(--emerald-bg)';
+          activeBadge.style.color = 'var(--emerald-dark)';
+          activeBadge.style.borderColor = 'var(--emerald-border)';
           activeBadge.innerHTML = '🟢 <b>' + activeCount + '</b> Active Inbound Call' + (activeCount > 1 ? 's' : '');
         } else {
-          activeBadge.style.background = '#F2F4F7';
-          activeBadge.style.color = 'var(--muted)';
+          activeBadge.style.background = '#F1F5F9';
+          activeBadge.style.color = 'var(--text-muted)';
+          activeBadge.style.borderColor = 'var(--border)';
           activeBadge.innerHTML = '○ 0 Active Inbound Calls';
         }
       }
@@ -2491,11 +2230,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         renderSourceIpsTable();
       }
 
-      // 3. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
+      // 4. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
       renderCountryRecordsTable(inbound.country_records);
     }
 
-        async function refreshAll(forceSync = false) {
+    async function refreshAll(forceSync = false) {
       try {
         const res = await api('status');
         trunksData = res.trunks;
@@ -2520,7 +2259,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           renderInboundSection(res.inbound, forceSync);
         }
       } catch (e) {
-        addLog('Error fetching status: ' + e.message);
+        console.error('Error fetching status: ' + e.message);
       }
     }
 
@@ -2532,10 +2271,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
       try {
         const res = await api(action, { trunk: id });
-        addLog(`[${id.toUpperCase()}] ${res.message}`);
         setTimeout(() => refreshAll(false), 500);
       } catch (e) {
-        addLog(`[${id.toUpperCase()}] Error: ${e.message}`);
         alert(e.message);
         refreshAll(false);
       }
@@ -2552,11 +2289,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
       try {
         const res = await api('hangup', { trunk: id });
-        addLog(`[${id.toUpperCase()}] Hangup: ${res.message || 'Calls terminated'}`);
         if (btn) {
           btn.innerHTML = '✓ Terminated';
-          btn.style.color = 'var(--green)';
-          btn.style.borderColor = 'var(--green)';
+          btn.style.color = 'var(--emerald-dark)';
+          btn.style.borderColor = 'var(--emerald-border)';
           setTimeout(() => {
             btn.innerHTML = origHtml;
             btn.style.color = '';
@@ -2567,7 +2303,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         setTimeout(() => refreshAll(false), 600);
       } catch (err) {
         console.error('Hangup error:', err);
-        addLog(`[${id.toUpperCase()}] Hangup error: ${err.message}`);
         alert(`Failed to hangup calls on ${name}: ${err.message}`);
         if (btn) {
           btn.innerHTML = origHtml;
@@ -2576,12 +2311,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       }
     }
 
-
     async function hangupAll() {
       if (!confirm('Are you sure you want to hangup ALL active calls across all routes?')) return;
       try {
         const res = await api('hangup', { trunk: 'all' });
-        addLog('[SYSTEM] All calls hangup requested: ' + (res.message || 'OK'));
         refreshAll(false);
       } catch (err) {
         alert('Hangup All failed: ' + err.message);
@@ -2594,7 +2327,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!confirm(`Are you sure you want to reset monthly consumed minutes for ${name} to 0.0 min?`)) return;
       try {
         const res = await api('reset-quota', { trunk: id });
-        addLog(`[${id.toUpperCase()}] ${res.message || 'Quota reset to 0'}`);
         if (trunksData[id]) {
           trunksData[id].used_minutes = 0.0;
           trunksData[id].limit_reached = false;
@@ -2610,7 +2342,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!confirm('Are you sure you want to reset monthly consumed minutes to 0 for ALL routes?')) return;
       try {
         const res = await api('reset-quota', { trunk: 'all' });
-        addLog('[SYSTEM] ' + (res.message || 'All quotas reset to 0'));
         for (const k of Object.keys(trunksData)) {
           trunksData[k].used_minutes = 0.0;
           trunksData[k].limit_reached = false;
@@ -2632,10 +2363,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     async function startAll() {
       try {
         const res = await api('start', { trunk: 'all' });
-        addLog(res.message);
         refreshAll(false);
       } catch (e) {
-        addLog('Error starting all trunks: ' + e.message);
         alert(e.message);
       }
     }
@@ -2644,12 +2373,19 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!confirm('Are you sure you want to stop ALL active call routes?')) return;
       try {
         const res = await api('stop', { trunk: 'all' });
-        addLog(res.message);
         refreshAll(false);
       } catch (e) {
-        addLog('Error stopping all trunks: ' + e.message);
+        alert('Error stopping all trunks: ' + e.message);
       }
     }
+
+    // Live clock update
+    setInterval(() => {
+      const el = document.getElementById('live-clock');
+      if (el) el.textContent = new Date().toLocaleTimeString();
+    }, 1000);
+    const clockEl = document.getElementById('live-clock');
+    if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
 
     refreshAll(true);
     setInterval(() => refreshAll(false), 3000);

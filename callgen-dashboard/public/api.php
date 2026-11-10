@@ -453,4 +453,29 @@ if (in_array($a, ["start", "stop", "hangup", "reset-quota", "reset"], true)) {
     done(["ok" => !$r, "message" => $o], $r ? 500 : 200);
 }
 
+// 5. CHANGE PASSWORD
+if ($a === "change-password") {
+    $curPass = trim($d["current_password"] ?? "");
+    $newPass = trim($d["new_password"] ?? "");
+    $auth_file = "/etc/callgen/auth.json";
+    $pass_req = getenv("CALLGEN_PASSWORD") ?: "dancom";
+    if (file_exists($auth_file)) {
+        $j = json_decode(file_get_contents($auth_file), true);
+        if (!empty($j["password"])) $pass_req = $j["password"];
+    }
+    if ($curPass !== $pass_req) {
+        done(["ok" => false, "error" => "Current password is incorrect"], 400);
+    }
+    if (strlen($newPass) < 4) {
+        done(["ok" => false, "error" => "New password must be at least 4 characters"], 400);
+    }
+    @mkdir(dirname($auth_file), 0755, true);
+    file_put_contents($auth_file, json_encode([
+        "username" => $_SESSION["operator"] ?? "awais",
+        "password" => $newPass
+    ], JSON_PRETTY_PRINT));
+    $_SESSION["m5_auth"] = true;
+    done(["ok" => true, "message" => "Password changed successfully"]);
+}
+
 done(["ok" => false, "error" => "Unknown action"], 400);

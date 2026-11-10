@@ -4,8 +4,8 @@ const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 3000;
-const USERNAME = process.env.CALLGEN_USERNAME || 'awais';
-const PASSWORD = process.env.CALLGEN_PASSWORD || 'dancom';
+let currentUsername = process.env.CALLGEN_USERNAME || 'awais';
+let currentPassword = process.env.CALLGEN_PASSWORD || 'dancom';
 const CONFIG_FILE = path.join(__dirname, 'callgen-config.json');
 
 // Default initial multi-trunk configuration matching screenshot
@@ -139,6 +139,10 @@ if (fs.existsSync(CONFIG_FILE)) {
         });
       }
     }
+    if (saved._auth) {
+      if (saved._auth.username) currentUsername = saved._auth.username;
+      if (saved._auth.password) currentPassword = saved._auth.password;
+    }
   } catch (e) {
     console.error("Could not load config file, using defaults:", e.message);
   }
@@ -146,7 +150,7 @@ if (fs.existsSync(CONFIG_FILE)) {
 
 function saveConfig() {
   try {
-    const dataToSave = { ...trunks, _inbound: inbound };
+    const dataToSave = { ...trunks, _inbound: inbound, _auth: { username: currentUsername, password: currentPassword } };
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(dataToSave, null, 2), 'utf8');
   } catch (e) {
     console.error("Failed to save config:", e.message);
@@ -249,62 +253,67 @@ const loginHtml = (err) => `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>M5-Traffic Controller | Sign In</title>
+  <title>M5 Traffic Controller | Sign In</title>
   <style>
     :root {
-      --sage: #7C8E76;
-      --sage-dark: #65755F;
-      --brown: #4B3830;
-      --brown-dark: #372822;
-      --bg: #F5F6F4;
+      --bg: #F4F6F9;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --cyan: #0284C7;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --red: #DC2626;
+      --red-bg: #FEF2F2;
+      --red-border: #FECACA;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      color: #2E231E;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
     }
     .login-container {
-      background: #FFFFFF;
+      background: var(--card-bg);
       border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(75, 56, 48, 0.08);
-      border: 1px solid #E2E5DF;
-      width: 380px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      border: 1px solid var(--border);
+      width: 400px;
       overflow: hidden;
     }
     .header {
-      background: var(--brown);
+      background: #0F172A;
       color: #FFFFFF;
-      padding: 28px 24px 24px;
+      padding: 28px 24px 22px;
       text-align: center;
-      border-bottom: 3px solid var(--sage);
+      border-bottom: 3px solid #0284C7;
     }
     .header .badge {
       display: inline-block;
-      background: var(--sage);
-      color: #FFFFFF;
-      font-size: 11px;
-      font-weight: 700;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 10.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 4px;
       margin-bottom: 10px;
     }
     .header h1 {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 850;
       letter-spacing: -0.3px;
     }
     .header p {
-      font-size: 13px;
-      opacity: 0.85;
+      font-size: 12.5px;
+      color: #94A3B8;
       margin-top: 4px;
-      color: #EADCD6;
     }
     .form-wrap {
       padding: 28px 24px;
@@ -314,83 +323,77 @@ const loginHtml = (err) => `<!doctype html>
     }
     .field label {
       display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--brown);
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
       margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .field input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #CCD2C8;
+      padding: 11px 14px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
       border-radius: 8px;
       font-size: 14px;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      color: #0F172A;
+      transition: all 0.15s ease;
       outline: none;
     }
     .field input:focus {
-      border-color: var(--sage);
-      box-shadow: 0 0 0 3px rgba(124, 142, 118, 0.25);
+      border-color: #0284C7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
     }
     button {
       width: 100%;
-      background: var(--sage);
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
       color: #FFFFFF;
       border: 0;
-      padding: 13px;
+      padding: 12px;
       border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 750;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
     }
     button:hover {
-      background: var(--sage-dark);
+      background: #0369A1;
+      transform: translateY(-1px);
     }
     .error-msg {
-      background: #FDF0F0;
-      border: 1px solid #F6D3D3;
-      color: #A62B2B;
-      font-size: 13px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: var(--red);
+      font-size: 12.5px;
       padding: 10px;
       border-radius: 6px;
       margin-bottom: 16px;
       text-align: center;
-    }
-    .auth-hint {
-      margin-top: 20px;
-      background: #F6F8F5;
-      border: 1px dashed #CCD2C8;
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 12px;
-      color: #555E52;
-      text-align: center;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
     <div class="header">
-      <span class="badge">VoIP Smart Switch</span>
-      <h1>M5-Traffic Controller</h1>
+      <span class="badge">Carrier VoIP Portal</span>
+      <h1>M5 Traffic Controller</h1>
       <p>Trunk Routing & Call Flow Administration</p>
     </div>
     <div class="form-wrap">
       ${err ? `<div class="error-msg">${err}</div>` : ''}
       <form method="post" action="/login">
         <div class="field">
-          <label for="username">Username</label>
-          <input id="username" type="text" name="username" value="awais" required autofocus autocomplete="username">
+          <label for="username">Operator ID</label>
+          <input id="username" type="text" name="username" value="" placeholder="Enter operator ID" required autofocus autocomplete="username">
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" name="password" value="dancom" required autocomplete="current-password">
+          <input id="password" type="password" name="password" value="" placeholder="Enter password" required autocomplete="current-password">
         </div>
-        <button type="submit">Access Controller</button>
-        <div class="auth-hint">
-          User: <b>awais</b> &bull; Password: <b>dancom</b>
-        </div>
+        <button type="submit">Sign In to Controller</button>
       </form>
     </div>
   </div>
@@ -440,7 +443,7 @@ const server = http.createServer((req, res) => {
       const u = (params.get('username') || '').trim();
       const p = (params.get('password') || '').trim();
 
-      if (u === USERNAME && p === PASSWORD) {
+      if (u === currentUsername && p === currentPassword) {
         addLog(`Operator [${u}] authenticated successfully.`);
         res.writeHead(302, {
           'Set-Cookie': 'm5_auth=1; Path=/; HttpOnly',
@@ -703,6 +706,23 @@ const server = http.createServer((req, res) => {
         saveConfig();
         addLog(`Reset consumed quota for ${trunks[trunkId].name} to 0.0 min.`);
         return res.end(JSON.stringify({ ok: true, message: `Reset consumed quota for ${trunks[trunkId].name} to 0.0 min.` }));
+      }
+
+      if (action === 'change-password') {
+        const curPass = (data.current_password || '').trim();
+        const newPass = (data.new_password || '').trim();
+        if (curPass !== currentPassword) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ ok: false, error: 'Current password is incorrect' }));
+        }
+        if (!newPass || newPass.length < 4) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ ok: false, error: 'New password must be at least 4 characters' }));
+        }
+        currentPassword = newPass;
+        saveConfig();
+        addLog('Operator password updated successfully.');
+        return res.end(JSON.stringify({ ok: true, message: 'Password updated successfully.' }));
       }
 
       res.statusCode = 400;

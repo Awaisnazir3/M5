@@ -68,7 +68,7 @@
         "label": "Node-13 PBX",
         "prefix": "444453, 619334221",
         "country_code": "",
-        "context": "testcall2"
+        "context": "testcall"
       },
       {
         "id": "src-2",
@@ -77,7 +77,7 @@
         "label": "Mali Forwarder",
         "prefix": "2237",
         "country_code": "223",
-        "context": "testcall"
+        "context": "testcall2"
       }
     ],
     "testcall_prefixes": "444453, 619334221",
@@ -109,5 +109,9 @@
         "billed_minutes": 0
       }
     }
+  },
+  "_auth": {
+    "username": "awais",
+    "password": "dancom"
   }
 }
