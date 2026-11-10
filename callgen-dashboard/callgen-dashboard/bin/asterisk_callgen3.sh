@@ -26,10 +26,14 @@ import sys, json, os
 try:
     import callgen_db
     conn = callgen_db.get_connection()
-    row = conn.execute("SELECT target_ip, monthly_limit, max_channels, call_duration, context, prefix_cid FROM trunks WHERE id=?", (sys.argv[1],)).fetchone()
+    row = conn.execute("SELECT target_ip, sip_port, monthly_limit, max_channels, call_duration, context, prefix_cid FROM trunks WHERE id=?", (sys.argv[1],)).fetchone()
     conn.close()
     if row:
-        print(row['target_ip'])
+        tip = row['target_ip']
+        port = row['sip_port'] if ('sip_port' in row.keys() and row['sip_port']) else 5060
+        if ':' not in str(tip) and port:
+            tip = f"{tip}:{port}"
+        print(tip)
         print(row['monthly_limit'])
         print(row['max_channels'])
         print(row['call_duration'])
@@ -44,9 +48,13 @@ if os.path.exists(conf):
     try:
         c = json.load(open(conf))
         pfx = c.get('prefix_cid') or ((c.get('prefix') or '') + (c.get('country_code') or '')) or '619334221'
-        print(c.get('target_ip', '178.22.15.201'))
+        tip = c.get('target_ip', '178.22.15.201:5060')
+        port = c.get('sip_port', 5060)
+        if ':' not in str(tip) and port:
+            tip = f"{tip}:{port}"
+        print(tip)
         print(c.get('monthly_limit', 150000))
-        print(c.get('max_channels', 220))
+        print(c.get('max_channels', 600))
         print(c.get('call_duration', 600))
         print(c.get('context', 'testcall'))
         print(pfx)
@@ -54,7 +62,7 @@ if os.path.exists(conf):
     except Exception:
         pass
 
-print("178.22.15.201\n150000\n220\n600\ntestcall\n619334221")
+print("178.22.15.201:5060\n150000\n600\n600\ntestcall\n619334221")
 PY
     )
     TARGET_IP="${C[0]}"
@@ -79,7 +87,8 @@ PY
     )
 
     # 3. Channel counting
-    ACTIVE=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_IP)" || true)
+    TARGET_HOST="${TARGET_IP%:*}"
+    ACTIVE=$("$AST" -rx "core show channels" 2>/dev/null | grep -c -E "(${TRUNK}-trunk|$TARGET_HOST)" || true)
     case "$ACTIVE" in ''|*[!0-9]*) ACTIVE=0 ;; esac
 
     PENDING=$(find "$SPOOL" -maxdepth 1 -type f -name 'senegal_*.call' 2>/dev/null | wc -l)

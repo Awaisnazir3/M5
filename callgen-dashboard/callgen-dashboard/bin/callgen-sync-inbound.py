@@ -208,10 +208,16 @@ pjsip_lines = [
 for gw in gateways:
     ep_name = f"trunk-inbound-{gw['index']}"
     gw_ctx = f"from-inbound-{gw['index']}"
-    gw_target = gw['ip']
-    contact_uri = f"sip:{gw_target}" if ":" in gw_target else f"sip:{gw_target}:5060"
+    gw_host = gw['ip']
+    gw_port = int(gw.get('port') or 5060)
+    if ':' in gw_host:
+        parts = gw_host.split(':', 1)
+        gw_host = parts[0]
+        if not gw.get('port') and parts[1].isdigit():
+            gw_port = int(parts[1])
+    contact_uri = f"sip:{gw_host}:{gw_port}"
     pjsip_lines.extend([
-        f"; Authorized Gateway #{gw['index']}: {gw['ip']} ({gw['label']})",
+        f"; Authorized Gateway #{gw['index']}: {gw_host}:{gw_port} ({gw['label']})",
         f"[{ep_name}]",
         "type=endpoint",
         "transport=transport-udp",
@@ -231,7 +237,7 @@ for gw in gateways:
         f"[{ep_name}]",
         "type=identify",
         f"endpoint={ep_name}",
-        f"match={gw['ip']}",
+        f"match={gw_host}",
         ""
     ])
 

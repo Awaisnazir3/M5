@@ -40,7 +40,28 @@ def get_connection():
             except Exception:
                 pass
 
+    ensure_schema_migrations(conn)
     return conn
+
+def ensure_schema_migrations(conn):
+    """Ensures newly required columns exist in SQLite tables for ports and quota reset."""
+    try:
+        cur = conn.cursor()
+        t_cols = [r[1] for r in cur.execute("PRAGMA table_info(trunks)").fetchall()]
+        if 'sip_port' not in t_cols:
+            conn.execute("ALTER TABLE trunks ADD COLUMN sip_port INTEGER DEFAULT 5060")
+        if 'quota_reset_at' not in t_cols:
+            conn.execute("ALTER TABLE trunks ADD COLUMN quota_reset_at DATETIME DEFAULT NULL")
+        if 'used_minutes' not in t_cols:
+            conn.execute("ALTER TABLE trunks ADD COLUMN used_minutes REAL DEFAULT 0.0")
+        if 'limit_reached' not in t_cols:
+            conn.execute("ALTER TABLE trunks ADD COLUMN limit_reached INTEGER DEFAULT 0")
+
+        g_cols = [r[1] for r in cur.execute("PRAGMA table_info(gateways)").fetchall()]
+        if 'port' not in g_cols:
+            conn.execute("ALTER TABLE gateways ADD COLUMN port INTEGER DEFAULT 5060")
+    except Exception:
+        pass
 
 def init_schema():
     """Initializes tables and indexes in callgen.db."""
@@ -52,6 +73,7 @@ def init_schema():
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             target_ip TEXT NOT NULL,
+            sip_port INTEGER NOT NULL DEFAULT 5060,
             prefix TEXT DEFAULT '',
             country_code TEXT NOT NULL,
             prefix_cid TEXT NOT NULL,
@@ -60,6 +82,9 @@ def init_schema():
             call_duration INTEGER NOT NULL DEFAULT 600,
             context TEXT NOT NULL DEFAULT 'testcall',
             is_running INTEGER DEFAULT 0,
+            used_minutes REAL DEFAULT 0.0,
+            limit_reached INTEGER DEFAULT 0,
+            quota_reset_at DATETIME DEFAULT NULL,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         """)
@@ -69,6 +94,7 @@ def init_schema():
         CREATE TABLE IF NOT EXISTS gateways (
             id TEXT PRIMARY KEY,
             ip TEXT NOT NULL UNIQUE,
+            port INTEGER NOT NULL DEFAULT 5060,
             label TEXT NOT NULL DEFAULT '',
             prefix TEXT DEFAULT '',
             country_code TEXT DEFAULT '',
@@ -141,13 +167,13 @@ def seed_defaults():
     """Migrates existing JSON configs or seeds defaults into SQLite."""
     conn = get_connection()
     default_trunks = [
-        ('mali', 'Mali', '192.168.1.210', '', '2237', '2237', 100000, 6, 700, 'testcall2'),
-        ('cuba', 'Cuba', '192.168.1.210', '4444', '53', '444453', 3800, 100, 600, 'testcall'),
-        ('senegal', 'Senegal', '178.22.15.201', '619334', '221', '619334221', 150000, 220, 600, 'testcall')
+        ('mali', 'Mali', '192.168.88.76:5080', 5080, '', '2237', '2237', 1000000, 2000, 600, 'testcall2'),
+        ('cuba', 'Cuba', '192.168.88.76:5080', 5080, '4444', '53', '444453', 5000, 600, 600, 'testcall'),
+        ('senegal', 'Senegal', '178.22.15.201:5060', 5060, '619334', '221', '619334221', 150000, 600, 600, 'testcall')
     ]
 
     with conn:
-        for t_id, name, ip, pfx, cc, cid, lim, max_c, dur, ctx in default_trunks:
+        for t_id, name, ip, port, pfx, cc, cid, lim, max_c, dur, ctx in default_trunks:
             # Check if json config exists to migrate current values
             conf_file = f"/etc/callgen-{t_id}.json"
             if os.path.exists(conf_file):
@@ -156,6 +182,7 @@ def seed_defaults():
                         jd = json.load(f)
                         name = jd.get('name', name)
                         ip = jd.get('target_ip', ip)
+                        port = int(jd.get('sip_port') or port)
                         pfx = jd.get('prefix', pfx)
                         cc = jd.get('country_code', cc)
                         cid = jd.get('prefix_cid', cid)
@@ -166,12 +193,25 @@ def seed_defaults():
                 except Exception:
                     pass
 
+            # Ensure host and port are formatted correctly
+            if ':' in ip:
+                parts = ip.split(':', 1)
+                host = parts[0]
+                if not port and parts[1].isdigit():
+                    port = int(parts[1])
+            else:
+                host = ip
+            if not port:
+                port = 5060
+            full_ip = f"{host}:{port}"
+
             conn.execute("""
-            INSERT INTO trunks (id, name, target_ip, prefix, country_code, prefix_cid, monthly_limit, max_channels, call_duration, context)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO trunks (id, name, target_ip, sip_port, prefix, country_code, prefix_cid, monthly_limit, max_channels, call_duration, context)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name=excluded.name,
                 target_ip=excluded.target_ip,
+                sip_port=excluded.sip_port,
                 prefix=excluded.prefix,
                 country_code=excluded.country_code,
                 prefix_cid=excluded.prefix_cid,
@@ -180,7 +220,7 @@ def seed_defaults():
                 call_duration=excluded.call_duration,
                 context=excluded.context,
                 updated_at=CURRENT_TIMESTAMP;
-            """, (t_id, name, ip, pfx, cc, cid, lim, max_c, dur, ctx))
+            """, (t_id, name, full_ip, port, pfx, cc, cid, lim, max_c, dur, ctx))
 
         # Migrate Inbound Configuration
         inbound_conf_file = '/etc/callgen-inbound.json'
@@ -189,13 +229,23 @@ def seed_defaults():
                 {
                     'id': 'src-1',
                     'ip': '192.168.1.13',
-                    'label': 'Node-13 Forwarder',
-                    'prefix': '444453, 619334221, 2237',
-                    'country_code': '223, 53, 221',
-                    'context': 'auto'
+                    'port': 5060,
+                    'label': 'Node-13 PBX',
+                    'prefix': '444453, 619334221',
+                    'country_code': '',
+                    'context': 'testcall'
+                },
+                {
+                    'id': 'src-2',
+                    'ip': '192.168.1.14',
+                    'port': 5060,
+                    'label': 'Mali Forwarder',
+                    'prefix': '2237',
+                    'country_code': '223',
+                    'context': 'testcall2'
                 }
             ],
-            'testcall_duration': 120,
+            'testcall_duration': 60,
             'testcall2_duration': 50,
             'testcall_prefixes': '444453, 619334221',
             'testcall2_prefixes': '2237'
@@ -211,10 +261,15 @@ def seed_defaults():
             sip = s.get('ip', '').strip()
             if not sip:
                 continue
+            port = int(s.get('port') or 5060)
+            if ':' in sip:
+                sip, pstr = sip.split(':', 1)
+                if pstr.isdigit(): port = int(pstr)
             conn.execute("""
-            INSERT INTO gateways (id, ip, label, prefix, country_code, context)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO gateways (id, ip, port, label, prefix, country_code, context)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(ip) DO UPDATE SET
+                port=excluded.port,
                 label=excluded.label,
                 prefix=excluded.prefix,
                 country_code=excluded.country_code,
@@ -223,10 +278,12 @@ def seed_defaults():
             """, (
                 s.get('id', f'src-{sip.replace(".", "-")}'),
                 sip,
+                port,
                 s.get('label', 'Gateway'),
                 s.get('prefix', ''),
                 s.get('country_code', ''),
                 s.get('context', 'auto')
+            ))
             ))
 
         conn.execute("INSERT OR REPLACE INTO inbound_config (key, value) VALUES ('testcall_duration', ?)", (str(inbound_data.get('testcall_duration', 60)),))
@@ -317,6 +374,20 @@ def get_month_consumed_seconds(target_ip, trunk_id):
     conn = get_connection()
     month_start = datetime.now().strftime('%Y-%m-01 00:00:00')
     cur = conn.cursor()
+
+    effective_start = month_start
+    try:
+        cur.execute("SELECT quota_reset_at FROM trunks WHERE id = ?", (trunk_id,))
+        row = cur.fetchone()
+        if row and row['quota_reset_at']:
+            rst = str(row['quota_reset_at']).strip()
+            if rst and rst > month_start:
+                effective_start = rst
+    except Exception:
+        pass
+
+    target_host = target_ip.split(':')[0] if ':' in target_ip else target_ip
+
     cur.execute("""
     SELECT COALESCE(SUM(billsec), 0) as sec
     FROM cdr
@@ -324,17 +395,31 @@ def get_month_consumed_seconds(target_ip, trunk_id):
       AND disposition = 'ANSWERED'
       AND (
           channel LIKE ? OR dstchannel LIKE ? OR
+          channel LIKE ? OR dstchannel LIKE ? OR
           channel LIKE ? OR dstchannel LIKE ?
       )
     """, (
-        month_start,
+        effective_start,
         f'%{target_ip}%', f'%{target_ip}%',
+        f'%{target_host}%', f'%{target_host}%',
         f'%{trunk_id}-trunk%', f'%{trunk_id}-trunk%'
     ))
     row = cur.fetchone()
     sec = row['sec'] if row else 0
     conn.close()
     return int(sec)
+
+def reset_trunk_quota(trunk_id):
+    """Resets quota for a single trunk or all trunks by updating quota_reset_at in SQLite."""
+    conn = get_connection()
+    now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with conn:
+        if trunk_id == 'all':
+            conn.execute("UPDATE trunks SET quota_reset_at = ?, used_minutes = 0.0, limit_reached = 0;", (now_str,))
+        else:
+            conn.execute("UPDATE trunks SET quota_reset_at = ?, used_minutes = 0.0, limit_reached = 0 WHERE id = ?;", (now_str, trunk_id))
+    conn.close()
+    return now_str
 
 def get_country_records():
     """Calculates inbound consumed minutes and calls for Cuba, Mali, and Senegal from SQLite."""
@@ -348,9 +433,21 @@ def get_country_records():
         'senegal': {'name': 'Senegal', 'code': '221', 'prefix': '619334, 221', 'flag': 'SN', 'context': 'testcall', 'calls': 0, 'answered': 0, 'minutes': 0.0, 'active': 0}
     }
 
+    # Fetch quota reset timestamps if any
+    trunk_resets = {}
+    try:
+        cur.execute("SELECT id, quota_reset_at FROM trunks")
+        for tr in cur.fetchall():
+            if tr['quota_reset_at']:
+                rst = str(tr['quota_reset_at']).strip()
+                if rst and rst > month_start:
+                    trunk_resets[tr['id']] = rst
+    except Exception:
+        pass
+
     cur.execute("""
     SELECT 
-        dst, channel, userfield, disposition, billsec
+        calldate, dst, channel, userfield, disposition, billsec
     FROM cdr
     WHERE calldate >= ?
       AND (
@@ -359,6 +456,7 @@ def get_country_records():
     """, (month_start,))
 
     for r in cur.fetchall():
+        calldate = str(r['calldate'])
         userfield = r['userfield'] or ''
         did = ''
         if userfield.startswith('inbound:'):
@@ -378,6 +476,9 @@ def get_country_records():
             ck = 'senegal'
 
         if ck:
+            # If trunk had quota reset after month_start, ignore calls prior to reset
+            if ck in trunk_resets and calldate < trunk_resets[ck]:
+                continue
             records[ck]['calls'] += 1
             if r['disposition'] == 'ANSWERED':
                 records[ck]['answered'] += 1
@@ -390,7 +491,19 @@ def get_all_trunks():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM trunks")
-    rows = [dict(r) for r in cur.fetchall()]
+    rows = []
+    for r in cur.fetchall():
+        d = dict(r)
+        host = d.get('target_ip', '')
+        port = int(d.get('sip_port') or 5060)
+        if ':' in host:
+            parts = host.split(':', 1)
+            host = parts[0]
+            if not d.get('sip_port') and parts[1].isdigit():
+                port = int(parts[1])
+        d['sip_port'] = port
+        d['target_ip'] = f"{host}:{port}" if host else ""
+        rows.append(d)
     conn.close()
     return rows
 
@@ -398,7 +511,11 @@ def get_all_gateways():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM gateways WHERE is_active = 1")
-    rows = [dict(r) for r in cur.fetchall()]
+    rows = []
+    for r in cur.fetchall():
+        d = dict(r)
+        d['port'] = int(d.get('port') or 5060)
+        rows.append(d)
     conn.close()
     return rows
 
@@ -417,6 +534,15 @@ if __name__ == '__main__':
         seed_defaults()
         synced = sync_cdrs_from_csv()
         print(f"Database initialized at {DB_PATH}. Synced {synced} historical CDR rows.")
+    elif cmd == 'migrate':
+        conn = get_connection()
+        ensure_schema_migrations(conn)
+        conn.close()
+        print(f"Database schema migrations verified at {DB_PATH}.")
+    elif cmd == 'reset':
+        t = sys.argv[2] if len(sys.argv) > 2 else 'all'
+        reset_trunk_quota(t)
+        print(f"Reset quota to 0.0 min for {t}.")
     elif cmd == 'sync':
         synced = sync_cdrs_from_csv()
         print(f"Synced {synced} new CDR rows from CSV.")

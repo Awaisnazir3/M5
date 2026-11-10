@@ -111,6 +111,34 @@ case "$CMD" in
         echo "Configuration reloaded. Engine updates within 5s."
         ;;
 
+    reset-quota|reset)
+        python3 - "$TRUNK" <<'PY'
+import sys, json, os, datetime
+trunk = sys.argv[1]
+try:
+    import callgen_db
+    now_str = callgen_db.reset_trunk_quota(trunk)
+    trunks = ['mali', 'cuba', 'senegal'] if trunk == 'all' else [trunk]
+    for t in trunks:
+        conf_path = f'/etc/callgen-{t}.json'
+        if os.path.exists(conf_path):
+            try:
+                with open(conf_path, 'r') as f:
+                    d = json.load(f)
+                d['quota_reset_at'] = now_str
+                d['used_minutes'] = 0.0
+                d['limit_reached'] = False
+                with open(conf_path, 'w') as f:
+                    json.dump(d, f, indent=2)
+            except Exception:
+                pass
+    print(f"Reset quota to 0.0 min for {trunk}")
+except Exception as e:
+    print(f"Error resetting quota: {e}", file=sys.stderr)
+    sys.exit(1)
+PY
+        ;;
+
     save-inbound|sync-inbound)
         if [ -n "${2:-}" ] && [ "$2" != "{}" ]; then
             python3 - "$2" <<'PY' || true
@@ -125,12 +153,18 @@ try:
             for idx, s in enumerate(data['source_ips']):
                 sip = s.get('ip', '').strip()
                 if not sip: continue
+                port = int(s.get('port') or 5060)
+                if ':' in sip:
+                    sip, pstr = sip.split(':', 1)
+                    if not s.get('port') and pstr.isdigit():
+                        port = int(pstr)
                 conn.execute("""
-                INSERT INTO gateways (id, ip, label, prefix, country_code, context, is_active)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
+                INSERT INTO gateways (id, ip, port, label, prefix, country_code, context, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
                 """, (
                     s.get('id', f'src-{idx+1}'),
                     sip,
+                    port,
                     s.get('label', f'Gateway {idx+1}'),
                     s.get('prefix', ''),
                     s.get('country_code', ''),
@@ -168,11 +202,25 @@ try:
     data = json.loads(sys.argv[2])
     import callgen_db
     conn = callgen_db.get_connection()
+    raw_ip = str(data.get('target_ip') or '').strip()
+    raw_port = int(data.get('sip_port') or 5060)
+    if ':' in raw_ip:
+        parts = raw_ip.split(':', 1)
+        raw_ip = parts[0]
+        if not data.get('sip_port') and parts[1].isdigit():
+            raw_port = int(parts[1])
+    if raw_port < 1 or raw_port > 65535:
+        raw_port = 5060
+    full_target = f"{raw_ip}:{raw_port}" if raw_ip else ""
+    data['target_ip'] = full_target
+    data['sip_port'] = raw_port
+
     with conn:
         conn.execute("""
         UPDATE trunks SET
             name = COALESCE(?, name),
             target_ip = COALESCE(?, target_ip),
+            sip_port = COALESCE(?, sip_port),
             prefix = COALESCE(?, prefix),
             country_code = COALESCE(?, country_code),
             prefix_cid = COALESCE(?, prefix_cid),
@@ -184,7 +232,8 @@ try:
         WHERE id = ?;
         """, (
             data.get('name'),
-            data.get('target_ip'),
+            full_target,
+            raw_port,
             data.get('prefix'),
             data.get('country_code'),
             data.get('prefix_cid'),
@@ -237,6 +286,7 @@ for t in trunks:
     if not cfg:
         continue
     ip = cfg.get('target_ip', '')
+    port = int(cfg.get('sip_port') or 5060)
     srv = f'asterisk-callgen-{t}.service'
     raw_running = subprocess.run(['systemctl', 'is-active', '--quiet', srv]).returncode == 0
     active = sum((ip in x or f'{t}-trunk' in x) and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines())
@@ -252,7 +302,10 @@ for t in trunks:
         subprocess.run(['systemctl', 'stop', srv])
         raw_running = False
 
+    host = ip.split(':')[0] if ':' in ip else ip
     cfg['id'] = t
+    cfg['target_ip'] = f"{host}:{port}" if host else ""
+    cfg['sip_port'] = port
     cfg['running'] = raw_running and not limit_reached
     cfg['limit_reached'] = limit_reached
     cfg['active_calls'] = active if not limit_reached else 0

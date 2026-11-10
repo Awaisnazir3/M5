@@ -53,6 +53,29 @@ function get_db() {
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $pdo->exec("PRAGMA journal_mode = WAL;");
         $pdo->exec("PRAGMA busy_timeout = 5000;");
+
+        // Auto-migrate newly required columns if not yet present
+        try {
+            $cols = $pdo->query("PRAGMA table_info(trunks)")->fetchAll(PDO::FETCH_COLUMN, 1);
+            if (!in_array("sip_port", $cols, true)) {
+                $pdo->exec("ALTER TABLE trunks ADD COLUMN sip_port INTEGER DEFAULT 5060");
+            }
+            if (!in_array("quota_reset_at", $cols, true)) {
+                $pdo->exec("ALTER TABLE trunks ADD COLUMN quota_reset_at DATETIME DEFAULT NULL");
+            }
+            if (!in_array("used_minutes", $cols, true)) {
+                $pdo->exec("ALTER TABLE trunks ADD COLUMN used_minutes REAL DEFAULT 0.0");
+            }
+            if (!in_array("limit_reached", $cols, true)) {
+                $pdo->exec("ALTER TABLE trunks ADD COLUMN limit_reached INTEGER DEFAULT 0");
+            }
+
+            $gcols = $pdo->query("PRAGMA table_info(gateways)")->fetchAll(PDO::FETCH_COLUMN, 1);
+            if (!in_array("port", $gcols, true)) {
+                $pdo->exec("ALTER TABLE gateways ADD COLUMN port INTEGER DEFAULT 5060");
+            }
+        } catch (Exception $migErr) {}
+
         return $pdo;
     } catch (Exception $e) {
         return null;
@@ -67,6 +90,53 @@ if ($a === "status") {
     if ($r || !$j) {
         done(["ok" => false, "error" => $o ?: "Failed to read switch status"], 500);
     }
+
+    // Resilience layer: Ensure sip_port and target_ip format are fully consistent
+    $pdo = get_db();
+    if ($pdo && !empty($j["trunks"]) && is_array($j["trunks"])) {
+        try {
+            $stmt = $pdo->query("SELECT id, target_ip, sip_port, monthly_limit, quota_reset_at FROM trunks");
+            $dbTrunks = [];
+            while ($row = $stmt->fetch()) {
+                $dbTrunks[$row["id"]] = $row;
+            }
+            foreach ($j["trunks"] as $tid => &$trData) {
+                if (isset($dbTrunks[$tid])) {
+                    $dbt = $dbTrunks[$tid];
+                    $port = (int)($trData["sip_port"] ?? ($dbt["sip_port"] ?? 5060));
+                    $tip = trim($trData["target_ip"] ?? ($dbt["target_ip"] ?? ""));
+                    if (strpos($tip, ":") !== false) {
+                        $parts = explode(":", $tip, 2);
+                        $host = $parts[0];
+                        if (empty($trData["sip_port"]) && !empty($parts[1])) $port = (int)$parts[1];
+                    } else {
+                        $host = $tip;
+                    }
+                    if (!$port) $port = 5060;
+                    $trData["sip_port"] = $port;
+                    $trData["target_ip"] = $host !== "" ? "{$host}:{$port}" : "";
+                }
+            }
+            unset($trData);
+        } catch (Exception $e) {}
+    }
+
+    // Resilience layer: Ensure inbound source_ips have port
+    if (!empty($j["inbound"]["source_ips"]) && is_array($j["inbound"]["source_ips"])) {
+        foreach ($j["inbound"]["source_ips"] as &$gw) {
+            $port = (int)($gw["port"] ?? 0);
+            $ip = trim($gw["ip"] ?? "");
+            if (strpos($ip, ":") !== false) {
+                $parts = explode(":", $ip, 2);
+                $gw["ip"] = $parts[0];
+                if (!$port && !empty($parts[1])) $port = (int)$parts[1];
+            }
+            if (!$port) $port = 5060;
+            $gw["port"] = $port;
+        }
+        unset($gw);
+    }
+
     done(["ok" => true] + $j);
 }
 
@@ -138,6 +208,7 @@ if ($a === "save") {
                 UPDATE trunks SET
                     name = :name,
                     target_ip = :target_ip,
+                    sip_port = :sip_port,
                     prefix = :prefix,
                     country_code = :country_code,
                     prefix_cid = :prefix_cid,
@@ -150,7 +221,8 @@ if ($a === "save") {
             ");
             $stmt->execute([
                 ":name" => $name ?: ucfirst($trunk),
-                ":target_ip" => $ip,
+                ":target_ip" => $fullTarget,
+                ":sip_port" => $port,
                 ":prefix" => $pfx,
                 ":country_code" => $cc,
                 ":prefix_cid" => $prefix,
@@ -297,13 +369,14 @@ if ($a === "save-inbound") {
             $pdo->beginTransaction();
             $pdo->exec("DELETE FROM gateways;");
             $ins = $pdo->prepare("
-                INSERT INTO gateways (id, ip, label, prefix, country_code, context, is_active, updated_at)
-                VALUES (:id, :ip, :label, :prefix, :country_code, :context, 1, CURRENT_TIMESTAMP)
+                INSERT INTO gateways (id, ip, port, label, prefix, country_code, context, is_active, updated_at)
+                VALUES (:id, :ip, :port, :label, :prefix, :country_code, :context, 1, CURRENT_TIMESTAMP)
             ");
             foreach ($clean_ips as $gw) {
                 $ins->execute([
                     ":id" => $gw["id"],
                     ":ip" => $gw["ip"],
+                    ":port" => (int)($gw["port"] ?? 5060),
                     ":label" => $gw["label"],
                     ":prefix" => $gw["prefix"],
                     ":country_code" => $gw["country_code"],
@@ -343,18 +416,38 @@ if ($a === "save-inbound") {
 if (in_array($a, ["start", "stop", "hangup", "reset-quota", "reset"], true)) {
     $trunk = trim($d["trunk"] ?? ($_GET["trunk"] ?? "all"));
     if ($a === "reset-quota" || $a === "reset") {
+        $validTrunks = ["cuba", "senegal", "mali", "all"];
+        if (!in_array($trunk, $validTrunks, true)) {
+            done(["ok" => false, "error" => "Invalid trunk: " . $trunk], 400);
+        }
+        $now_str = date("Y-m-d H:i:s");
         $pdo = get_db();
         if ($pdo) {
             try {
                 if ($trunk === "all") {
-                    $pdo->exec("UPDATE trunks SET used_minutes = 0, limit_reached = 0");
+                    $pdo->prepare("UPDATE trunks SET quota_reset_at = :now, used_minutes = 0.0, limit_reached = 0")->execute([":now" => $now_str]);
                 } else {
-                    $stmt = $pdo->prepare("UPDATE trunks SET used_minutes = 0, limit_reached = 0 WHERE id = :id");
-                    $stmt->execute([":id" => $trunk]);
+                    $pdo->prepare("UPDATE trunks SET quota_reset_at = :now, used_minutes = 0.0, limit_reached = 0 WHERE id = :id")->execute([":now" => $now_str, ":id" => $trunk]);
                 }
             } catch (Exception $e) {}
         }
-        done(["ok" => true, "message" => "Quota reset to 0.0 min for " . ($trunk === "all" ? "all routes" : $trunk)]);
+
+        // Also update JSON configs on disk
+        $trunksToReset = ($trunk === "all") ? ["cuba", "senegal", "mali"] : [$trunk];
+        foreach ($trunksToReset as $tName) {
+            $jf = "/etc/callgen-{$tName}.json";
+            if (file_exists($jf)) {
+                $cfg = json_decode(file_get_contents($jf), true) ?? [];
+                $cfg["quota_reset_at"] = $now_str;
+                $cfg["used_minutes"] = 0.0;
+                $cfg["limit_reached"] = false;
+                @file_put_contents($jf, json_encode($cfg, JSON_PRETTY_PRINT));
+            }
+        }
+
+        // Invoke callgen-control reset-quota
+        [$r, $o] = ctl(["reset-quota", $trunk]);
+        done(["ok" => true, "message" => "Quota reset to 0.0 min for " . ($trunk === "all" ? "all routes" : ucfirst($trunk))]);
     }
     [$r, $o] = ctl([$a, $trunk]);
     done(["ok" => !$r, "message" => $o], $r ? 500 : 200);

@@ -2591,7 +2591,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       try {
         const res = await api('reset-quota', { trunk: id });
         addLog(`[${id.toUpperCase()}] ${res.message || 'Quota reset to 0'}`);
-        refreshAll(false);
+        if (trunksData[id]) {
+          trunksData[id].used_minutes = 0.0;
+          trunksData[id].limit_reached = false;
+        }
+        updateMetricsOnly(trunksData, false);
+        await refreshAll(true);
       } catch (err) {
         alert(`Failed to reset quota for ${name}: ` + err.message);
       }
@@ -2602,7 +2607,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       try {
         const res = await api('reset-quota', { trunk: 'all' });
         addLog('[SYSTEM] ' + (res.message || 'All quotas reset to 0'));
-        refreshAll(false);
+        for (const k of Object.keys(trunksData)) {
+          trunksData[k].used_minutes = 0.0;
+          trunksData[k].limit_reached = false;
+        }
+        updateMetricsOnly(trunksData, false);
+        await refreshAll(true);
       } catch (err) {
         alert('Failed to reset all quotas: ' + err.message);
       }

@@ -108,6 +108,7 @@ done
 
 # Initialize SQLite schema and CDR symlink
 python3 /usr/local/sbin/callgen_db.py init 2>/dev/null || true
+python3 /usr/local/sbin/callgen_db.py migrate 2>/dev/null || true
 chmod 666 /var/lib/callgen/callgen.db* 2>/dev/null || true
 chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
 
