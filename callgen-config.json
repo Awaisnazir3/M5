@@ -1,41 +1,43 @@
 {
-  "mali": {
-    "id": "mali",
-    "name": "Mali",
-    "country_code": "2237",
-    "flag_code": "ML",
-    "prefix": "",
-    "prefix_cid": "2237",
-    "target_ip": "202.125.153.97",
-    "monthly_limit": 100000,
-    "max_channels": 150,
-    "call_duration": 600,
-    "context": "testcall2",
-    "ani_prefix": "442",
-    "running": false,
-    "used_minutes": 918.5,
-    "active_calls": 0,
-    "limit_reached": false,
-    "last_action": "System configured"
-  },
   "cuba": {
     "id": "cuba",
     "name": "Cuba",
     "country_code": "53",
     "flag_code": "CU",
-    "prefix": "4444",
+    "prefix": "444453",
     "prefix_cid": "444453",
-    "target_ip": "206.251.255.21",
-    "monthly_limit": 250000,
-    "max_channels": 400,
+    "target_ip": "192.168.88.76:5080",
+    "sip_port": 5080,
+    "monthly_limit": 5000,
+    "max_channels": 600,
     "call_duration": 600,
     "context": "testcall",
     "ani_prefix": "96655",
     "running": false,
-    "used_minutes": 1280.7,
+    "used_minutes": 0,
     "active_calls": 0,
     "limit_reached": false,
-    "last_action": "Settings updated at 11:19:50 PM"
+    "last_action": "System configured"
+  },
+  "mali": {
+    "id": "mali",
+    "name": "Mali",
+    "country_code": "2237",
+    "flag_code": "ML",
+    "prefix": "2237",
+    "prefix_cid": "2237",
+    "target_ip": "192.168.88.76:5080",
+    "sip_port": 5080,
+    "monthly_limit": 1000000,
+    "max_channels": 2000,
+    "call_duration": 600,
+    "context": "testcall2",
+    "ani_prefix": "442",
+    "running": false,
+    "used_minutes": 0,
+    "active_calls": 0,
+    "limit_reached": false,
+    "last_action": "System configured"
   },
   "senegal": {
     "id": "senegal",
@@ -44,16 +46,68 @@
     "flag_code": "SN",
     "prefix": "619334",
     "prefix_cid": "619334221",
-    "target_ip": "178.22.15.201",
+    "target_ip": "178.22.15.201:5060",
+    "sip_port": 5060,
     "monthly_limit": 150000,
-    "max_channels": 220,
+    "max_channels": 600,
     "call_duration": 600,
     "context": "testcall",
     "ani_prefix": "+442",
     "running": false,
-    "used_minutes": 4542.7,
+    "used_minutes": 0,
     "active_calls": 0,
     "limit_reached": false,
-    "last_action": "System configured"
+    "last_action": "Settings updated at 7:32:53 PM"
+  },
+  "_inbound": {
+    "source_ips": [
+      {
+        "id": "src-1",
+        "ip": "192.168.1.13",
+        "port": 5060,
+        "label": "Node-13 PBX",
+        "prefix": "444453, 619334221",
+        "country_code": "",
+        "context": "testcall"
+      },
+      {
+        "id": "src-2",
+        "ip": "192.168.1.14",
+        "port": 5060,
+        "label": "Mali Forwarder",
+        "prefix": "2237",
+        "country_code": "223",
+        "context": "testcall2"
+      }
+    ],
+    "testcall_prefixes": "444453, 619334221",
+    "testcall2_prefixes": "2237",
+    "testcall_duration": 60,
+    "testcall2_duration": 50,
+    "active_channels": 0,
+    "active_calls": [],
+    "country_records": {
+      "cuba": {
+        "name": "Cuba",
+        "total_calls": 0,
+        "answered_calls": 0,
+        "billed_seconds": 0,
+        "billed_minutes": 0
+      },
+      "senegal": {
+        "name": "Senegal",
+        "total_calls": 0,
+        "answered_calls": 0,
+        "billed_seconds": 0,
+        "billed_minutes": 0
+      },
+      "mali": {
+        "name": "Mali",
+        "total_calls": 0,
+        "answered_calls": 0,
+        "billed_seconds": 0,
+        "billed_minutes": 0
+      }
+    }
   }
 }

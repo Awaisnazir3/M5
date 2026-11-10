@@ -283,6 +283,22 @@
       font-weight: 650;
       border-radius: 6px;
     }
+    .preset-pill {
+      background: #F2F4F7;
+      color: #344054;
+      border: 1px solid #D0D5DD;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-pill:hover {
+      background: #E4E7EC;
+      border-color: #98A2B3;
+      color: #1D2939;
+    }
     .config-single-wrap {
       max-width: 680px;
       margin: 0 auto 24px auto;
@@ -315,13 +331,8 @@
     }
     .config-summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    @media (max-width: 600px) {
-      .config-summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 16px;
     }
     .summary-item {
       display: flex;
@@ -358,6 +369,228 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* Destination Routes Row Table - Enterprise Polish */
+    .routes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .routes-table th {
+      background: #F9FAFB;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 13px 18px;
+      border-bottom: 1px solid #EAECF0;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .routes-table td {
+      padding: 15px 18px;
+      border-bottom: 1px solid #F2F4F7;
+      vertical-align: middle;
+      color: #101828;
+    }
+    .routes-table tbody tr {
+      transition: background 0.15s ease;
+    }
+    .routes-table tbody tr:hover {
+      background: #FAFAFB;
+    }
+    .routes-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Clean Enterprise Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .status-pill.active {
+      background: #ECFDF3;
+      color: #027A48;
+      border: 1px solid #A6F4C5;
+    }
+    .status-pill.standby {
+      background: #F2F4F7;
+      color: #344054;
+      border: 1px solid #D0D5DD;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .status-pill.active .dot {
+      background: #12B76A;
+      box-shadow: 0 0 0 2px rgba(18, 183, 106, 0.2);
+    }
+    .status-pill.standby .dot {
+      background: #98A2B3;
+    }
+
+    /* Context Tech Tag */
+    .ctx-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .ctx-pill.testcall {
+      background: #EFF8FF;
+      color: #175CD3;
+      border: 1px solid #B2DDFF;
+    }
+    .ctx-pill.testcall2 {
+      background: #FDF2FA;
+      color: #C11574;
+      border: 1px solid #FCCEEE;
+    }
+
+    .btn-action-group {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    /* Enterprise Clean Action Buttons */
+    .btn-config {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #FFFFFF;
+      border: 1px solid #D0D5DD;
+      color: #344054;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+      transition: all 0.15s ease;
+    }
+    .btn-config:hover {
+      background: #F9FAFB;
+      border-color: #98A2B3;
+      color: #1D2939;
+    }
+
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #60735A;
+      border: 1px solid #4D5C48;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+      transition: all 0.15s ease;
+      min-width: 74px;
+      justify-content: center;
+    }
+    .btn-start:hover {
+      background: #4D5C48;
+    }
+
+    .btn-stop {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #D92D20;
+      border: 1px solid #B42318;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+      transition: all 0.15s ease;
+      min-width: 74px;
+      justify-content: center;
+    }
+    .btn-stop:hover {
+      background: #B42318;
+    }
+
+    .btn-hangup {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      border: 1px solid #FDA29B;
+      color: #B42318;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+      transition: all 0.15s ease;
+    }
+    .btn-hangup:hover {
+      background: #FEF3F2;
+      border-color: #FECDCA;
+      color: #912018;
+    }
+    .hangup-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #D92D20;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* Reset Quota Button */
+    .btn-reset-quota {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #FFF9F5;
+      border: 1px solid #FED7AA;
+      color: #C2410C;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+      transition: all 0.15s ease;
+      line-height: 1.2;
+    }
+    .btn-reset-quota:hover {
+      background: #FFEDD5;
+      border-color: #FB923C;
+      color: #9A3412;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(194, 65, 12, 0.12);
+    }
+    .btn-reset-quota:active {
+      transform: translateY(0);
     }
 
     /* 3-Column Trunk Grid */
@@ -485,51 +718,28 @@
       gap: 16px;
     }
 
-    /* Live Channel Gauge Box */
-    .metric-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      background: #F8F9F7;
-      padding: 12px;
+    /* Live Channel Status Box */
+    .metric-single-box {
+      background: #F8F9FA;
+      padding: 14px 18px;
       border-radius: 8px;
-      border: 1px solid #E8EBE6;
+      border: 1px solid #EAECF0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
     .metric-item-val {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
       color: var(--brown);
+      letter-spacing: -0.3px;
     }
     .metric-item-lbl {
       font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
+      font-weight: 700;
+      color: #667085;
       text-transform: uppercase;
-    }
-
-    /* Quota Bar */
-    .progress-wrap {
-      margin-top: 4px;
-    }
-    .progress-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 5px;
-      font-weight: 500;
-      color: var(--muted);
-    }
-    .progress-bar-bg {
-      height: 8px;
-      background: #EAECE8;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--sage);
-      border-radius: 4px;
-      transition: width 0.3s;
+      letter-spacing: 0.5px;
     }
 
     /* Form Fields */
@@ -788,22 +998,323 @@
   </header>
 
   <main class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title">
-          <span>Destination Traffic Routes</span>
+    <!-- Destination Traffic Routes Section Card -->
+    <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;box-shadow:0 1px 3px rgba(16,24,40,0.06);margin-bottom:24px;overflow:hidden;">
+      <!-- Title & Bulk Controls Bar -->
+      <div style="padding:16px 20px;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:24px;">🌐</span>
+          <div>
+            <h2 style="font-size:16px;font-weight:800;color:#101828;margin:0;">Destination Traffic Routes</h2>
+            <div style="font-size:12px;color:#667085;margin-top:2px;">
+              Live Asterisk SIP generation channels, quota monitoring & engine control
+            </div>
+          </div>
         </div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">
-          Live Asterisk channels & quota monitoring
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-sage btn-sm" onclick="startAll()" style="font-weight:700;padding:7px 14px;">▶ Start All Trunks</button>
+          <button class="btn btn-red btn-sm" onclick="stopAll()" style="font-weight:700;padding:7px 14px;">⏹ Stop All Trunks</button>
+          <button class="btn btn-outline btn-sm" onclick="hangupAll()" style="color:#B42318;border-color:#FDA29B;background:#FFFFFF;font-weight:700;padding:7px 14px;display:inline-flex;align-items:center;gap:6px;" title="Hangup active calls across all routes"><span style="width:7px;height:7px;border-radius:50%;background:#D92D20;display:inline-block;"></span> Hangup All Calls</button>
+          <button class="btn btn-outline btn-sm" onclick="resetAllQuotas()" style="color:#C2410C;border-color:#FED7AA;background:#FFF9F5;font-weight:700;padding:7px 14px;" title="Reset consumed monthly minutes to 0 for all routes">↺ Reset All Quotas</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-sage btn-sm" onclick="startAll()">▶ Start All Trunks</button>
-        <button class="btn btn-red btn-sm" onclick="stopAll()">⏹ Stop All Trunks</button>
+
+      <!-- Table Body -->
+      <div style="overflow-x:auto;">
+        <table class="routes-table">
+          <thead>
+            <tr>
+              <th style="min-width:210px;">Destination Route</th>
+              <th style="min-width:110px;">Status</th>
+              <th style="min-width:150px;">Live Channels</th>
+              <th style="min-width:230px;">Monthly Minutes Quota</th>
+              <th style="min-width:170px;">Target & Routing</th>
+              <th style="min-width:240px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="routes-table-tbody">
+            <!-- Populated via buildRouteTableRow() -->
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="trunk-grid" id="trunk-container"></div>
+
+    <!-- Dedicated Inbound Call Gateway & Prefix Routing -->
+    <section class="inbound-section" style="margin-top:28px;">
+      <div style="background:#FFFFFF;border-radius:12px;border:1px solid #E4E7EC;padding:22px;box-shadow:0 1px 3px rgba(16,24,40,0.06);">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:24px;">📥</span>
+            <div>
+              <h2 style="font-size:16px;font-weight:800;color:var(--brown);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+                Manage authorized inbound source IPs and allowed breakout prefixes
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="inbound-active-badge" style="background:#F2F4F7;color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
+              ○ 0 Active Inbound Calls
+            </span>
+          </div>
+        </div>
+
+        <!-- Inbound Breakout Prefix Routing & Context Duration Limits -->
+        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;padding:16px;">
+          <div style="margin-bottom:14px;">
+            <span style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+              ⏱ Inbound Breakout Prefix Routing & Context Duration Limits
+            </span>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+              Configure allowed breakout prefixes and maximum call timeouts in Asterisk dialplan
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+            <!-- [testcall] Breakout Card -->
+            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:14px;font-weight:800;color:var(--brown);">testcall Breakout</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall]</span>
+                  <span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                </label>
+                <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                  Allowed breakout prefixes. Unlisted prefixes are rejected.
+                </div>
+              </div>
+
+              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                    MAX CALL DURATION LIMIT
+                  </label>
+                  <span id="testcall-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">60s (1m)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                </div>
+                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 45)">45s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 60)">60s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 90)">90s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 120)">2m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 300)">5m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 600)">10m</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- [testcall2] Breakout Card -->
+            <div style="background:#FFFFFF;border-radius:10px;border:1px solid #EAECF0;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:14px;font-weight:800;color:var(--brown);">testcall2 Breakout</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-family:monospace;font-weight:800;font-size:11px;">[testcall2]</span>
+                  <span style="background:#EBF3FB;color:#1D5A8C;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                  <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:none;">Comma separated</span>
+                </label>
+                <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:monospace;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;background:#FAFAFA;">
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+                  Allowed breakout prefixes. Unlisted prefixes are rejected.
+                </div>
+              </div>
+
+              <div style="border-top:1px solid #F2F4F7;padding-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label style="font-size:11px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.4px;">
+                    MAX CALL DURATION LIMIT
+                  </label>
+                  <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--sage-dark);font-weight:700;">50s</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;color:var(--brown);border:1px solid #D0D5DD;border-radius:6px;">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--muted);">seconds</span>
+                </div>
+                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 45)">45s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 50)">50s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 60)">60s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 90)">90s</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 120)">2m</button>
+                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 300)">5m</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+            <button type="button" class="btn btn-sage btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:7px 16px;font-size:12.5px;font-weight:700;">
+              💾 Save Settings
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Allowed Inbound Source IPs Table (Multiple IPs) -->
+        <div style="margin-bottom:18px;background:#F9FAFB;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;">
+          <div style="padding:10px 14px;background:#F2F4F7;font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="source-ips-count" style="font-weight:600;color:var(--muted);text-transform:none;font-size:11px;">1 IP active</span>
+              <button type="button" class="btn btn-sage btn-sm" onclick="openAddSourceIpModal()" style="padding:5px 12px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;text-transform:none;">
+                + Add Allowed Source IP
+              </button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10px;text-transform:uppercase;">
+                  <th style="padding:10px 14px;width:22%;">Source IP Address</th>
+                  <th style="padding:10px 14px;width:20%;">Gateway Label / Note</th>
+                  <th style="padding:10px 14px;width:24%;">Allowed CC & Prefixes</th>
+                  <th style="padding:10px 14px;width:20%;">Assigned Context</th>
+                  <th style="padding:10px 14px;width:14%;text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="source-ips-tbody">
+                <!-- Populated via renderSourceIpsTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
+        <div style="margin-bottom:0;background:#FFFFFF;border-radius:8px;border:1px solid #EAECF0;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,0.04);">
+          <div style="padding:12px 16px;background:#F8F9FA;border-bottom:1px solid #EAECF0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <span style="font-size:13px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;">
+                📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
+              </span>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                Live minutes accrued from SQLite Database (<code>/var/lib/callgen/callgen.db</code>) for current calendar month
+              </div>
+            </div>
+            <span style="font-size:11px;color:var(--sage-dark);font-weight:700;background:#F5F8F4;padding:4px 10px;border-radius:6px;border:1px solid #D8E2D5;">
+              ● Monitored Destinations
+            </span>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+              <thead>
+                <tr style="border-bottom:1px solid #EAECF0;color:var(--muted);font-size:10.5px;text-transform:uppercase;background:#FAFAFA;">
+                  <th style="padding:10px 14px;">Destination Country</th>
+                  <th style="padding:10px 14px;">Country Code & Prefix</th>
+                  <th style="padding:10px 14px;">Total Inbound Calls</th>
+                  <th style="padding:10px 14px;">Answered Calls</th>
+                  <th style="padding:10px 14px;">Total Consumed Minutes</th>
+                  <th style="padding:10px 14px;">Active Channels</th>
+                </tr>
+              </thead>
+              <tbody id="country-records-tbody">
+                <!-- Populated via renderCountryRecordsTable() -->
+              </tbody>
+              <tfoot id="country-records-tfoot">
+                <!-- Total Row -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
   </main>
+
+  <!-- Add / Edit Allowed Inbound Source IP Modal Dialog -->
+  <div id="source-ip-modal-overlay" class="modal-overlay hidden" onclick="handleSourceIpOverlayClick(event)">
+    <div class="modal-dialog" style="max-width:480px;" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">🌐</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--brown);" id="source-ip-modal-title">Allowed Source IP</div>
+            <div style="font-size:11px;color:var(--muted);">Configure remote authorized gateway & prefixes</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeSourceIpModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="source-ip-form" onsubmit="saveSourceIpItem(event)">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 110px;gap:10px;">
+              <div class="field-group">
+                <label>Source IP Address / Host</label>
+                <input type="text" id="sip-input-ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.1.13">
+                <span style="font-size:10px;color:var(--muted);">Remote PBX address sending incoming calls</span>
+              </div>
+              <div class="field-group">
+                <label>SIP Port</label>
+                <input type="number" id="sip-input-port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:monospace;font-weight:700;text-align:center;">
+                <span style="font-size:10px;color:var(--muted);">Default: 5060</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Gateway Label / Name</label>
+              <input type="text" id="sip-input-label" placeholder="e.g. Node-13 Forwarder">
+            </div>
+
+            <div class="field-group">
+              <label>Allowed CC & Prefixes (Comma Separated)</label>
+              <input type="text" id="sip-input-prefix" placeholder="e.g. 444453, 619334221, 2237">
+              <span style="font-size:10px;color:var(--muted);">Prefixes/CC associated with this gateway</span>
+              <div style="display:flex;gap:5px;margin-top:6px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:10.5px;color:var(--muted);font-weight:600;">Quick Insert:</span>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('444453, 619334221, 2237')">All Breakouts</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('444453')">Cuba (444453)</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('619334221')">Senegal (619334221)</button>
+                <button type="button" class="preset-pill" onclick="insertSipPfx('2237')">Mali (2237)</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Country Code (Optional)</label>
+              <input type="text" id="sip-input-cc" placeholder="e.g. 223, 53, 221">
+            </div>
+
+            <div class="field-group">
+              <label>Target Dialplan Context (Where calls route)</label>
+              <select id="sip-input-context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);background:#FFFFFF;font-size:13px;">
+                <option value="auto">⚡ Auto-Route by Prefix (Default)</option>
+                <option value="testcall">📞 [testcall] - Cuba & Senegal (60s cap)</option>
+                <option value="testcall2">📞 [testcall2] - Mali Route (50s cap)</option>
+              </select>
+              <span style="font-size:10px;color:var(--muted);margin-top:2px;">Select which dialplan context handles incoming calls from this gateway</span>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-outline" style="padding:10px 18px;font-size:13px;" onclick="closeSourceIpModal()">
+              Cancel
+            </button>
+            <button type="submit" id="btn-save-sip-item" class="btn btn-sage" style="padding:10px 20px;font-size:13px;font-weight:700;">
+              💾 Save Source IP
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Configuration Modal Dialog -->
   <div id="config-modal-overlay" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
@@ -832,8 +1343,12 @@
               <input type="text" id="modal-name" name="name" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleModalNameChange(this.value)" required>
             </div>
             <div class="field-group">
-              <label>Target IP / Host</label>
-              <input type="text" id="modal-ip" name="target_ip" required pattern="[A-Za-z0-9.:-]+">
+              <label>Destination IP (Target Host)</label>
+              <input type="text" id="modal-ip" name="target_ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.88.76">
+            </div>
+            <div class="field-group">
+              <label>SIP Port</label>
+              <input type="number" id="modal-port" name="sip_port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:monospace;font-weight:700;">
             </div>
             <div class="field-group">
               <label>Country Code (CC)</label>
@@ -848,21 +1363,26 @@
               <input type="text" id="modal-prefix-cid" name="prefix_cid" placeholder="e.g. 444453">
             </div>
             <div class="field-group">
-              <label>Month Limit (Min)</label>
-              <input type="number" id="modal-limit" name="monthly_limit" min="1" required>
-            </div>
-            <div class="field-group">
-              <label>Max Channels</label>
+              <label>Max Concurrency (Channels)</label>
               <input type="number" id="modal-max" name="max_channels" min="1" max="2000" required>
             </div>
             <div class="field-group">
-              <label>Duration Cap (Sec)</label>
-              <input type="number" id="modal-dur" name="call_duration" min="1" max="86400" required>
+              <label>Monthly Quota Limit (Minutes)</label>
+              <input type="number" id="modal-limit" name="monthly_limit" min="1" max="10000000" required>
+              <div style="margin-top:6px;display:flex;justify-content:flex-end;">
+                <button type="button" class="btn-reset-quota" onclick="resetQuotaFromModal()" title="Reset current usage to 0">
+                  ↺ Reset Consumed Minutes to 0
+                </button>
+              </div>
             </div>
             <div class="field-group">
-              <label>Dialplan Context</label>
-              <input type="text" id="modal-ctx" name="context" required>
+              <label>Assigned Dialplan Context</label>
+              <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border:1px solid #D0D5DD;border-radius:8px;font-weight:600;color:var(--brown);">
+                <option value="testcall">[testcall] - Cuba & Senegal (Default)</option>
+                <option value="testcall2">[testcall2] - Mali Route</option>
+              </select>
             </div>
+            <input type="hidden" id="modal-dur" name="call_duration" value="600">
           </div>
 
           <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
@@ -946,23 +1466,28 @@
 
       const modalStatus = document.getElementById('modal-status');
       if (modalStatus) {
-        const isLimitReached = (t.used_minutes >= t.monthly_limit);
-        if (isLimitReached) {
-          modalStatus.className = 'trunk-status status-limit';
-          modalStatus.textContent = '⛔ LIMIT REACHED';
-        } else if (t.running) {
+        if (t.running) {
           modalStatus.className = 'trunk-status status-running';
-          modalStatus.textContent = '● RUNNING';
+          modalStatus.textContent = '● ACTIVE';
         } else {
           modalStatus.className = 'trunk-status status-stopped';
-          modalStatus.textContent = '○ STOPPED';
+          modalStatus.textContent = '○ STANDBY';
         }
       }
 
       const nameEl = document.getElementById('modal-name');
       if (nameEl) nameEl.value = routeName;
+      let host = t.target_ip || '';
+      let port = t.sip_port || 5060;
+      if (host.includes(':')) {
+        const parts = host.split(':');
+        host = parts[0];
+        port = parseInt(parts[1], 10) || port;
+      }
       const ipEl = document.getElementById('modal-ip');
-      if (ipEl) ipEl.value = t.target_ip || '';
+      if (ipEl) ipEl.value = host;
+      const portEl = document.getElementById('modal-port');
+      if (portEl) portEl.value = port;
       const ccEl = document.getElementById('modal-cc');
       if (ccEl) ccEl.value = t.country_code || '';
       const pfxEl = document.getElementById('modal-prefix');
@@ -970,11 +1495,11 @@
       const cidEl = document.getElementById('modal-prefix-cid');
       if (cidEl) cidEl.value = t.prefix_cid || '';
       const limEl = document.getElementById('modal-limit');
-      if (limEl) limEl.value = t.monthly_limit || '';
+      if (limEl) limEl.value = t.monthly_limit || 100000;
       const maxEl = document.getElementById('modal-max');
       if (maxEl) maxEl.value = t.max_channels || '';
       const durEl = document.getElementById('modal-dur');
-      if (durEl) durEl.value = t.call_duration || '';
+      if (durEl) durEl.value = t.call_duration || 600;
       const ctxEl = document.getElementById('modal-ctx');
       if (ctxEl) ctxEl.value = t.context || 'testcall';
 
@@ -1039,9 +1564,19 @@
         const form = document.getElementById('modal-form');
         const d = Object.fromEntries(new FormData(form));
         d.trunk = id;
+        let host = (d.target_ip || '').trim();
+        let port = parseInt(d.sip_port || '5060', 10);
+        if (host.includes(':')) {
+          const parts = host.split(':');
+          host = parts[0];
+          if (isNaN(port) || port === 5060) port = parseInt(parts[1], 10) || 5060;
+        }
+        if (isNaN(port) || port < 1 || port > 65535) port = 5060;
+        d.target_ip = host ? `${host}:${port}` : '';
+        d.sip_port = port;
         d.monthly_limit = Number(d.monthly_limit);
         d.max_channels = Number(d.max_channels);
-        d.call_duration = Number(d.call_duration);
+        d.call_duration = Number(d.call_duration || (trunksData[id] && trunksData[id].call_duration) || 600);
 
         const res = await api('save', d);
         addLog(`[${(d.name || id).toUpperCase()}] ${res.message}`);
@@ -1055,13 +1590,6 @@
         // Instant local sync
         if (trunksData[id]) {
           trunksData[id] = { ...trunksData[id], ...d };
-          if (trunksData[id].used_minutes >= trunksData[id].monthly_limit) {
-            trunksData[id].running = false;
-            trunksData[id].active_calls = 0;
-            trunksData[id].limit_reached = true;
-          } else {
-            trunksData[id].limit_reached = false;
-          }
         }
         updateMetricsOnly(trunksData, false);
 
@@ -1116,102 +1644,117 @@
       }
     }
 
-    function buildDashboardCard(id, t) {
+    function buildRouteTableRow(id, t) {
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
       const flagCode = getRouteFlag(routeName, id);
       const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
-      const card = document.createElement('div');
-      card.className = 'trunk-card';
-      card.id = 'dash-card-' + id;
-      card.innerHTML = `
-        <div class="trunk-header">
-          <div class="trunk-identity">
-            <span class="flag-badge" id="flag-${id}">${flagCode}</span>
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div class="trunk-name" id="dash-name-${id}">${routeName}</div>
-                <button type="button" class="btn-gear" title="Configure ${routeName}" onclick="openConfigModal('${id}')">⚙️</button>
-              </div>
-              <div style="font-size:11px;color:var(--muted);font-family:monospace;">${scriptName}</div>
+      const maxChan = Number(t.max_channels) || 1;
+      const activeCalls = Number(t.active_calls) || 0;
+      const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
+      const limitMin = Number(t.monthly_limit) || 100000;
+      const usedMin = Number(t.used_minutes) || 0;
+      const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
+      const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
+      let targetHost = t.target_ip || '';
+      let targetPort = t.sip_port || 5060;
+      if (targetHost.includes(':')) {
+        const parts = targetHost.split(':');
+        targetHost = parts[0];
+        targetPort = parseInt(parts[1], 10) || targetPort;
+      }
+
+      const tr = document.createElement('tr');
+      tr.id = 'route-row-' + id;
+      tr.innerHTML = `
+        <!-- 1. Destination Route -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:3px;justify-content:center;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-weight:750;font-size:14px;color:var(--brown);" id="tbl-name-${id}">${routeName}</span>
+              <span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);font-family:monospace;" id="tbl-script-${id}">
+              ${scriptName}
             </div>
           </div>
-          <span id="badge-${id}" class="trunk-status"></span>
-        </div>
+        </td>
 
-        <div class="trunk-body">
-          <div class="metric-row">
-            <div>
-              <div class="metric-item-lbl">Active Calls</div>
-              <div class="metric-item-val" id="active-txt-${id}">
-                ${t.active_calls} <span style="font-size:13px;font-weight:500;color:var(--muted);">/ ${t.max_channels}</span>
-              </div>
+        <!-- 2. Status -->
+        <td>
+          <span id="badge-${id}" class="status-pill ${t.running ? 'active' : 'standby'}">
+            <span class="dot"></span>
+            <span>${t.running ? 'Active' : 'Standby'}</span>
+          </span>
+        </td>
+
+        <!-- 3. Live Channels -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="font-weight:750;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)'};" id="active-txt-${id}">
+              ${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>
             </div>
-            <div>
-              <div class="metric-item-lbl">Minutes Usage</div>
-              <div class="metric-item-val" id="used-txt-${id}">
-                ${Number(t.used_minutes).toLocaleString()} <span style="font-size:12px;font-weight:500;color:var(--muted);">min</span>
-              </div>
+            <div style="width:110px;height:5px;background:#EAECF0;border-radius:3px;overflow:hidden;">
+              <div id="chan-bar-${id}" style="width:${chanPct}%;height:100%;background:${chanPct > 80 ? 'var(--red)' : 'var(--sage)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
           </div>
+        </td>
 
-          <div class="progress-wrap">
-            <div class="progress-label-row">
-              <span id="limit-lbl-${id}">Monthly Limit: ${Number(t.monthly_limit).toLocaleString()} min</span>
-              <span id="pct-lbl-${id}">0% used</span>
+        <!-- 4. Monthly Minutes Quota -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:5px;max-width:240px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-weight:750;font-size:13.5px;color:#101828;letter-spacing:-0.2px;" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:#667085;">min</span>
+              </span>
+              <span style="font-size:11px;font-weight:700;color:${pct > 90 ? '#D92D20' : '#344054'};background:${pct > 90 ? '#FEF3F2' : '#F2F4F7'};padding:1px 6px;border-radius:4px;border:1px solid ${pct > 90 ? '#FECDCA' : '#EAECF0'};" id="limit-pct-${id}">
+                ${pct}% used
+              </span>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="progress-fill-${id}"></div>
+            <div style="width:100%;height:6px;background:#EAECF0;border-radius:3px;overflow:hidden;">
+              <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? '#D92D20' : '#60735A'};border-radius:3px;transition:width 0.3s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+              <div style="font-size:11px;color:#667085;" id="limit-txt-${id}">
+                Monthly Limit: <b>${limitMin.toLocaleString()}</b> min
+              </div>
+              <button type="button" class="btn-reset-quota" onclick="resetQuota('${id}')" title="Reset consumed minutes for ${routeName} to 0">
+                ↺ Reset
+              </button>
             </div>
           </div>
+        </td>
 
-          <div class="config-summary-box">
-            <div class="config-summary-header">
-              <span>Overall Configuration</span>
-              <button type="button" class="btn-link-gear" onclick="openConfigModal('${id}')">⚙️ Configure</button>
+        <!-- 5. Target & Routing -->
+        <td>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <div style="font-family:monospace;font-size:12.5px;font-weight:700;color:var(--brown);" id="disp-ip-${id}">
+              ${targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-')}
             </div>
-            <div class="config-summary-grid">
-              <div class="summary-item">
-                <span class="summary-lbl">Target IP</span>
-                <span class="summary-val" id="disp-ip-${id}">${t.target_ip || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">CC</span>
-                <span class="summary-val" id="disp-cc-${id}">${t.country_code || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Prefix</span>
-                <span class="summary-val" id="disp-prefix-${id}">${t.prefix || 'None'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Dialed Prefix</span>
-                <span class="summary-val" id="disp-dial-${id}" style="color:var(--sage);font-weight:700;">${t.prefix_cid || '-'}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Month Limit</span>
-                <span class="summary-val" id="disp-limit-${id}">${Number(t.monthly_limit).toLocaleString()}m</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Max Calls</span>
-                <span class="summary-val" id="disp-max-${id}">${t.max_channels}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Duration</span>
-                <span class="summary-val" id="disp-dur-${id}">${t.call_duration}s</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-lbl">Context</span>
-                <span class="summary-val" id="disp-ctx-${id}">${t.context || 'testcall'}</span>
-              </div>
+            <div style="font-size:11.5px;color:var(--muted);" id="disp-routing-${id}">
+              <span>+${t.country_code || '-'}</span> 
+              <span style="font-family:monospace;font-weight:600;color:#344054;" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
             </div>
           </div>
+        </td>
 
-          <div class="card-actions" id="actions-${id}"></div>
-          <button class="btn btn-outline" id="dash-cfg-btn-${id}" style="width:100%;margin-top:8px;font-size:12px;padding:9px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="openConfigModal('${id}')">
-            ⚙️ Configure ${routeName} Trunk
-          </button>
-        </div>
+        <!-- 6. Actions (Config Gear, Start/Stop Route, Hangup Route) -->
+        <td style="text-align:right;">
+          <div class="btn-action-group">
+            <button type="button" class="btn-config" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings">
+              ⚙ Config
+            </button>
+            <span id="actions-${id}">
+              <button type="button" class="${t.running ? 'btn-stop' : 'btn-start'}" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')">
+                ${t.running ? '⏹ Stop' : '▶ Start'}
+              </button>
+            </span>
+            <button type="button" class="btn-hangup" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')" title="Terminate all live calls on ${routeName} route">
+              <span class="hangup-dot"></span> Hangup
+            </button>
+          </div>
+        </td>
       `;
-      return card;
+      return tr;
     }
 
     function updateMetricsOnly(trunks, forceSyncInputs = false) {
@@ -1222,155 +1765,93 @@
         totalActive += (t.active_calls || 0);
         if (t.running) runningCount++;
 
-        const isLimitReached = (t.used_minutes >= t.monthly_limit);
-        const percent = t.monthly_limit > 0 ? Math.min(100, Math.round((t.used_minutes / t.monthly_limit) * 100)) : 0;
         const curName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
         const flagCode = getRouteFlag(curName, id);
+        const maxChan = Number(t.max_channels) || 1;
+        const activeCalls = Number(t.active_calls) || 0;
+        const ctxName = t.context || (id === 'mali' ? 'testcall2' : 'testcall');
+      let targetHost = t.target_ip || '';
+      let targetPort = t.sip_port || 5060;
+      if (targetHost.includes(':')) {
+        const parts = targetHost.split(':');
+        targetHost = parts[0];
+        targetPort = parseInt(parts[1], 10) || targetPort;
+      }
+        const scriptName = (TRUNK_META[id] && TRUNK_META[id].script) || `${id}_callgen.sh`;
 
-        // Tab and Heading updates
-        const tabLabel = document.getElementById('tab-label-' + id);
-        if (tabLabel) tabLabel.textContent = curName + ' Configuration';
-        const tabFlag = document.getElementById('tab-flag-' + id);
-        if (tabFlag) tabFlag.textContent = flagCode;
-
-        const cfgHdr = document.getElementById('cfg-hdr-title-' + id);
-        if (cfgHdr) cfgHdr.textContent = curName + ' Configuration';
-        const cfgFlag = document.getElementById('cfg-hdr-flag-' + id);
-        if (cfgFlag) cfgFlag.textContent = flagCode;
-
-        const cfgCardFlag = document.getElementById('cfg-card-flag-' + id);
-        if (cfgCardFlag) cfgCardFlag.textContent = flagCode;
-        const cfgCardName = document.getElementById('cfg-card-name-' + id);
-        if (cfgCardName) cfgCardName.textContent = curName + ' Parameters';
-
-        // Dashboard Card updates
-        const dashName = document.getElementById('dash-name-' + id);
-        if (dashName) dashName.textContent = curName;
+        // 1. Route Name & Script
+        const tblName = document.getElementById('tbl-name-' + id);
+        if (tblName) tblName.textContent = curName;
         const flagEl = document.getElementById('flag-' + id);
         if (flagEl) flagEl.textContent = flagCode;
-        const dashCfgBtn = document.getElementById('dash-cfg-btn-' + id);
-        if (dashCfgBtn) dashCfgBtn.textContent = '⚙️ Configure ' + curName + ' Trunk';
+        const tblScript = document.getElementById('tbl-script-' + id);
+        if (tblScript) tblScript.textContent = scriptName;
 
-        // Config Card field input update
-        const nameInput = document.getElementById('input-name-' + id);
-        if (nameInput && document.activeElement !== nameInput && (forceSyncInputs || !nameInput.dataset.modified)) {
-          nameInput.value = curName;
+        // 2. Status badge & context badge
+        const badgeEl = document.getElementById('badge-' + id);
+        if (badgeEl) {
+          if (t.running) {
+            badgeEl.className = 'status-pill active';
+            badgeEl.innerHTML = '<span class="dot"></span><span>Active</span>';
+          } else {
+            badgeEl.className = 'status-pill standby';
+            badgeEl.innerHTML = '<span class="dot"></span><span>Standby</span>';
+          }
+        }
+        const tblCtx = document.getElementById('tbl-ctx-' + id);
+        if (tblCtx) {
+          tblCtx.className = `ctx-pill ${ctxName}`;
+          tblCtx.textContent = `[${ctxName}]`;
         }
 
-        // 1. Status badges
-        const updateBadge = (badgeEl) => {
-          if (!badgeEl) return;
-          if (isLimitReached) {
-            badgeEl.className = 'trunk-status status-limit';
-            badgeEl.textContent = '⛔ LIMIT REACHED';
-          } else if (t.running) {
-            badgeEl.className = 'trunk-status status-running';
-            badgeEl.textContent = '● RUNNING';
-          } else {
-            badgeEl.className = 'trunk-status status-stopped';
-            badgeEl.textContent = '○ STOPPED';
-          }
-        };
-        updateBadge(document.getElementById('badge-' + id));
-        updateBadge(document.getElementById('config-badge-' + id));
-        updateBadge(document.getElementById('cfg-hdr-status-' + id));
-
-        // 2. Active calls count & minutes usage (strictly MINUTES USAGE)
+        // 3. Channels count & utilization bar
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
-          const maxChan = t.max_channels;
-          activeTxt.innerHTML = `${t.active_calls} <span style="font-size:13px;font-weight:500;color:var(--muted);">/ ${maxChan}</span>`;
-          activeTxt.style.color = (t.running && !isLimitReached) ? 'var(--green)' : 'var(--muted)';
+          activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--muted);">/ ${maxChan} ch</span>`;
+          activeTxt.style.color = (t.running && activeCalls > 0) ? 'var(--green)' : 'var(--brown)';
+        }
+        const chanPct = Math.min(100, Math.round((activeCalls / maxChan) * 100)) || 0;
+        const chanBar = document.getElementById('chan-bar-' + id);
+        if (chanBar) {
+          chanBar.style.width = chanPct + '%';
+          chanBar.style.background = chanPct > 80 ? 'var(--red)' : 'var(--sage)';
         }
 
-        const usedTxt = document.getElementById('used-txt-' + id);
-        if (usedTxt) {
-          usedTxt.innerHTML = `${Number(t.used_minutes).toLocaleString()} <span style="font-size:12px;font-weight:500;color:var(--muted);">min</span>`;
+        // 4. Monthly Minutes Quota update
+        const limitMin = Number(t.monthly_limit) || 100000;
+        const usedMin = Number(t.used_minutes) || 0;
+        const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
+
+        const usedMinEl = document.getElementById('used-min-' + id);
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--muted);">min</span>`;
+        const limitTxtEl = document.getElementById('limit-txt-' + id);
+        if (limitTxtEl) limitTxtEl.innerHTML = `Monthly Limit: <b>${limitMin.toLocaleString()}</b> min`;
+        const limitPctEl = document.getElementById('limit-pct-' + id);
+        if (limitPctEl) {
+          limitPctEl.textContent = `${pct}% used`;
+          limitPctEl.style.color = pct > 90 ? 'var(--red)' : 'var(--sage-dark)';
+          limitPctEl.style.background = pct > 90 ? '#FEF3F2' : '#F2F4F7';
+        }
+        const progBarEl = document.getElementById('prog-bar-' + id);
+        if (progBarEl) {
+          progBarEl.style.width = pct + '%';
+          progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--sage)';
         }
 
-        // 3. Progress bar
-        const limitLbl = document.getElementById('limit-lbl-' + id);
-        if (limitLbl) {
-          limitLbl.innerHTML = isLimitReached 
-            ? `Monthly Limit: <b>${Number(t.monthly_limit).toLocaleString()} min</b> <span style="color:#B42318;font-weight:700;">(Quota Maxed)</span>`
-            : `Monthly Limit: ${Number(t.monthly_limit).toLocaleString()} min`;
-        }
-
-        const pctLbl = document.getElementById('pct-lbl-' + id);
-        if (pctLbl) pctLbl.textContent = `${percent}% used`;
-
-        const progressFill = document.getElementById('progress-fill-' + id);
-        if (progressFill) {
-          progressFill.style.width = percent + '%';
-          progressFill.style.background = isLimitReached ? '#B42318' : (percent > 85 ? 'var(--amber)' : 'var(--sage)');
-        }
-
-        // 4. Overall configuration display on Dashboard card
+        // 5. Target IP & Routing prefix
         const dispIp = document.getElementById('disp-ip-' + id);
-        if (dispIp) dispIp.textContent = t.target_ip || '-';
-        const dispCc = document.getElementById('disp-cc-' + id);
-        if (dispCc) dispCc.textContent = t.country_code || '-';
-        const dispPrefix = document.getElementById('disp-prefix-' + id);
-        if (dispPrefix) dispPrefix.textContent = t.prefix || 'None';
+        if (dispIp) dispIp.textContent = targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-');
         const dispDial = document.getElementById('disp-dial-' + id);
-        if (dispDial) dispDial.textContent = t.prefix_cid || '-';
-        const dispLimit = document.getElementById('disp-limit-' + id);
-        if (dispLimit) dispLimit.textContent = `${Number(t.monthly_limit).toLocaleString()}m`;
-        const dispMax = document.getElementById('disp-max-' + id);
-        if (dispMax) dispMax.textContent = `${t.max_channels}`;
-        const dispDur = document.getElementById('disp-dur-' + id);
-        if (dispDur) dispDur.textContent = `${t.call_duration}s`;
-        const dispCtx = document.getElementById('disp-ctx-' + id);
-        if (dispCtx) dispCtx.textContent = t.context || 'testcall';
+        if (dispDial) dispDial.textContent = `(${t.prefix_cid || t.prefix || '-'})`;
 
-        // 5. Start/Stop Action buttons
+        // 6. Start/Stop Action button
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
-          if (isLimitReached) {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-outline flex-1" style="color:#B42318;border-color:#FECDCA;background:#FEF3F2;" onclick="alert('Monthly quota reached for ${curName}. Please increase Monthly Limit (Min) on ${curName} Configuration tab to restart.')">
-                ⛔ Limit Reached (Increase Limit)
-              </button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          } else if (t.running) {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-red flex-1" onclick="toggleTrunk('${id}', 'stop')">⏹ Stop Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          } else {
-            actionsDiv.innerHTML = `
-              <button class="btn btn-sage flex-1" onclick="toggleTrunk('${id}', 'start')">▶ Start Route</button>
-              <button class="btn btn-outline" title="Refresh" onclick="refreshAll()">🔄</button>
-            `;
-          }
-        }
-
-        // 6. Input sync only if explicitly requested
-        if (forceSyncInputs) {
-          const inputIp = document.getElementById('input-ip-' + id);
-          if (inputIp && document.activeElement !== inputIp) inputIp.value = t.target_ip;
-
-          const inputCc = document.getElementById('input-cc-' + id);
-          if (inputCc && document.activeElement !== inputCc) inputCc.value = t.country_code || '';
-
-          const inputPrefix = document.getElementById('input-prefix-' + id);
-          if (inputPrefix && document.activeElement !== inputPrefix) inputPrefix.value = t.prefix || '';
-
-          const inputPrefixCid = document.getElementById('input-prefix-cid-' + id);
-          if (inputPrefixCid && document.activeElement !== inputPrefixCid) inputPrefixCid.value = t.prefix_cid || '';
-
-          const inputLimit = document.getElementById('input-limit-' + id);
-          if (inputLimit && document.activeElement !== inputLimit) inputLimit.value = t.monthly_limit;
-
-          const inputMax = document.getElementById('input-max-' + id);
-          if (inputMax && document.activeElement !== inputMax) inputMax.value = t.max_channels;
-
-          const inputDur = document.getElementById('input-dur-' + id);
-          if (inputDur && document.activeElement !== inputDur) inputDur.value = t.call_duration;
-
-          const inputCtx = document.getElementById('input-ctx-' + id);
-          if (inputCtx && document.activeElement !== inputCtx) inputCtx.value = t.context || 'testcall';
+          actionsDiv.innerHTML = `
+            <button type="button" class="${t.running ? 'btn-stop' : 'btn-start'}" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')">
+              ${t.running ? '⏹ Stop' : '▶ Start'}
+            </button>
+          `;
         }
       }
 
@@ -1397,22 +1878,473 @@
       }
     }
 
-    async function refreshAll(forceSync = false) {
+    // ==========================================
+    // INBOUND CALL GATEWAY & SOURCE IP MANAGEMENT
+    // ==========================================
+    let currentSourceIps = [];
+    let editingSourceIpIndex = -1;
+
+    function openAddSourceIpModal(index = -1) {
+      editingSourceIpIndex = index;
+      const overlay = document.getElementById('source-ip-modal-overlay');
+      const title = document.getElementById('source-ip-modal-title');
+      const ipIn = document.getElementById('sip-input-ip');
+      const lblIn = document.getElementById('sip-input-label');
+      const pfxIn = document.getElementById('sip-input-prefix');
+      const ccIn = document.getElementById('sip-input-cc');
+      const ctxIn = document.getElementById('sip-input-context');
+      const portIn = document.getElementById('sip-input-port');
+
+      if (index >= 0 && currentSourceIps[index]) {
+        const item = currentSourceIps[index];
+        title.textContent = 'Edit Allowed Source IP';
+        ipIn.value = item.ip || '';
+        if (portIn) portIn.value = item.port || 5060;
+        lblIn.value = item.label || '';
+        pfxIn.value = item.prefix || '';
+        ccIn.value = item.country_code || item.cc || '';
+        ctxIn.value = item.context || 'auto';
+      } else {
+        title.textContent = 'Add Allowed Source IP';
+        ipIn.value = '';
+        if (portIn) portIn.value = '5060';
+        lblIn.value = '';
+        pfxIn.value = '';
+        ccIn.value = '';
+        ctxIn.value = 'auto';
+      }
+
+      overlay.classList.remove('hidden');
+    }
+
+    function closeSourceIpModal() {
+      const overlay = document.getElementById('source-ip-modal-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      editingSourceIpIndex = -1;
+    }
+
+    function insertSipPfx(val) {
+      const el = document.getElementById('sip-input-prefix');
+      if (!el) return;
+      if (!el.value.trim() || val.includes(',')) {
+        el.value = val;
+      } else {
+        const existing = el.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(val)) existing.push(val);
+        el.value = existing.join(', ');
+      }
+    }
+
+    function handleSourceIpOverlayClick(e) {
+      if (e.target.id === 'source-ip-modal-overlay') {
+        closeSourceIpModal();
+      }
+    }
+
+    async function saveSourceIpItem(e) {
+      e.preventDefault();
+      let ip = document.getElementById('sip-input-ip').value.trim();
+      let port = parseInt(document.getElementById('sip-input-port')?.value || '5060', 10);
+      if (ip.includes(':')) {
+        const parts = ip.split(':');
+        ip = parts[0];
+        if (isNaN(port) || port === 5060) port = parseInt(parts[1], 10) || 5060;
+      }
+      if (isNaN(port) || port < 1 || port > 65535) port = 5060;
+
+      const label = document.getElementById('sip-input-label').value.trim();
+      const prefix = document.getElementById('sip-input-prefix').value.trim();
+      const cc = document.getElementById('sip-input-cc').value.trim();
+      const context = document.getElementById('sip-input-context').value;
+
+      if (!ip) {
+        alert('Please enter a valid IP address or hostname');
+        return;
+      }
+
+      const item = {
+        id: editingSourceIpIndex >= 0 ? (currentSourceIps[editingSourceIpIndex].id || ('src-' + (editingSourceIpIndex + 1))) : ('src-' + Date.now()),
+        ip: ip,
+        port: port,
+        label: label || ('Gateway ' + (currentSourceIps.length + 1)),
+        prefix: prefix,
+        country_code: cc,
+        context: context
+      };
+
+      if (editingSourceIpIndex >= 0) {
+        currentSourceIps[editingSourceIpIndex] = item;
+      } else {
+        const exists = currentSourceIps.some(s => s.ip === item.ip && s.port === item.port);
+        if (exists) {
+          alert('IP address ' + item.ip + ':' + item.port + ' is already registered in the allowed list.');
+          return;
+        }
+        currentSourceIps.push(item);
+      }
+
+      closeSourceIpModal();
+      renderSourceIpsTable();
+      await persistInboundSettings(true);
+    }
+
+    async function deleteSourceIp(index) {
+      if (index < 0 || index >= currentSourceIps.length) return;
+      const item = currentSourceIps[index];
+      if (currentSourceIps.length <= 1) {
+        if (!confirm('Warning: This is the only allowed source IP (' + item.ip + '). If removed, no remote PBX will be allowed to send calls. Remove anyway?')) {
+          return;
+        }
+      } else {
+        if (!confirm('Remove ' + item.ip + ' (' + (item.label || 'Gateway') + ') from allowed inbound source IPs?')) {
+          return;
+        }
+      }
+
+      currentSourceIps.splice(index, 1);
+      renderSourceIpsTable();
+      await persistInboundSettings(true);
+    }
+
+
+    function renderSourceIpsTable() {
+      const tbody = document.getElementById('source-ips-tbody');
+      const countEl = document.getElementById('source-ips-count');
+      if (countEl) {
+        countEl.textContent = currentSourceIps.length + ' IP' + (currentSourceIps.length === 1 ? '' : 's') + ' authorized';
+      }
+      if (!tbody) return;
+
+      if (currentSourceIps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = currentSourceIps.map((s, idx) => {
+        const pfxParts = [];
+        if (s.prefix) pfxParts.push(s.prefix);
+        if (s.country_code && !String(s.prefix || '').includes(s.country_code)) pfxParts.push('+' + s.country_code);
+        const pfxDisplay = pfxParts.join(', ');
+        const curCtx = s.context || 'auto';
+        return `
+          <tr style="border-bottom:1px solid #EAECF0;">
+            <td style="padding:9px 12px;font-family:monospace;font-weight:700;color:var(--brown);">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sage);margin-right:6px;"></span>
+              ${s.ip}:${s.port || 5060}
+            </td>
+            <td style="padding:9px 12px;font-weight:600;color:#344054;">
+              ${s.label || '<span style="color:var(--muted);font-style:italic;">None</span>'}
+            </td>
+            <td style="padding:9px 12px;font-family:monospace;font-size:11.5px;color:#475467;">
+              ${pfxDisplay || '<span style="color:var(--muted);">All (Auto)</span>'}
+            </td>
+            <td style="padding:9px 12px;">
+              <select onchange="changeSourceIpContext(${idx}, this.value)" style="padding:4px 8px;font-size:11.5px;font-weight:700;border-radius:6px;border:1px solid #D0D5DD;background:#FFFFFF;color:${curCtx === 'testcall2' ? '#C11574' : (curCtx === 'testcall' ? '#175CD3' : '#344054')};cursor:pointer;" title="Change routing context for ${s.ip}">
+                <option value="auto" ${curCtx === 'auto' ? 'selected' : ''}>⚡ Auto (Prefix)</option>
+                <option value="testcall" ${curCtx === 'testcall' ? 'selected' : ''}>[testcall] Cuba & Senegal</option>
+                <option value="testcall2" ${curCtx === 'testcall2' ? 'selected' : ''}>[testcall2] Mali</option>
+              </select>
+            </td>
+            <td style="padding:9px 12px;text-align:right;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
+                ✏ Edit
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="deleteSourceIp(${idx})" style="padding:4px 8px;font-size:11px;color:var(--red);border-color:#FECDCA;">
+                🗑 Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function changeSourceIpContext(idx, newCtx) {
+      if (currentSourceIps[idx]) {
+        const oldCtx = currentSourceIps[idx].context || 'auto';
+        currentSourceIps[idx].context = newCtx;
+        addLog(`[INBOUND] Changed context for ${currentSourceIps[idx].ip} to [${newCtx}]`);
+        renderSourceIpsTable();
+        try {
+          await persistInboundSettings(true);
+        } catch (err) {
+          currentSourceIps[idx].context = oldCtx;
+          renderSourceIpsTable();
+          alert('Failed to update context: ' + err.message);
+        }
+      }
+    }
+
+    function renderCountryRecordsTable(records) {
+      const tbody = document.getElementById('country-records-tbody');
+      const tfoot = document.getElementById('country-records-tfoot');
+      if (!tbody) return;
+
+      if (!records) {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
+        if (tfoot) tfoot.innerHTML = '';
+        return;
+      }
+
+      // Pre-ordered strictly for Cuba, Mali, Senegal
+      const targets = ['cuba', 'mali', 'senegal'];
+      let totalCalls = 0;
+      let totalAnswered = 0;
+      let totalMinutes = 0;
+      let totalActive = 0;
+
+      const rowsHtml = targets.map(key => {
+        const c = records[key] || {
+          name: key.charAt(0).toUpperCase() + key.slice(1),
+          code: key === 'cuba' ? '53' : (key === 'mali' ? '223' : '221'),
+          prefix: key === 'cuba' ? '4444, 53' : (key === 'mali' ? '2237' : '619334, 221'),
+          flag: key === 'cuba' ? 'CU' : (key === 'mali' ? 'ML' : 'SN'),
+          context: key === 'mali' ? 'testcall2' : 'testcall',
+          calls: 0,
+          answered: 0,
+          minutes: 0,
+          active: 0
+        };
+
+        totalCalls += (c.calls || 0);
+        totalAnswered += (c.answered || 0);
+        totalMinutes += (c.minutes || 0);
+        totalActive += (c.active || 0);
+
+        return `
+          <tr style="border-bottom:1px solid #EAECF0;">
+            <td style="padding:10px 14px;font-weight:700;color:var(--brown);">
+              <span class="flag-badge" style="font-size:10px;padding:2px 6px;margin-right:6px;">${c.flag || 'XX'}</span>
+              ${c.name}
+            </td>
+            <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#475467;">
+              <b>+${c.code}</b> <span style="color:var(--muted);font-size:11px;">(${c.prefix})</span>
+            </td>
+            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+              ${c.calls}
+            </td>
+            <td style="padding:10px 14px;font-weight:600;color:#344054;">
+              ${c.answered}
+            </td>
+            <td style="padding:10px 14px;font-size:14px;font-weight:800;color:var(--sage-dark);">
+              ${Number(c.minutes).toFixed(2)} <span style="font-size:11px;font-weight:600;color:var(--muted);">min</span>
+            </td>
+            <td style="padding:10px 14px;">
+              ${c.active > 0 
+                ? '<span style="background:#EBF5EA;color:#2D6A28;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🟢 ' + c.active + ' Live</span>' 
+                : '<span style="color:var(--muted);font-size:11px;">0 active</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr style="background:#F8F9FA;font-weight:800;border-top:2px solid #EAECF0;color:var(--brown);">
+            <td style="padding:10px 14px;" colspan="2">Monthly Monitored Total</td>
+            <td style="padding:10px 14px;">${totalCalls}</td>
+            <td style="padding:10px 14px;">${totalAnswered}</td>
+            <td style="padding:10px 14px;font-size:14px;color:var(--sage-dark);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--muted);font-weight:600;">min</span></td>
+            <td style="padding:10px 14px;">${totalActive > 0 ? '<span style="color:#2D6A28;">🟢 ' + totalActive + ' Live</span>' : '0 active'}</td>
+          </tr>
+        `;
+      }
+    }
+
+    function formatSecondsHuman(sec) {
+      sec = parseInt(sec, 10);
+      if (isNaN(sec) || sec < 0) return '0s';
+      if (sec < 60) return sec + 's';
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return s > 0 ? (m + 'm ' + s + 's') : (m + 'm');
+    }
+
+    function updateDurHuman(ctx) {
+      const input = document.getElementById('input-' + ctx + '-dur');
+      const el = document.getElementById(ctx + '-human-dur');
+      if (input && el) {
+        el.textContent = formatSecondsHuman(input.value);
+      }
+    }
+
+    function setDurPreset(ctx, seconds) {
+      const input = document.getElementById('input-' + ctx + '-dur');
+      if (input) {
+        input.value = seconds;
+        updateDurHuman(ctx);
+      }
+    }
+
+    async function saveBreakoutSettings() {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
+      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
+      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
+
+      if (isNaN(dur1) || dur1 < 1 || isNaN(dur2) || dur2 < 1) {
+        alert('Please enter valid positive duration limits in seconds (e.g. 60)');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-breakout') || document.getElementById('btn-save-durations');
+      const originalText = btn ? btn.textContent : '💾 Save Settings';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+      }
+
+      try {
+        const payload = {
+          testcall_duration: dur1,
+          testcall2_duration: dur2,
+          testcall_prefixes: pfx1,
+          testcall2_prefixes: pfx2,
+          source_ips: currentSourceIps
+        };
+        const res = await api('save-inbound', payload);
+        addLog('[BREAKOUT] ' + res.message);
+        if (btn) {
+          btn.textContent = '✓ Saved!';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }, 2000);
+        }
+        await refreshAll(true);
+      } catch (err) {
+        console.error('Failed to save breakout settings:', err);
+        addLog('[BREAKOUT] Error: ' + err.message);
+        alert('Failed to save breakout settings: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    }
+    const saveContextDurations = saveBreakoutSettings;
+
+    async function persistInboundSettings(notify = false) {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
+      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
+      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
+      const d = {
+        source_ips: currentSourceIps,
+        testcall_duration: dur1,
+        testcall2_duration: dur2,
+        testcall_prefixes: pfx1,
+        testcall2_prefixes: pfx2
+      };
+
+      try {
+        const res = await api('save-inbound', d);
+        if (notify) {
+          addLog('[INBOUND] ' + res.message);
+        }
+        await refreshAll(true);
+        return res;
+      } catch (err) {
+        console.error('Failed to persist inbound settings:', err);
+        if (notify) {
+          addLog('[INBOUND] Error: ' + err.message);
+          alert('Inbound Save Error: ' + err.message);
+        }
+        throw err;
+      }
+    }
+
+    function renderInboundSection(inbound, forceSync = false) {
+      if (!inbound) return;
+
+      // 1. Active calls badge
+      const activeCount = inbound.active_channels || (inbound.active_calls ? inbound.active_calls.length : 0);
+      const activeBadge = document.getElementById('inbound-active-badge');
+      if (activeBadge) {
+        if (activeCount > 0) {
+          activeBadge.style.background = '#EBF5EA';
+          activeBadge.style.color = '#2D6A28';
+          activeBadge.innerHTML = '🟢 <b>' + activeCount + '</b> Active Inbound Call' + (activeCount > 1 ? 's' : '');
+        } else {
+          activeBadge.style.background = '#F2F4F7';
+          activeBadge.style.color = 'var(--muted)';
+          activeBadge.innerHTML = '○ 0 Active Inbound Calls';
+        }
+      }
+
+      // 2. Breakout Prefixes & Context Call Duration Limits ([testcall] and [testcall2])
+      const pfx1Input = document.getElementById('inbound-testcall-pfx');
+      const pfx2Input = document.getElementById('inbound-testcall2-pfx');
+      if (pfx1Input && (document.activeElement !== pfx1Input || forceSync)) {
+        if (inbound.testcall_prefixes !== undefined && inbound.testcall_prefixes !== null) {
+          pfx1Input.value = inbound.testcall_prefixes;
+        }
+      }
+      if (pfx2Input && (document.activeElement !== pfx2Input || forceSync)) {
+        if (inbound.testcall2_prefixes !== undefined && inbound.testcall2_prefixes !== null) {
+          pfx2Input.value = inbound.testcall2_prefixes;
+        }
+      }
+
+      const dur1Input = document.getElementById('input-testcall-dur');
+      const dur2Input = document.getElementById('input-testcall2-dur');
+      if (dur1Input && (document.activeElement !== dur1Input || forceSync)) {
+        if (inbound.testcall_duration !== undefined && inbound.testcall_duration !== null) {
+          dur1Input.value = inbound.testcall_duration;
+          updateDurHuman('testcall');
+        }
+      }
+      if (dur2Input && (document.activeElement !== dur2Input || forceSync)) {
+        if (inbound.testcall2_duration !== undefined && inbound.testcall2_duration !== null) {
+          dur2Input.value = inbound.testcall2_duration;
+          updateDurHuman('testcall2');
+        }
+      }
+
+      // 3. Source IPs Table
+      if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
+        currentSourceIps = inbound.source_ips;
+        renderSourceIpsTable();
+      } else if (currentSourceIps.length === 0) {
+        currentSourceIps = [{
+          id: 'src-1',
+          ip: inbound.source_ip || '192.168.1.13',
+          label: 'Default Gateway',
+          prefix: '444453, 619334221, 2237',
+          country_code: '223, 53, 221',
+          context: 'auto'
+        }];
+        renderSourceIpsTable();
+      }
+
+      // 3. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
+      renderCountryRecordsTable(inbound.country_records);
+    }
+
+        async function refreshAll(forceSync = false) {
       try {
         const res = await api('status');
         trunksData = res.trunks;
 
         if (!isInitialized) {
-          const dashContainer = document.getElementById('trunk-container');
-          dashContainer.innerHTML = '';
-
-          for (const [id, t] of Object.entries(trunksData)) {
-            dashContainer.appendChild(buildDashboardCard(id, t));
+          const tableBody = document.getElementById('routes-table-tbody');
+          if (tableBody) {
+            tableBody.innerHTML = '';
+            for (const id of ['cuba', 'mali', 'senegal']) {
+              if (trunksData[id]) {
+                tableBody.appendChild(buildRouteTableRow(id, trunksData[id]));
+              }
+            }
           }
           isInitialized = true;
           updateMetricsOnly(trunksData, true);
         } else {
           updateMetricsOnly(trunksData, forceSync);
+        }
+
+        if (res.inbound) {
+          renderInboundSection(res.inbound, forceSync);
         }
       } catch (e) {
         addLog('Error fetching status: ' + e.message);
@@ -1420,14 +2352,98 @@
     }
 
     async function toggleTrunk(id, action) {
+      const btn = document.getElementById('btn-toggle-' + id);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = action === 'start' ? 'Starting...' : 'Stopping...';
+      }
       try {
         const res = await api(action, { trunk: id });
         addLog(`[${id.toUpperCase()}] ${res.message}`);
-        refreshAll(false);
+        setTimeout(() => refreshAll(false), 500);
       } catch (e) {
         addLog(`[${id.toUpperCase()}] Error: ${e.message}`);
         alert(e.message);
+        refreshAll(false);
       }
+    }
+
+    async function hangupTrunk(id) {
+      const t = trunksData[id];
+      const name = t ? (t.name || id) : id;
+      const btn = document.getElementById('btn-hangup-' + id);
+      const origHtml = btn ? btn.innerHTML : '🛑 Hangup';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Hanging up...';
+      }
+      try {
+        const res = await api('hangup', { trunk: id });
+        addLog(`[${id.toUpperCase()}] Hangup: ${res.message || 'Calls terminated'}`);
+        if (btn) {
+          btn.innerHTML = '✓ Terminated';
+          btn.style.color = 'var(--green)';
+          btn.style.borderColor = 'var(--green)';
+          setTimeout(() => {
+            btn.innerHTML = origHtml;
+            btn.style.color = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 1800);
+        }
+        setTimeout(() => refreshAll(false), 600);
+      } catch (err) {
+        console.error('Hangup error:', err);
+        addLog(`[${id.toUpperCase()}] Hangup error: ${err.message}`);
+        alert(`Failed to hangup calls on ${name}: ${err.message}`);
+        if (btn) {
+          btn.innerHTML = origHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+
+    async function hangupAll() {
+      if (!confirm('Are you sure you want to hangup ALL active calls across all routes?')) return;
+      try {
+        const res = await api('hangup', { trunk: 'all' });
+        addLog('[SYSTEM] All calls hangup requested: ' + (res.message || 'OK'));
+        refreshAll(false);
+      } catch (err) {
+        alert('Hangup All failed: ' + err.message);
+      }
+    }
+
+    async function resetQuota(id) {
+      const t = trunksData[id];
+      const name = t ? (t.name || id) : id;
+      if (!confirm(`Are you sure you want to reset monthly consumed minutes for ${name} to 0.0 min?`)) return;
+      try {
+        const res = await api('reset-quota', { trunk: id });
+        addLog(`[${id.toUpperCase()}] ${res.message || 'Quota reset to 0'}`);
+        refreshAll(false);
+      } catch (err) {
+        alert(`Failed to reset quota for ${name}: ` + err.message);
+      }
+    }
+
+    async function resetAllQuotas() {
+      if (!confirm('Are you sure you want to reset monthly consumed minutes to 0 for ALL routes?')) return;
+      try {
+        const res = await api('reset-quota', { trunk: 'all' });
+        addLog('[SYSTEM] ' + (res.message || 'All quotas reset to 0'));
+        refreshAll(false);
+      } catch (err) {
+        alert('Failed to reset all quotas: ' + err.message);
+      }
+    }
+
+    async function resetQuotaFromModal() {
+      const id = document.getElementById('modal-trunk-id').value;
+      if (!id) return;
+      await resetQuota(id);
+      closeConfigModal();
     }
 
     async function startAll() {

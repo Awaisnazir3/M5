@@ -80,6 +80,15 @@ if ($a === "save") {
 
     $name = trim($d["name"] ?? "");
     $ip = trim($d["target_ip"] ?? "");
+    $port = (int)($d["sip_port"] ?? 0);
+    if ($ip !== "" && strpos($ip, ":") !== false) {
+        $parts = explode(":", $ip, 2);
+        $ip = $parts[0];
+        if (!$port) $port = (int)$parts[1];
+    }
+    if (!$port || $port < 1 || $port > 65535) $port = 5060;
+    $fullTarget = $ip !== "" ? "{$ip}:{$port}" : "";
+
     $pfx = trim($d["prefix"] ?? "");
     $cc = trim($d["country_code"] ?? "");
     $prefix = trim($d["prefix_cid"] ?? "");
@@ -107,7 +116,8 @@ if ($a === "save") {
     $cfgData = [
         "id" => $trunk,
         "name" => $name ?: ucfirst($trunk),
-        "target_ip" => $ip,
+        "target_ip" => $fullTarget,
+        "sip_port" => $port,
         "prefix" => $pfx,
         "country_code" => $cc,
         "prefix_cid" => $prefix,
@@ -198,14 +208,23 @@ if ($a === "save-inbound") {
     $seen_ips = [];
     foreach ($source_ips as $idx => $s) {
         $ip = trim($s["ip"] ?? "");
+        $port = (int)($s["port"] ?? 0);
+        if ($ip !== "" && strpos($ip, ":") !== false) {
+            $parts = explode(":", $ip, 2);
+            $ip = $parts[0];
+            if (!$port) $port = (int)$parts[1];
+        }
+        if (!$port || $port < 1 || $port > 65535) $port = 5060;
+
         if ($ip !== "" && preg_match('/^[A-Za-z0-9.:-]{1,253}$/', $ip)) {
-            if (in_array($ip, $seen_ips, true)) {
+            if (in_array("{$ip}:{$port}", $seen_ips, true)) {
                 continue;
             }
-            $seen_ips[] = $ip;
+            $seen_ips[] = "{$ip}:{$port}";
             $clean_ips[] = [
                 "id" => trim($s["id"] ?? ("src-" . ($idx + 1))),
                 "ip" => $ip,
+                "port" => $port,
                 "label" => trim($s["label"] ?? ("Gateway " . ($idx + 1))),
                 "prefix" => trim($s["prefix"] ?? ""),
                 "country_code" => trim($s["country_code"] ?? ""),
@@ -320,9 +339,23 @@ if ($a === "save-inbound") {
     done(["ok" => true, "message" => "Saved " . count($clean_ips) . " Source IP(s) & duration limits (testcall: {$dur1}s, testcall2: {$dur2}s) to database and updated Asterisk dialplan."]);
 }
 
-// 4. START / STOP / HANGUP
-if (in_array($a, ["start", "stop", "hangup"], true)) {
+// 4. START / STOP / HANGUP / RESET-QUOTA
+if (in_array($a, ["start", "stop", "hangup", "reset-quota", "reset"], true)) {
     $trunk = trim($d["trunk"] ?? ($_GET["trunk"] ?? "all"));
+    if ($a === "reset-quota" || $a === "reset") {
+        $pdo = get_db();
+        if ($pdo) {
+            try {
+                if ($trunk === "all") {
+                    $pdo->exec("UPDATE trunks SET used_minutes = 0, limit_reached = 0");
+                } else {
+                    $stmt = $pdo->prepare("UPDATE trunks SET used_minutes = 0, limit_reached = 0 WHERE id = :id");
+                    $stmt->execute([":id" => $trunk]);
+                }
+            } catch (Exception $e) {}
+        }
+        done(["ok" => true, "message" => "Quota reset to 0.0 min for " . ($trunk === "all" ? "all routes" : $trunk)]);
+    }
     [$r, $o] = ctl([$a, $trunk]);
     done(["ok" => !$r, "message" => $o], $r ? 500 : 200);
 }
