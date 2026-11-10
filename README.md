@@ -51,7 +51,7 @@ cd /root/M5
 #### Case A: If Asterisk is NOT installed yet (Fresh Server)
 Run the complete automated Asterisk & M5 installer:
 ```bash
-chmod +x setup_asterisk.sh deploy.sh callgen-dashboard/callgen-dashboard/deploy.sh callgen-dashboard/callgen-dashboard/setup_asterisk.sh callgen-dashboard/callgen-dashboard/bin/*
+chmod +x setup_asterisk.sh deploy.sh callgen-dashboard/deploy.sh callgen-dashboard/setup_asterisk.sh callgen-dashboard/bin/*
 sudo ./setup_asterisk.sh
 ```
 *This will automatically:*
@@ -69,7 +69,7 @@ sudo ./setup_asterisk.sh
 #### Case B: If Asterisk is ALREADY installed on the server (Recommended for Existing Asterisk)
 If Asterisk is already present on your server, simply run:
 ```bash
-chmod +x deploy.sh callgen-dashboard/callgen-dashboard/deploy.sh callgen-dashboard/callgen-dashboard/bin/*
+chmod +x deploy.sh callgen-dashboard/deploy.sh callgen-dashboard/bin/*
 sudo ./deploy.sh
 ```
 *This updated script automatically:*
