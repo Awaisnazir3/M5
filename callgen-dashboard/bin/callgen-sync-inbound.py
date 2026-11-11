@@ -47,15 +47,25 @@ if DB_MODE:
     except Exception as e:
         print(f"Notice: database read fallback to json: {e}")
 
-if not DB_MODE or not cfg.get('source_ips'):
-    if os.path.exists(INBOUND_CONF):
-        try:
-            with open(INBOUND_CONF, 'r') as f:
-                loaded = json.load(f)
-                if isinstance(loaded, dict):
-                    cfg.update(loaded)
-        except Exception as e:
-            print(f"Error loading {INBOUND_CONF}: {e}")
+if not DB_MODE or not cfg.get('source_ips') or cfg.get('source_ips') == default_inbound.get('source_ips'):
+    candidate_confs = [
+        os.path.join(os.path.dirname(__file__), '..', '..', 'callgen-config.json'),
+        os.path.join(os.path.dirname(__file__), '..', 'callgen-config.json'),
+        '/var/lib/callgen/callgen-config.json',
+        INBOUND_CONF,
+        '/etc/callgen-config.json'
+    ]
+    for cand in candidate_confs:
+        if os.path.exists(cand):
+            try:
+                with open(cand, 'r') as f:
+                    loaded = json.load(f)
+                    inb = loaded.get('_inbound', loaded.get('inbound', loaded))
+                    if isinstance(inb, dict) and inb.get('source_ips'):
+                        cfg.update(inb)
+                        break
+            except Exception as e:
+                pass
 
 # Helper: parse prefix list
 def parse_pfx_list(raw):
@@ -513,7 +523,13 @@ def sync_customer_vendor_routing():
         cid = re.sub(r'[^a-zA-Z0-9_-]', '', str(c['id']))
         ep_name = f"cust-{cid}"
         ctx_name = f"from-cust-{cid}"
-        ips = [str(ip_row.get('ip_address', '')).strip() for ip_row in c.get('ips', []) if str(ip_row.get('ip_address', '')).strip()]
+        ips = []
+        for ip_row in c.get('ips', []):
+            if isinstance(ip_row, dict):
+                h = str(ip_row.get('ip') or ip_row.get('ip_address') or '').strip()
+                if h: ips.append(h)
+            elif isinstance(ip_row, str) and ip_row.strip():
+                ips.append(ip_row.strip())
         if not ips and c.get('ip'):
             ips = [str(c['ip']).strip()]
         if not ips:
@@ -543,8 +559,19 @@ def sync_customer_vendor_routing():
         vid = re.sub(r'[^a-zA-Z0-9_-]', '', str(v['id']))
         ep_name = f"vend-{vid}"
         v_ips = v.get('ips', [])
-        primary_ip = v_ips[0].get('ip_address') if v_ips else v.get('ip')
-        primary_port = int(v_ips[0].get('port', 5060) if v_ips else v.get('port', 5060) or 5060)
+        primary_ip = ""
+        primary_port = 5060
+        if v_ips and isinstance(v_ips[0], dict):
+            primary_ip = str(v_ips[0].get('ip') or v_ips[0].get('ip_address') or '').strip()
+            primary_port = int(v_ips[0].get('port') or 5060)
+        if not primary_ip and v.get('ip'):
+            primary_ip = str(v.get('ip')).strip()
+            primary_port = int(v.get('port') or 5060)
+        if ':' in primary_ip:
+            p_p = primary_ip.split(':', 1)
+            primary_ip = p_p[0]
+            if p_p[1].isdigit():
+                primary_port = int(p_p[1])
         if not primary_ip:
             continue
         pjsip_cv_lines.extend([
@@ -555,8 +582,11 @@ def sync_customer_vendor_routing():
             "context=default",
             "disallow=all",
             "allow=ulaw,alaw,g729,gsm,g722",
-            f"aors={ep_name}",
             "direct_media=no",
+            "force_rport=yes",
+            "rewrite_contact=yes",
+            "rtp_symmetric=yes",
+            f"aors={ep_name}",
             "",
             f"[{ep_name}]",
             "type=aor",
@@ -594,18 +624,11 @@ def sync_customer_vendor_routing():
         ext_cv_lines.extend([
             f"[{ctx_name}]",
             f"; Routing logic for Customer: {c_name} (Max Channels: {alloc_ch})",
-            "; 1. Real-time Status Check in AstDB",
-            "exten => _X.,1,NoOp(==============================================================)",
-            f"same => n,NoOp(>>> INCOMING CALL FROM CUSTOMER: {c_name} (ID: {cid}) <<<)",
-            "same => n,NoOp(CallerID: ${CALLERID(all)} | Dialed: ${EXTEN} | IP: ${CHANNEL(recvip)})",
-            "same => n,NoOp(==============================================================)",
-            f"same => n,Set(CUST_STATUS=${{DB(customer/cust_{cid}/status)}})",
-            f"same => n,GotoIf($[\"${{CUST_STATUS}}\" = \"blocked\"]?cust_blocked)",
-            "; 2. Customer Channel Concurrency Check",
-            f"same => n,Set(GROUP(customer)=cust_{cid})",
-            f"same => n,GotoIf($[${{GROUP_COUNT(cust_{cid}@customer)}} > {alloc_ch}]?cust_ch_limit)",
-            f"same => n,Set(ORIGINAL_EXTEN=${{EXTEN}})",
-            f"same => n,Set(CDR(accountcode)={c_name})"
+            "; Normalize incoming dialed number (strip +, 00, 011)",
+            "exten => _+!,1,Goto(${EXTEN:1},1)",
+            "exten => _00!,1,Goto(${EXTEN:2},1)",
+            "exten => _011!,1,Goto(${EXTEN:3},1)",
+            ""
         ])
 
         # Group mappings by customer prefix
@@ -619,9 +642,15 @@ def sync_customer_vendor_routing():
         for cp, v_list in pfx_grouped.items():
             ext_cv_lines.append(f"; Route matching customer prefix: {cp or 'Direct (no prefix)'}")
             if cp:
-                ext_cv_lines.append(f"exten => _{cp}.,1,NoOp(>>> Route prefix {cp} for {c_name} <<<)")
+                ext_cv_lines.append(f"exten => _{cp}.,1,NoOp(==============================================================)")
+                ext_cv_lines.append(f"same => n,NoOp(>>> INCOMING CALL FROM CUSTOMER: {c_name} (ID: {cid}) | Dialed: ${{EXTEN}} <<<)")
+                ext_cv_lines.append("same => n,NoOp(CallerID: ${CALLERID(all)} | IP: ${CHANNEL(recvip)})")
+                ext_cv_lines.append("same => n,NoOp(==============================================================)")
             else:
-                ext_cv_lines.append(f"exten => _X.,1,NoOp(>>> Direct Route for {c_name} <<<)")
+                ext_cv_lines.append(f"exten => _X.,1,NoOp(==============================================================)")
+                ext_cv_lines.append(f"same => n,NoOp(>>> INCOMING CALL FROM CUSTOMER: {c_name} (ID: {cid}) | Dialed: ${{EXTEN}} <<<)")
+                ext_cv_lines.append("same => n,NoOp(CallerID: ${CALLERID(all)} | IP: ${CHANNEL(recvip)})")
+                ext_cv_lines.append("same => n,NoOp(==============================================================)")
 
             ext_cv_lines.append("same => n,Set(CUST_STATUS=${DB(customer/cust_" + cid + "/status)})")
             ext_cv_lines.append("same => n,GotoIf($[\"${CUST_STATUS}\" = \"blocked\"]?cust_blocked)")
@@ -645,6 +674,20 @@ def sync_customer_vendor_routing():
                 vp = str(vm.get('vendor_prefix', '')).strip()
                 v_obj = next((v for v in vendors if str(v['id']) == str(vm.get('vendor_id'))), {})
                 v_max_ch = int(v_obj.get('max_channels', 100) or 100)
+                v_ips = v_obj.get('ips', [])
+                v_ip = ""
+                v_port = 5060
+                if v_ips and isinstance(v_ips[0], dict):
+                    v_ip = str(v_ips[0].get('ip') or v_ips[0].get('ip_address') or '').strip()
+                    v_port = int(v_ips[0].get('port') or 5060)
+                if not v_ip and v_obj.get('ip'):
+                    v_ip = str(v_obj.get('ip')).strip()
+                    v_port = int(v_obj.get('port') or 5060)
+                if ':' in v_ip:
+                    p_p = v_ip.split(':', 1)
+                    v_ip = p_p[0]
+                    if p_p[1].isdigit(): v_port = int(p_p[1])
+                v_cli = str(v_obj.get('caller_id') or v_obj.get('caller_id_format') or '').strip()
 
                 # Prefix translation: Prepend vendor prefix to clean destination (e.g. 88555 + 92xxxx -> 8855592xxxx)
                 ext_cv_lines.append(f"; --- Vendor Attempt #{idx+1}: {v_name} (Priority {vm.get('priority', 1)}) ---")
@@ -652,15 +695,19 @@ def sync_customer_vendor_routing():
                 ext_cv_lines.append(f"same => n,GotoIf($[\"${{VEND_STATUS}}\" = \"blocked\"]?skip_vend_{idx})")
                 ext_cv_lines.append(f"same => n,Set(GROUP(vendor)=vend_{vid})")
                 ext_cv_lines.append(f"same => n,GotoIf($[${{GROUP_COUNT(vend_{vid}@vendor)}} > {v_max_ch}]?skip_vend_{idx})")
-                
-                # Prefix translation formula: prepend vendor prefix to stripped clean destination
+
                 if vp:
                     ext_cv_lines.append(f"same => n,Set(DIAL_NUM={vp}${{CLEAN_DEST}})")
                 else:
                     ext_cv_lines.append("same => n,Set(DIAL_NUM=${CLEAN_DEST})")
 
+                if v_cli:
+                    ext_cv_lines.append(f"same => n,Set(CALLERID(num)={v_cli})")
+                    ext_cv_lines.append(f"same => n,Set(CALLERID(name)={v_cli})")
+
                 ext_cv_lines.append(f"same => n,Set(CDR(userfield)=cust:{cid}:vend:{vid}:${{ORIGINAL_EXTEN}}:${{CLEAN_DEST}}:${{DIAL_NUM}})")
-                ext_cv_lines.append(f"same => n,Dial(PJSIP/${{DIAL_NUM}}@vend-{vid},60,g)")
+                ext_cv_lines.append(f"same => n,NoOp(>>> FORWARDING TO VENDOR {v_name}: Dialing ${{DIAL_NUM}} via PJSIP/vend-{vid}/sip:${{DIAL_NUM}}@{v_ip}:{v_port} <<<)")
+                ext_cv_lines.append(f"same => n,Dial(PJSIP/vend-{vid}/sip:${{DIAL_NUM}}@{v_ip}:{v_port},60,g)")
                 ext_cv_lines.append("same => n,GotoIf($[\"${DIALSTATUS}\" = \"ANSWER\"]?call_done)")
                 ext_cv_lines.append(f"same => n(skip_vend_{idx}),NoOp(>>> Failover from Vendor {v_name} (Status: ${{DIALSTATUS}}) <<<)")
 
@@ -682,7 +729,7 @@ def sync_customer_vendor_routing():
             "same => n(call_done),Hangup()",
             "",
             "; Reject unallowed destination numbers",
-            f"exten => _X.,2,NoOp(>>> NUMBER NOT ALLOWED FOR CUSTOMER {c_name} <<<)",
+            f"exten => _!,1,NoOp(>>> NUMBER NOT ALLOWED FOR CUSTOMER {c_name} <<<)",
             f"same => n,Set(CDR(userfield)=cust_unauthorized_dest:{cid}:${{EXTEN}})",
             "same => n,Hangup(21)",
             "exten => s,1,Hangup(21)",

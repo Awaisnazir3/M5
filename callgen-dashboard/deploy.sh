@@ -175,7 +175,13 @@ elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
 fi
 
 # Ensure include files exist with proper permissions before Asterisk reads them
-touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf
+touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf /etc/asterisk/pjsip_customer_vendor.conf /etc/asterisk/extensions_customer_vendor.conf
+if [ -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" ] && [ ! -s /etc/asterisk/pjsip_customer_vendor.conf ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" /etc/asterisk/pjsip_customer_vendor.conf 2>/dev/null || true
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/extensions_customer_vendor.conf" ] && [ ! -s /etc/asterisk/extensions_customer_vendor.conf ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/extensions_customer_vendor.conf" /etc/asterisk/extensions_customer_vendor.conf 2>/dev/null || true
+fi
 chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
 chmod 644 /etc/asterisk/*.conf 2>/dev/null || true
 

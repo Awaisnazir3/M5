@@ -881,6 +881,7 @@ if ($a === "save-inbound") {
     }
     // Always update callgen-config.json as persistence fallback
     $cfg = load_config();
+    $cfg["_inbound"] = $inboundCfg;
     $cfg["inbound"] = $inboundCfg;
     save_config($cfg);
 
