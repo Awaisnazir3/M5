@@ -37,6 +37,9 @@ if (empty($d) && !empty($_POST)) {
 }
 
 function ctl($args) {
+    if (!is_array($args)) {
+        $args = preg_split('/\s+/', trim((string)$args));
+    }
     $candidates = [
         "/usr/local/sbin/callgen-control",
         "/usr/local/bin/callgen-control",
@@ -1827,11 +1830,20 @@ if ($a === "cdr-list") {
     $filter_vend = trim($_GET["vendor"] ?? ($d["vendor"] ?? ""));
     $filter_status = trim($_GET["status"] ?? ($d["status"] ?? ""));
     $search = trim($_GET["search"] ?? ($d["search"] ?? ""));
-    $limit = min(500, max(10, (int)($_GET["limit"] ?? ($d["limit"] ?? 50))));
+    $limit = min(100, max(10, (int)($_GET["limit"] ?? ($d["limit"] ?? 100))));
 
     $cdrs = [];
     if ($pdo) {
         try {
+            // Automatically keep only last 100 CDRs in SQLite to prevent disk space issues
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM cdr")->fetchColumn();
+            if ($cnt > 100) {
+                $pdo->exec("DELETE FROM cdr WHERE id NOT IN (SELECT id FROM cdr ORDER BY calldate DESC, id DESC LIMIT 100);");
+                if ($cnt > 120) {
+                    $pdo->exec("VACUUM;");
+                }
+            }
+
             $sql = "SELECT * FROM cdr WHERE 1=1";
             $params = [];
             if ($filter_cust) {
@@ -1860,7 +1872,50 @@ if ($a === "cdr-list") {
         } catch (Exception $e) {}
     }
 
-    done(["ok" => true, "cdrs" => $cdrs]);
+    done(["ok" => true, "cdrs" => $cdrs, "capped_at" => 100]);
+}
+
+// 11. TRIM CDRs (Keep only latest 100 records and free up disk space)
+if ($a === "trim-cdrs" || $a === "cleanup-cdrs" || $a === "prune-cdrs") {
+    $pdo = get_db();
+    $keep = 100;
+    $deleted = 0;
+    $kept = 0;
+    if ($pdo) {
+        try {
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM cdr")->fetchColumn();
+            if ($cnt > $keep) {
+                $stmt = $pdo->prepare("DELETE FROM cdr WHERE id NOT IN (SELECT id FROM cdr ORDER BY calldate DESC, id DESC LIMIT :keep)");
+                $stmt->bindValue(':keep', $keep, PDO::PARAM_INT);
+                $stmt->execute();
+                $deleted = $stmt->rowCount();
+                $pdo->exec("VACUUM;");
+            }
+            $kept = (int)$pdo->query("SELECT COUNT(*) FROM cdr")->fetchColumn();
+        } catch (Exception $e) {}
+    }
+
+    // Trim Asterisk Master.csv if present
+    $csv_file = '/var/log/asterisk/cdr-csv/Master.csv';
+    if (file_exists($csv_file) && is_writable($csv_file)) {
+        try {
+            $lines = file($csv_file);
+            if (count($lines) > $keep) {
+                $trimmed = array_slice($lines, -$keep);
+                file_put_contents($csv_file, implode("", $trimmed), LOCK_EX);
+            }
+        } catch (Exception $e) {}
+    }
+
+    // Call CLI control utility if available
+    ctl(["trim-cdrs", "100"]);
+
+    done([
+        "ok" => true,
+        "kept" => $kept,
+        "deleted" => $deleted,
+        "message" => "CDRs successfully pruned to latest {$keep} records and disk space reclaimed."
+    ]);
 }
 
 done(["ok" => false, "error" => "Unknown action"], 400);

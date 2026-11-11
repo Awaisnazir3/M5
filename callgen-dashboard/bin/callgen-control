@@ -139,6 +139,22 @@ except Exception as e:
 PY
         ;;
 
+    trim-cdrs|cleanup-cdrs)
+        python3 - "${2:-100}" <<'PY'
+import sys
+keep = 100
+if len(sys.argv) > 1 and sys.argv[1].isdigit():
+    keep = int(sys.argv[1])
+try:
+    import callgen_db
+    res = callgen_db.trim_cdrs(keep)
+    c_res = callgen_db.trim_master_csv(keep)
+    print(f"CDRs trimmed: kept {res.get('kept', keep)}, deleted {res.get('deleted', 0)} from DB, {c_res} lines trimmed from CSV.")
+except Exception as e:
+    print(f"Error trimming CDRs: {e}", file=sys.stderr)
+PY
+        ;;
+
     save-inbound|sync-inbound)
         if [ -n "${2:-}" ] && [ "$2" != "{}" ]; then
             python3 - "$2" <<'PY' || true

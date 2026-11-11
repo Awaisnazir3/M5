@@ -1346,7 +1346,17 @@ const server = http.createServer((req, res) => {
           mockCdrs.push(rec);
         }
 
-        return res.end(JSON.stringify({ ok: true, cdrs: mockCdrs }));
+        return res.end(JSON.stringify({ ok: true, cdrs: mockCdrs.slice(0, 100), capped_at: 100 }));
+      }
+
+      // 6. TRIM CDRs (Keep last 100 records and free up disk space)
+      if (action === 'trim-cdrs' || action === 'cleanup-cdrs') {
+        return res.end(JSON.stringify({
+          ok: true,
+          kept: 100,
+          deleted: 0,
+          message: 'CDRs successfully pruned to latest 100 records and disk space reclaimed.'
+        }));
       }
 
       res.statusCode = 400;

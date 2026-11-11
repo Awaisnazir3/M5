@@ -659,7 +659,60 @@ def sync_cdrs_from_csv():
     finally:
         conn.close()
 
+    # Automatically keep only the latest 100 CDRs in DB and CSV to prevent disk space issues
+    try:
+        trim_cdrs(100)
+        trim_master_csv(100)
+    except Exception:
+        pass
+
     return inserted
+
+def trim_cdrs(keep=100):
+    """Keeps only the latest `keep` CDR records (default 100) in SQLite and reclaims space with VACUUM."""
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) as cnt FROM cdr")
+        row = cur.fetchone()
+        total = row['cnt'] if row and row['cnt'] else 0
+        deleted = 0
+        if total > keep:
+            cur.execute("""
+            DELETE FROM cdr WHERE id NOT IN (
+                SELECT id FROM cdr ORDER BY calldate DESC, id DESC LIMIT ?
+            )
+            """, (keep,))
+            deleted = cur.rowcount
+            conn.commit()
+            try:
+                conn.execute("VACUUM;")
+            except Exception:
+                pass
+        return {"ok": True, "kept": min(total, keep), "deleted": deleted, "total_before": total}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    finally:
+        conn.close()
+
+def trim_master_csv(keep=100):
+    """Keeps only the last `keep` lines of Master.csv to avoid disk space bloat."""
+    if not os.path.exists(CSV_PATH):
+        return 0
+    try:
+        with open(CSV_PATH, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+        if len(lines) > keep:
+            trimmed = lines[-keep:]
+            tmp_path = CSV_PATH + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                f.writelines(trimmed)
+            os.replace(tmp_path, CSV_PATH)
+            return len(lines) - keep
+        return 0
+    except Exception as e:
+        print(f"Notice: trimming Master.csv: {e}", file=sys.stderr)
+        return 0
 
 def get_month_consumed_seconds(target_ip, trunk_id):
     """Calculates consumed seconds for the current month for a given trunk from SQLite."""
@@ -1325,6 +1378,11 @@ if __name__ == '__main__':
     elif cmd == 'sync':
         synced = sync_cdrs_from_csv()
         print(f"Synced {synced} new CDR rows from CSV.")
+    elif cmd in ('trim-cdrs', 'cleanup-cdrs', 'prune-cdrs', 'trim'):
+        keep = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 100
+        res = trim_cdrs(keep)
+        c_res = trim_master_csv(keep)
+        print(f"CDRs trimmed: kept {res.get('kept', 0)}, deleted {res.get('deleted', 0)} from DB, {c_res} lines trimmed from CSV.")
     elif cmd == 'dump':
         print(json.dumps({
             'trunks': get_all_trunks(),

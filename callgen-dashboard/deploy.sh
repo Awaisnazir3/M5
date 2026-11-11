@@ -357,6 +357,27 @@ elif command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status:
     ufw allow 10000:20000/udp 2>/dev/null || true
 fi
 
+# 11. CDR Pruning & Auto-Cleanup Cron (Keep last 100 records to save disk space)
+echo "--- Pruning CDR records to last 100 and installing auto-trim cron ---"
+if [ -f /usr/local/sbin/callgen_db.py ]; then
+    python3 /usr/local/sbin/callgen_db.py trim-cdrs 100 2>/dev/null || true
+fi
+if [ -f /var/log/asterisk/cdr-csv/Master.csv ]; then
+    tail -n 100 /var/log/asterisk/cdr-csv/Master.csv > /tmp/Master.csv.tmp 2>/dev/null && mv -f /tmp/Master.csv.tmp /var/log/asterisk/cdr-csv/Master.csv 2>/dev/null || true
+fi
+
+cat > /etc/cron.daily/callgen-cdr-trim <<'EOF'
+#!/bin/bash
+# Daily CDR auto-prune: keeps only latest 100 records and reclaims SQLite disk space
+if [ -f /usr/local/sbin/callgen_db.py ]; then
+    python3 /usr/local/sbin/callgen_db.py trim-cdrs 100 >/dev/null 2>&1 || true
+fi
+if [ -f /var/log/asterisk/cdr-csv/Master.csv ]; then
+    tail -n 100 /var/log/asterisk/cdr-csv/Master.csv > /tmp/Master.csv.tmp 2>/dev/null && mv -f /tmp/Master.csv.tmp /var/log/asterisk/cdr-csv/Master.csv 2>/dev/null || true
+fi
+EOF
+chmod +x /etc/cron.daily/callgen-cdr-trim 2>/dev/null || true
+
 echo ""
 echo "=================================================================="
 echo " M5-Traffic Controller Installation Complete!"

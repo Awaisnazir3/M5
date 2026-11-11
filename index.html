@@ -1378,6 +1378,7 @@
             </div>
           </div>
           <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline btn-sm" style="color:#DC2626;border-color:#FCA5A5;" onclick="trimCdrs()" title="Keep only last 100 records and free up server disk space">🧹 Keep Last 100 CDRs</button>
             <button type="button" class="btn btn-outline btn-sm" onclick="exportCdrCsv()">📥 Export CSV</button>
             <button type="button" class="btn btn-primary btn-sm" onclick="loadCdr()">↺ Refresh CDR</button>
           </div>
@@ -3280,15 +3281,31 @@
       if (countEl) countEl.textContent = 'Fetching records...';
 
       try {
-        const res = await api('cdr-list', { customer: cust, vendor: vend, status, search });
+        const res = await api('cdr-list', { customer: cust, vendor: vend, status, search, limit: 100 });
         allCdrs = res.cdrs || [];
         renderCdrTable(allCdrs);
-        if (countEl) countEl.textContent = allCdrs.length + ' Call Records';
+        if (countEl) countEl.textContent = allCdrs.length + ' Call Records (Capped at last 100)';
 
         // Populate filters if needed
         populateCdrFilters();
       } catch (e) {
         console.error('Error loading CDR:', e);
+      }
+    }
+
+    async function trimCdrs() {
+      if (!confirm('This will permanently delete older CDR records and keep only the latest 100 CDRs to free up server disk space. Continue?')) return;
+      showToast('Pruning CDRs and freeing disk space...', 'info');
+      try {
+        const res = await api('trim-cdrs', { keep: 100 });
+        if (res.ok) {
+          showToast(`CDRs pruned: kept latest ${res.kept || 100} records. Disk space reclaimed!`, 'success');
+          loadCdr();
+        } else {
+          showToast(res.error || 'Failed to prune CDRs', 'error');
+        }
+      } catch (e) {
+        showToast('Network error while pruning CDRs', 'error');
       }
     }
 
