@@ -928,6 +928,9 @@ if (in_array($a, ["start", "stop", "hangup", "reset-quota", "reset"], true)) {
         [$r, $o] = ctl(["reset-quota", $trunk]);
         done(["ok" => true, "message" => "Quota reset to 0.0 min for " . ($trunk === "all" ? "all routes" : ucfirst($trunk))]);
     }
+    if ($a === "start") {
+        sync_asterisk_routing();
+    }
     [$r, $o] = ctl([$a, $trunk]);
     done(["ok" => !$r, "message" => $o], $r ? 500 : 200);
 }

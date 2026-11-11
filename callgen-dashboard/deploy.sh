@@ -175,7 +175,10 @@ elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
 fi
 
 # Ensure include files exist with proper permissions before Asterisk reads them
-touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf /etc/asterisk/pjsip_customer_vendor.conf /etc/asterisk/extensions_customer_vendor.conf
+touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf /etc/asterisk/pjsip_customer_vendor.conf /etc/asterisk/extensions_customer_vendor.conf /etc/asterisk/pjsip_trunks.conf
+if [ -f "${SCRIPT_DIR}/asterisk/pjsip_trunks.conf" ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/pjsip_trunks.conf" /etc/asterisk/pjsip_trunks.conf 2>/dev/null || true
+fi
 if [ -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" ] && [ ! -s /etc/asterisk/pjsip_customer_vendor.conf ]; then
     cp -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" /etc/asterisk/pjsip_customer_vendor.conf 2>/dev/null || true
 fi
@@ -184,6 +187,15 @@ if [ -f "${SCRIPT_DIR}/asterisk/extensions_customer_vendor.conf" ] && [ ! -s /et
 fi
 chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
 chmod 644 /etc/asterisk/*.conf 2>/dev/null || true
+
+# Synchronize PJSIP trunks and reload Asterisk
+if [ -f "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" ]; then
+    python3 "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" 2>/dev/null || true
+fi
+if [ -n "$AST_BIN" ]; then
+    "$AST_BIN" -rx "pjsip reload" 2>/dev/null || true
+    "$AST_BIN" -rx "dialplan reload" 2>/dev/null || true
+fi
 
 # 5. Install Systemd Services for Call Generators
 echo "--- Installing systemd services for Cuba, Senegal, and Mali routes ---"

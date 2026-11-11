@@ -39,8 +39,26 @@ PY
     [ "$reached" = "1" ] && return 1 || return 0
 }
 
+ensure_endpoints_loaded() {
+    # 1. Run sync to generate pjsip_trunks.conf and reload Asterisk
+    for s_cand in /usr/local/sbin/callgen-sync-inbound.py /usr/local/bin/callgen-sync-inbound.py; do
+        if [ -x "$s_cand" ]; then
+            python3 "$s_cand" >/dev/null 2>&1 || true
+            break
+        fi
+    done
+    # 2. Verify endpoint is recognized in Asterisk PJSIP
+    local chk_t="${1:-mali}"
+    if [ "$chk_t" = "all" ]; then chk_t="mali"; fi
+    if ! "$AST" -rx "pjsip show endpoint ${chk_t}-trunk" 2>/dev/null | grep -q "Endpoint:"; then
+        "$AST" -rx "pjsip reload" >/dev/null 2>&1 || true
+        "$AST" -rx "dialplan reload" >/dev/null 2>&1 || true
+    fi
+}
+
 case "$CMD" in
     start)
+        ensure_endpoints_loaded "$TRUNK"
         if [ "$TRUNK" = "all" ]; then
             started=0
             blocked=0
