@@ -303,6 +303,8 @@ if not db_trunks:
                 with open(cfg_cand, 'r') as f:
                     cfg_j = json.load(f)
                     db_trunks = cfg_j.get('trunks', {})
+                    if not db_trunks:
+                        db_trunks = {t: cfg_j[t] for t in ['cuba', 'mali', 'senegal'] if t in cfg_j and isinstance(cfg_j[t], dict)}
                     if db_trunks: break
             except Exception:
                 pass
@@ -374,7 +376,7 @@ if not gateways:
             try:
                 with open(cfg_cand, 'r') as f:
                     cfg_j = json.load(f)
-                    inbound_raw = cfg_j.get('inbound', {})
+                    inbound_raw = cfg_j.get('_inbound', cfg_j.get('inbound', {}))
                     gateways = inbound_raw.get('source_ips', [])
                     if not inbound_cfg_dict:
                         inbound_cfg_dict = inbound_raw

@@ -301,6 +301,8 @@ def ensure_schema_migrations(conn):
         if count_trunks == 0:
             cfg = load_callgen_json()
             json_trunks = cfg.get('trunks', {})
+            if not json_trunks:
+                json_trunks = {t: cfg[t] for t in ['cuba', 'mali', 'senegal'] if t in cfg and isinstance(cfg[t], dict)}
             for tid in ['cuba', 'mali', 'senegal']:
                 tr = json_trunks.get(tid, {})
                 tip = tr.get('target_ip', '')
@@ -324,7 +326,7 @@ def ensure_schema_migrations(conn):
         count_gateways = cur.execute("SELECT COUNT(*) FROM gateways").fetchone()[0]
         if count_gateways == 0:
             cfg = load_callgen_json()
-            inbound = cfg.get('inbound', {})
+            inbound = cfg.get('_inbound', cfg.get('inbound', {}))
             sips = inbound.get('source_ips', [])
             for idx, s in enumerate(sips):
                 sip = s.get('ip', '').strip()
@@ -838,7 +840,7 @@ def get_customers():
         rows = cur.fetchall()
     customers = []
     for r in rows:
-    c = dict(r)
+        c = dict(r)
         cid = c['id']
         cur.execute("SELECT ip_address, port FROM customer_ips WHERE customer_id = ?", (cid,))
         ips = [dict(ip_row) for ip_row in cur.fetchall()]
@@ -981,7 +983,7 @@ def get_vendors():
         rows = cur.fetchall()
     vendors = []
     for r in rows:
-    v = dict(r)
+        v = dict(r)
         vid = v['id']
         cur.execute("SELECT ip_address, port FROM vendor_ips WHERE vendor_id = ?", (vid,))
         ips = [dict(ip_row) for ip_row in cur.fetchall()]
@@ -993,6 +995,8 @@ def get_vendors():
         v['port'] = ips[0]['port'] if ips else 5060
         v['prefixes'] = pfxs
         v['prefix'] = pfxs[0]['prefix'] if pfxs else ''
+        v['country_code'] = pfxs[0]['country_code'] if pfxs else ''
+        vendors.append(v)
         v['country_code'] = pfxs[0]['country_code'] if pfxs else ''
         vendors.append(v)
     conn.close()

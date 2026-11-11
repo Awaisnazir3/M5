@@ -424,8 +424,17 @@ if ($a === "status") {
         // Fallback to callgen-config.json if SQLite had no trunks
         if (empty($dbTrunks)) {
             $cfg = load_config();
-            if (!empty($cfg["trunks"])) {
-                foreach ($cfg["trunks"] as $tid => $tr) {
+            $trunksCfg = $cfg["trunks"] ?? [];
+            if (empty($trunksCfg)) {
+                $trunksCfg = [];
+                foreach (["cuba", "mali", "senegal"] as $tid) {
+                    if (!empty($cfg[$tid]) && is_array($cfg[$tid])) {
+                        $trunksCfg[$tid] = $cfg[$tid];
+                    }
+                }
+            }
+            if (!empty($trunksCfg)) {
+                foreach ($trunksCfg as $tid => $tr) {
                     $port = (int)($tr["sip_port"] ?? 5060);
                     $tip = trim($tr["target_ip"] ?? "");
                     if (strpos($tip, ":") !== false) {
@@ -455,15 +464,16 @@ if ($a === "status") {
                     ];
                 }
             }
-            if (empty($gateways) && !empty($cfg["inbound"]["source_ips"])) {
-                $gateways = $cfg["inbound"]["source_ips"];
+            $inboundRaw = $cfg["_inbound"] ?? ($cfg["inbound"] ?? []);
+            if (empty($gateways) && !empty($inboundRaw["source_ips"])) {
+                $gateways = $inboundRaw["source_ips"];
             }
-            if (empty($inbound_cfg) && !empty($cfg["inbound"])) {
+            if (empty($inbound_cfg) && !empty($inboundRaw)) {
                 $inbound_cfg = [
-                    "testcall_duration" => $cfg["inbound"]["testcall_duration"] ?? 60,
-                    "testcall2_duration" => $cfg["inbound"]["testcall2_duration"] ?? 50,
-                    "testcall_prefixes" => $cfg["inbound"]["testcall_prefixes"] ?? "444453, 619334221",
-                    "testcall2_prefixes" => $cfg["inbound"]["testcall2_prefixes"] ?? "2237"
+                    "testcall_duration" => $inboundRaw["testcall_duration"] ?? 60,
+                    "testcall2_duration" => $inboundRaw["testcall2_duration"] ?? 50,
+                    "testcall_prefixes" => $inboundRaw["testcall_prefixes"] ?? "444453, 619334221",
+                    "testcall2_prefixes" => $inboundRaw["testcall2_prefixes"] ?? "2237"
                 ];
             }
         }
