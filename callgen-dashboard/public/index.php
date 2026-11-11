@@ -191,7 +191,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>M5 Traffic Controller | Carrier VoIP Smart Switch</title>
+  <title>M5 Traffic Controller | Customer & Vendor Traffic Management</title>
   <style>
     :root {
       --bg: #F4F6F9;
@@ -205,6 +205,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       --text-muted: #64748B;
       --text-dim: #94A3B8;
       --cyan: #0284C7;
+      --cyan-dark: #0369A1;
       --cyan-glow: rgba(2, 132, 199, 0.15);
       --emerald: #059669;
       --emerald-dark: #047857;
@@ -286,69 +287,60 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       letter-spacing: -0.5px;
     }
     .brand-text h1 {
-      font-size: 16.5px;
+      font-size: 15px;
       font-weight: 850;
-      letter-spacing: -0.2px;
-      line-height: 1.2;
+      letter-spacing: 0.5px;
+      margin: 0;
       color: #FFFFFF;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     .brand-text span {
       font-size: 10.5px;
       color: #94A3B8;
-      text-transform: uppercase;
       letter-spacing: 0.8px;
       font-weight: 600;
+      display: block;
+      margin-top: -2px;
     }
     .nav-center {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
     .core-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       padding: 5px 12px;
       border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 12px;
-      font-weight: 650;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 11.5px;
       color: #E2E8F0;
+      font-weight: 600;
     }
     .core-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #10B981;
       box-shadow: 0 0 8px #10B981;
-      animation: pulseGreen 2.2s infinite;
-    }
-    @keyframes pulseGreen {
-      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
     .nav-clock {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
-      font-weight: 600;
       color: #94A3B8;
-      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.2);
       padding: 5px 10px;
       border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .btn-pwd {
       background: rgba(255, 255, 255, 0.08);
@@ -357,7 +349,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 12px;
-      font-weight: 650;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -370,27 +362,26 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
     .user-pill {
       background: rgba(255, 255, 255, 0.08);
-      padding: 5px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #FFFFFF;
+      color: #E2E8F0;
+      font-size: 12px;
     }
     .user-avatar {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #0284C7;
       color: #FFFFFF;
-      font-size: 10.5px;
-      font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
     }
     .btn-logout {
       background: rgba(239, 68, 68, 0.15);
@@ -399,8 +390,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       text-decoration: none;
       padding: 6px 12px;
       border-radius: 6px;
-      font-weight: 650;
       font-size: 12px;
+      font-weight: 600;
       transition: all 0.15s ease;
     }
     .btn-logout:hover {
@@ -408,14 +399,86 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       color: #FFFFFF;
     }
 
-    /* Main Container */
-    .container {
-      max-width: 1320px;
-      margin: 24px auto 48px auto;
-      padding: 0 20px;
+    /* Subnav Navigation Tab Bar */
+    .subnav-tabs {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .tabs-wrapper {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-wrapper::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--bg-card-subtle);
+    }
+    .tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+      background: transparent;
+    }
+    .tab-pill-badge {
+      background: #F1F5F9;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 12px;
+    }
+    .tab-btn.active .tab-pill-badge {
+      background: var(--blue-bg);
+      color: var(--cyan);
+      border-color: var(--blue-border);
     }
 
-    /* Dashboard Cards */
+    /* Tab Panes */
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1440px;
+      margin: 24px auto 60px;
+      padding: 0 28px;
+    }
+
+    /* Cards */
     .dashboard-card {
       background: var(--bg-card);
       border-radius: 12px;
@@ -425,14 +488,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       overflow: hidden;
     }
     .card-topbar {
-      padding: 16px 20px;
+      padding: 16px 22px;
+      background: var(--bg-card);
       border-bottom: 1px solid var(--border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      background: var(--bg-card-subtle);
     }
     .card-title-group {
       display: flex;
@@ -443,124 +506,116 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      background: rgba(2, 132, 199, 0.1);
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-border);
       color: var(--cyan);
-      border: 1px solid var(--border-accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      font-size: 17px;
     }
-    .card-title-group h2 {
-      font-size: 16px;
-      font-weight: 800;
+    .card-topbar h2 {
+      font-size: 15.5px;
+      font-weight: 850;
       color: var(--text);
-      margin: 0;
       letter-spacing: -0.2px;
+      margin: 0;
     }
-    .card-title-group .card-subtitle {
-      font-size: 12px;
+    .card-subtitle {
+      font-size: 11.5px;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
-    /* Table Styles */
-    .routes-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      text-align: left;
+    /* Metric Stat Grid */
+    .stat-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
     }
-    .routes-table th {
-      background: var(--bg-card-subtle);
-      color: var(--text-muted);
-      font-size: 10.5px;
+    .stat-card-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card-item::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      bottom: 0;
+      background: var(--cyan);
+    }
+    .stat-card-item.emerald::before { background: var(--emerald); }
+    .stat-card-item.purple::before { background: var(--purple); }
+    .stat-card-item.amber::before { background: var(--amber); }
+
+    .stat-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-card-title {
+      font-size: 11.5px;
       font-weight: 750;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 13px 18px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-      vertical-align: middle;
+      letter-spacing: 0.5px;
     }
-    .routes-table td {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border-subtle);
-      vertical-align: middle;
+    .stat-card-icon {
+      font-size: 18px;
+    }
+    .stat-card-val {
+      font-size: 24px;
+      font-weight: 850;
       color: var(--text);
+      letter-spacing: -0.5px;
     }
-    .routes-table tbody tr {
-      transition: background 0.15s ease;
-    }
-    .routes-table tbody tr:hover {
-      background: var(--table-hover);
-    }
-    .routes-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Status Pills */
-    .status-pill {
-      display: inline-flex;
+    .stat-card-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
-      border-radius: 14px;
-      font-size: 11.5px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-    .status-pill.active {
-      background: var(--emerald-bg);
-      color: var(--emerald-dark);
-      border: 1px solid var(--emerald-border);
-    }
-    .status-pill.standby {
-      background: #F1F5F9;
-      color: var(--text-muted);
-      border: 1px solid #CBD5E1;
-    }
-    .status-pill .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-    }
-    .status-pill.active .dot {
-      background: var(--emerald);
-      box-shadow: 0 0 6px var(--emerald);
-    }
-    .status-pill.standby .dot {
-      background: var(--text-dim);
     }
 
-    /* Context Tech Tag */
-    .ctx-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 5px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* Tables */
+    .carrier-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .carrier-table thead th {
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
       font-size: 11px;
       font-weight: 750;
-      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 18px;
       white-space: nowrap;
     }
-    .ctx-pill.testcall {
-      background: var(--blue-bg);
-      color: var(--blue);
-      border: 1px solid var(--blue-border);
+    .carrier-table tbody tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s ease;
     }
-    .ctx-pill.testcall2 {
-      background: var(--purple-bg);
-      color: var(--purple);
-      border: 1px solid var(--purple-border);
+    .carrier-table tbody tr:hover {
+      background: var(--table-hover);
     }
-    .ctx-pill.auto {
-      background: #F1F5F9;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
+    .carrier-table td {
+      padding: 12px 18px;
+      vertical-align: middle;
     }
 
     /* Buttons */
@@ -573,16 +628,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
       transition: all 0.15s ease;
       white-space: nowrap;
       text-decoration: none;
     }
     .btn-sm {
-      padding: 6px 12px;
+      padding: 5px 10px;
       font-size: 11.5px;
-      font-weight: 650;
+      font-weight: 700;
     }
     .btn-primary {
       background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
@@ -593,26 +647,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       background: #0369A1;
       transform: translateY(-1px);
     }
-    .btn-start-all {
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      color: #FFFFFF;
-      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
-    }
-    .btn-start-all:hover {
-      background: #047857;
-      transform: translateY(-1px);
-    }
-    .btn-stop-all {
-      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-      color: #FFFFFF;
-      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.25);
-    }
-    .btn-stop-all:hover {
-      background: #B91C1C;
-      transform: translateY(-1px);
-    }
     .btn-outline {
-      background: var(--bg-card);
+      background: #FFFFFF;
       color: var(--text);
       border: 1px solid var(--border);
     }
@@ -621,187 +657,174 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       border-color: var(--cyan);
       color: var(--cyan);
     }
-    .btn-action-group {
-      display: inline-flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      white-space: nowrap;
-    }
-    .btn-config {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+    .btn-danger-outline {
       background: #FFFFFF;
-      border: 1px solid #CBD5E1;
-      color: var(--text);
-      font-weight: 650;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      color: var(--red);
+      border: 1px solid var(--red-border);
     }
-    .btn-config:hover {
-      border-color: var(--cyan);
-      color: var(--cyan);
+    .btn-danger-outline:hover {
+      background: var(--red-bg);
+      border-color: var(--red);
     }
-    .btn-start {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--emerald-bg);
-      border: 1px solid var(--emerald-border);
+    .btn-success-outline {
+      background: #FFFFFF;
       color: var(--emerald-dark);
-      font-weight: 750;
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      min-width: 74px;
-      justify-content: center;
+      border: 1px solid var(--emerald-border);
     }
-    .btn-start:hover {
-      background: var(--emerald);
-      color: #FFFFFF;
-      transform: translateY(-1px);
-    }
-    .btn-stop {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--red-bg);
-      border: 1px solid var(--red-border);
-      color: var(--red-dark);
-      font-weight: 750;
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      min-width: 74px;
-      justify-content: center;
-    }
-    .btn-stop:hover {
-      background: var(--red);
-      color: #FFFFFF;
-      transform: translateY(-1px);
-    }
-    .btn-hangup {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #FFFFFF;
-      border: 1px solid var(--red-border);
-      color: var(--red-dark);
-      font-weight: 650;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .btn-hangup:hover {
-      background: var(--red-bg);
-    }
-    .hangup-dot {
-      width: 6.5px;
-      height: 6.5px;
-      border-radius: 50%;
-      background: var(--red);
-      display: inline-block;
-      flex-shrink: 0;
-    }
-    .btn-reset-quota {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--amber-bg);
-      border: 1px solid var(--amber-border);
-      color: var(--amber-dark);
-      font-size: 11px;
-      font-weight: 750;
-      padding: 3px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      line-height: 1.2;
-    }
-    .btn-reset-quota:hover {
-      background: var(--amber);
-      color: #FFFFFF;
-      transform: translateY(-1px);
+    .btn-success-outline:hover {
+      background: var(--emerald-bg);
+      border-color: var(--emerald);
     }
 
-    /* Preset duration pills */
-    .preset-pill {
+    /* Badges & Pills */
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 0.3px;
+    }
+    .badge-status.active {
+      background: var(--emerald-bg);
+      color: var(--emerald-dark);
+      border: 1px solid var(--emerald-border);
+    }
+    .badge-status.blocked {
+      background: var(--red-bg);
+      color: var(--red-dark);
+      border: 1px solid var(--red-border);
+    }
+    .badge-status.disabled {
       background: #F1F5F9;
       color: var(--text-muted);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 3px 9px;
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .badge-status.active .badge-dot { background: var(--emerald); }
+    .badge-status.blocked .badge-dot { background: var(--red); }
+    .badge-status.disabled .badge-dot { background: var(--text-dim); }
+
+    .prio-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
       font-size: 11px;
-      font-weight: 650;
-      cursor: pointer;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .prio-badge.prio-1 {
+      background: var(--emerald-bg);
+      color: var(--emerald-dark);
+      border: 1px solid var(--emerald-border);
+    }
+    .prio-badge.prio-2 {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-border);
+    }
+    .prio-badge.prio-3 {
+      background: var(--purple-bg);
+      color: var(--purple);
+      border: 1px solid var(--purple-border);
+    }
+
+    .prefix-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #F1F5F9;
+      color: #0F172A;
+      border: 1px solid #CBD5E1;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .trans-flow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .trans-arrow {
+      color: var(--cyan);
+      font-weight: 900;
+    }
+
+    /* Filter Toolbar */
+    .filter-bar {
+      padding: 12px 20px;
+      background: var(--bg-card-subtle);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-input {
+      background: #FFFFFF;
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12.5px;
+      color: var(--text);
+      outline: none;
       transition: all 0.15s ease;
     }
-    .preset-pill:hover {
-      background: #E2E8F0;
-      border-color: #94A3B8;
-      color: var(--text);
-    }
-
-    /* Form Fields */
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    .field-group.full {
-      grid-column: span 2;
-    }
-    .field-group label {
-      font-size: 11px;
-      font-weight: 750;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .field-group input, .field-group select {
-      padding: 9px 12px;
-      border: 1px solid var(--input-border);
-      border-radius: 7px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text);
-      background: var(--input-bg);
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .field-group input:focus, .field-group select:focus {
+    .filter-input:focus {
       border-color: var(--cyan);
-      box-shadow: 0 0 0 3px var(--cyan-glow);
-    }
-    .fields-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      box-shadow: 0 0 0 2px var(--cyan-glow);
     }
 
-    /* Breakout Cards */
-    .breakout-card {
-      background: var(--bg-card);
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      padding: 16px;
+    /* Channel Meters */
+    .chan-meter-wrap {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      box-shadow: var(--shadow-sm);
+      gap: 4px;
+      min-width: 140px;
     }
+    .chan-meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .meter-track {
+      width: 100%;
+      height: 7px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      background: var(--cyan);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .meter-fill.danger { background: var(--red); }
+    .meter-fill.warning { background: var(--amber); }
 
-    /* Modal Styles */
+    /* Modals */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -809,16 +832,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       width: 100vw;
       height: 100vh;
       background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      padding: 20px;
       opacity: 1;
       visibility: visible;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-      padding: 16px;
+      transition: all 0.2s ease;
     }
     .modal-overlay.hidden {
       opacity: 0;
@@ -835,12 +857,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       max-height: 90vh;
       display: flex;
       flex-direction: column;
-      animation: modalFadeIn 0.2s ease-out;
       overflow: hidden;
+      animation: modalSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    @keyframes modalFadeIn {
-      from { transform: scale(0.97) translateY(6px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
+    @keyframes modalSlide {
+      from { transform: translateY(12px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
     }
     .modal-header {
       background: var(--bg-card-subtle);
@@ -857,8 +879,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       line-height: 1;
       color: var(--text-muted);
       cursor: pointer;
-      padding: 4px 8px;
+      width: 32px;
+      height: 32px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.15s ease;
     }
     .modal-close:hover {
@@ -869,18 +895,238 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       padding: 22px 24px;
       overflow-y: auto;
     }
-
-    @media(max-width: 1024px) {
-      .nav-center { display: none; }
+    .modal-footer {
+      padding: 16px 24px;
+      background: var(--bg-card-subtle);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
     }
-    @media(max-width: 640px) {
-      .fields-grid { grid-template-columns: 1fr; }
-      .field-group.full { grid-column: span 1; }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+    .field-group.full {
+      grid-column: span 2;
+    }
+    .field-group label {
+      font-size: 11.5px;
+      font-weight: 750;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .field-group input, .field-group select, .field-group textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 7px;
+      font-size: 13px;
+      color: var(--text);
+      background: #FFFFFF;
+      outline: none;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px var(--cyan-glow);
+    }
+    .field-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Switch & Trunks Specific Styles Preserved */
+    .routes-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .routes-table thead th {
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 11px 16px;
+      white-space: nowrap;
+    }
+    .routes-table tbody tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s ease;
+    }
+    .routes-table tbody tr:hover {
+      background: var(--table-hover);
+    }
+    .routes-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+
+    .ctx-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11.5px;
+      font-weight: 750;
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      display: inline-block;
+    }
+    .ctx-pill.testcall {
+      background: #FEF3C7;
+      color: #92400E;
+      border-color: #FCD34D;
+    }
+    .ctx-pill.testcall2 {
+      background: #E0E7FF;
+      color: #3730A3;
+      border-color: #C7D2FE;
+    }
+    .ctx-pill.auto {
+      background: #F0FDF4;
+      color: #166534;
+      border-color: #BBF7D0;
+    }
+
+    .btn-action-group {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-config {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      color: #334155;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-config:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--emerald-bg);
+      border: 1px solid var(--emerald-border);
+      color: var(--emerald-dark);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-start:hover {
+      background: var(--emerald);
+      color: #FFFFFF;
+    }
+    .btn-stop {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: var(--red-dark);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-stop:hover {
+      background: var(--red);
+      color: #FFFFFF;
+    }
+    .btn-hangup {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #FFFFFF;
+      border: 1px solid var(--red-border);
+      color: var(--red);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-hangup:hover {
+      background: var(--red-bg);
+    }
+    .hangup-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+    .btn-reset-quota {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-dark);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .preset-pill {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .preset-pill:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .breakout-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
     }
   </style>
 </head>
 <body>
-  <!-- Top Navigation Bar -->
+
+  <!-- Top Header Navigation -->
   <header class="navbar">
     <div class="brand">
       <div class="brand-icon">M5</div>
@@ -893,7 +1139,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     <div class="nav-center">
       <div class="core-pill">
         <span class="core-dot"></span>
-        <span>Asterisk 20 PJSIP Core</span>
+        <span>Asterisk 23 PJSIP Core</span>
       </div>
       <div class="nav-clock" id="nav-clock">
         <span>⏱</span>
@@ -902,260 +1148,1023 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     </div>
 
     <div class="nav-actions">
-      <!-- Change Password Button -->
       <button type="button" class="btn-pwd" onclick="openPasswordModal()" title="Change operator password">
         🔑 Change Password
       </button>
 
       <div class="user-pill">
         <div class="user-avatar">A</div>
-        <span>Operator: <b><?= htmlspecialchars($_SESSION["operator"] ?? "awais") ?></b></span>
+        <span>Operator: <b>awais</b></span>
       </div>
       <a href="?logout=1" class="btn-logout">Sign Out</a>
     </div>
   </header>
 
+  <!-- Subnav Tabs (Day Theme Professional Navigation) -->
+  <nav class="subnav-tabs">
+    <div class="tabs-wrapper">
+      <button type="button" class="tab-btn active" onclick="showTab('tab-dashboard')" id="btn-tab-dashboard">
+        <span>📊</span>
+        <span>Live Dashboard</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-customers')" id="btn-tab-customers">
+        <span>👥</span>
+        <span>Customer Management</span>
+        <span class="tab-pill-badge" id="tab-cust-count">2</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-vendors')" id="btn-tab-vendors">
+        <span>🏢</span>
+        <span>Vendor Management</span>
+        <span class="tab-pill-badge" id="tab-vend-count">3</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-mappings')" id="btn-tab-mappings">
+        <span>🔀</span>
+        <span>Customer Vendor Mapping</span>
+        <span class="tab-pill-badge" id="tab-map-count">4</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-channels')" id="btn-tab-channels">
+        <span>📞</span>
+        <span>Channel Management</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-cdr')" id="btn-tab-cdr">
+        <span>📜</span>
+        <span>CDR Reports</span>
+      </button>
+      <button type="button" class="tab-btn" onclick="showTab('tab-switch')" id="btn-tab-switch">
+        <span>⚙️</span>
+        <span>Switch & Trunks</span>
+      </button>
+    </div>
+  </nav>
+
   <main class="container">
-    <!-- Destination Traffic Routes Section Card -->
-    <section class="dashboard-card">
-      <!-- Title Bar -->
-      <div class="card-topbar">
-        <div class="card-title-group">
-          <div class="card-icon-badge">🌐</div>
-          <div>
-            <h2>Destination Traffic Routes</h2>
-            <div class="card-subtitle">
-              Live Asterisk SIP generation channels, quota monitoring & engine control
-            </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: LIVE TRAFFIC DASHBOARD -->
+    <!-- ========================================================================= -->
+    <div id="tab-dashboard" class="tab-pane active">
+      
+      <!-- KPI Metric Summary Row -->
+      <div class="stat-grid-4">
+        <!-- Customer Stats Card -->
+        <div class="stat-card-item">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Customers Overview</span>
+            <span class="stat-card-icon">👥</span>
+          </div>
+          <div class="stat-card-val" id="dash-cust-total">2 Customers</div>
+          <div class="stat-card-sub">
+            <span style="color:var(--emerald-dark);font-weight:700;" id="dash-cust-active">2 Active</span>
+            <span>•</span>
+            <span style="color:var(--red-dark);font-weight:700;" id="dash-cust-blocked">0 Blocked</span>
+            <span>•</span>
+            <span id="dash-cust-channels">150 CH Alloc</span>
+          </div>
+        </div>
+
+        <!-- Vendor Stats Card -->
+        <div class="stat-card-item emerald">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Vendors Overview</span>
+            <span class="stat-card-icon">🏢</span>
+          </div>
+          <div class="stat-card-val" id="dash-vend-total">3 Vendors</div>
+          <div class="stat-card-sub">
+            <span style="color:var(--emerald-dark);font-weight:700;" id="dash-vend-active">3 Active</span>
+            <span>•</span>
+            <span style="color:var(--red-dark);font-weight:700;" id="dash-vend-blocked">0 Blocked</span>
+            <span>•</span>
+            <span id="dash-vend-channels">450 CH Alloc</span>
+          </div>
+        </div>
+
+        <!-- Live Concurrency Card -->
+        <div class="stat-card-item purple">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Active Call Concurrency</span>
+            <span class="stat-card-icon">📞</span>
+          </div>
+          <div class="stat-card-val" id="dash-total-calls">0 Calls</div>
+          <div class="stat-card-sub">
+            <span style="color:var(--emerald-dark);font-weight:700;">● Asterisk 23 PJSIP</span>
+            <span>•</span>
+            <span>Thread-Safe Group()</span>
           </div>
         </div>
       </div>
 
-      <!-- Table Body -->
-      <div style="overflow-x:auto;">
-        <table class="routes-table">
-          <thead>
-            <tr>
-              <th style="width:13%;min-width:120px;">Destination</th>
-              <th style="width:11%;min-width:100px;">Context</th>
-              <th style="width:16%;min-width:145px;">Live Channels</th>
-              <th style="width:24%;min-width:210px;">Monthly Minutes Quota</th>
-              <th style="width:14%;min-width:145px;">Target IP</th>
-              <th style="width:12%;min-width:120px;">Dialing Prefix</th>
-              <th style="width:10%;min-width:215px;text-align:right;">Action</th>
-            </tr>
-          </thead>
-          <tbody id="routes-table-tbody">
-            <!-- Populated via buildRouteTableRow() -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Dedicated Inbound Call Gateway & Prefix Routing -->
-    <section class="dashboard-card">
-      <div style="padding:22px;">
-        <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
-          <div class="card-title-group">
-            <div class="card-icon-badge">📥</div>
-            <div>
-              <h2 style="font-size:16px;font-weight:800;color:var(--text);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
-              <div class="card-subtitle">
-                Manage authorized inbound source IPs and allowed breakout prefixes
+      <!-- Live Channel Concurrency Capacity Grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        
+        <!-- Customer Live Load Card -->
+        <div class="dashboard-card" style="margin-bottom:0;">
+          <div class="card-topbar">
+            <div class="card-title-group">
+              <div class="card-icon-badge">📥</div>
+              <div>
+                <h2>Inbound Customer Load</h2>
+                <div class="card-subtitle">Real-time incoming channels vs allocated limits</div>
               </div>
             </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span id="inbound-active-badge" style="background:#F1F5F9;color:var(--text-muted);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
-              ○ 0 Active Inbound Calls
-            </span>
-          </div>
-        </div>
-
-        <!-- 1. Allowed Inbound Source IPs Table (Multiple IPs) -->
-        <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);overflow:hidden;">
-          <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:750;color:var(--text);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span id="source-ips-count" style="font-weight:700;color:var(--cyan);background:#FFFFFF;border:1px solid var(--border);padding:3px 10px;border-radius:12px;font-size:11px;text-transform:none;">
-                2 IPs authorized
-              </span>
-              <button type="button" class="btn btn-primary btn-sm" onclick="openAddSourceIpModal()" style="padding:6px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px;text-transform:none;">
-                + Add Allowed Source IP
-              </button>
-            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="showTab('tab-customers')">View Customers →</button>
           </div>
           <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+            <table class="carrier-table">
               <thead>
-                <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
-                  <th style="padding:11px 16px;width:24%;">Source IP Address</th>
-                  <th style="padding:11px 16px;width:20%;">Gateway Label / Note</th>
-                  <th style="padding:11px 16px;width:22%;">Allowed CC & Prefixes</th>
-                  <th style="padding:11px 16px;width:18%;">Assigned Context</th>
-                  <th style="padding:11px 16px;width:16%;text-align:right;">Actions</th>
+                <tr>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Allocated</th>
+                  <th>Active</th>
+                  <th>Available</th>
+                  <th>Utilization</th>
                 </tr>
               </thead>
-              <tbody id="source-ips-tbody">
-                <!-- Populated via renderSourceIpsTable() -->
+              <tbody id="dash-cust-tbody">
+                <!-- Filled via updateDashboardStats() -->
               </tbody>
             </table>
           </div>
         </div>
 
-        
-        <!-- Inbound Breakout Prefix Routing & Context Duration Limits -->
-        <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);padding:18px;">
-          <div style="margin-bottom:14px;">
-            <span style="font-size:12px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
-              ⏱ Inbound Breakout Prefix Routing & Context Duration Limits
-            </span>
-            <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
-              Configure allowed breakout prefixes and maximum call timeouts in Asterisk dialplan
+        <!-- Vendor Live Load Card -->
+        <div class="dashboard-card" style="margin-bottom:0;">
+          <div class="card-topbar">
+            <div class="card-title-group">
+              <div class="card-icon-badge">📤</div>
+              <div>
+                <h2>Outbound Vendor Load</h2>
+                <div class="card-subtitle">Real-time termination load vs vendor channel caps</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="showTab('tab-vendors')">View Vendors →</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="carrier-table">
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Status</th>
+                  <th>Capacity</th>
+                  <th>Active</th>
+                  <th>Available</th>
+                  <th>Utilization</th>
+                </tr>
+              </thead>
+              <tbody id="dash-vend-tbody">
+                <!-- Filled via updateDashboardStats() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: CUSTOMER MANAGEMENT -->
+    <!-- ========================================================================= -->
+    <div id="tab-customers" class="tab-pane">
+      <div class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">👥</div>
+            <div>
+              <h2>Customer Management</h2>
+              <div class="card-subtitle">Authorize inbound customer PBX IPs, prefixes, country codes and simultaneous channel limits</div>
             </div>
           </div>
-
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px;">
-            <!-- [testcall] Breakout Card -->
-            <div class="breakout-card">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:14px;font-weight:800;color:var(--text);">testcall Breakout</div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <span class="ctx-pill testcall">[testcall]</span>
-                  <span style="background:var(--emerald-bg);color:var(--emerald-dark);border:1px solid var(--emerald-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
-                </div>
-              </div>
-
-              <div>
-                <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
-                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
-                  <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
-                </label>
-                <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                  Allowed breakout prefixes. Unlisted prefixes are rejected.
-                </div>
-              </div>
-
-              <div style="border-top:1px solid var(--border);padding-top:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
-                    MAX CALL DURATION LIMIT
-                  </label>
-                  <span id="testcall-human-dur" style="font-size:11.5px;color:var(--cyan);font-weight:700;">60s (1m)</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
-                  <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
-                </div>
-                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 30)">30s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 45)">45s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 60)">60s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 90)">90s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 120)">2m</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 300)">5m</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall', 600)">10m</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- [testcall2] Breakout Card -->
-            <div class="breakout-card">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="font-size:14px;font-weight:800;color:var(--text);">testcall2 Breakout</div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <span class="ctx-pill testcall2">[testcall2]</span>
-                  <span style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
-                </div>
-              </div>
-
-              <div>
-                <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
-                  <span>ALLOWED BREAKOUT PREFIXES / CC</span>
-                  <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
-                </label>
-                <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
-                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                  Allowed breakout prefixes. Unlisted prefixes are rejected.
-                </div>
-              </div>
-
-              <div style="border-top:1px solid var(--border);padding-top:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
-                    MAX CALL DURATION LIMIT
-                  </label>
-                  <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--purple);font-weight:700;">50s</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
-                  <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
-                </div>
-                <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 30)">30s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 45)">45s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 50)">50s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 60)">60s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 90)">90s</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 120)">2m</button>
-                  <button type="button" class="preset-pill" onclick="setDurPreset('testcall2', 300)">5m</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:14px;display:flex;justify-content:flex-end;">
-            <button type="button" class="btn btn-primary btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:7px 20px;font-size:12.5px;font-weight:750;">
-              💾 Save Settings
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="openQuickCopyCustomerModal()">
+              📋 Copy Existing
+            </button>
+            <button type="button" class="btn btn-primary" onclick="openCustomerModal()">
+              + Add Customer
             </button>
           </div>
         </div>
 
-        <!-- 2. Monthly Inbound Consumed Minutes Table (Cuba, Mali, Senegal Only) -->
-        <div style="background:var(--bg-card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);">
-          <div style="padding:12px 16px;background:var(--bg-card-subtle);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <div>
-              <span style="font-size:12.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
-                📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
-              </span>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
-                Accrued CDR minutes from Asterisk SQLite database for the current calendar month
-              </div>
-            </div>
-            <span style="font-size:11px;color:var(--cyan);font-weight:750;background:var(--blue-bg);padding:4px 10px;border-radius:6px;border:1px solid var(--blue-border);">
-              ● Monitored Destinations
-            </span>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <input type="text" id="cust-search" class="filter-input" placeholder="Search customer name or IP..." oninput="filterCustomersTable()" style="min-width:240px;">
+            <span id="cust-table-count" style="font-size:12px;color:var(--text-muted);font-weight:700;">2 customers</span>
           </div>
-
-          <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
-              <thead>
-                <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
-                  <th style="padding:10px 16px;">Destination Route</th>
-                  <th style="padding:10px 16px;">Country Code & Prefix</th>
-                  <th style="padding:10px 16px;">Total Inbound Calls</th>
-                  <th style="padding:10px 16px;">Answered Calls</th>
-                  <th style="padding:10px 16px;">Total Consumed Minutes</th>
-                  <th style="padding:10px 16px;">Active Channels</th>
-                </tr>
-              </thead>
-              <tbody id="country-records-tbody">
-                <!-- Populated via renderCountryRecordsTable() -->
-              </tbody>
-              <tfoot id="country-records-tfoot">
-                <!-- Total Row -->
-              </tfoot>
-            </table>
+          <div class="filter-group">
+            <button type="button" class="btn btn-outline btn-sm" onclick="loadCustomers()">↺ Refresh</button>
           </div>
         </div>
 
+        <div style="overflow-x:auto;">
+          <table class="carrier-table">
+            <thead>
+              <tr>
+                <th style="width:16%;">Customer</th>
+                <th style="width:20%;">Inbound IP:Port</th>
+                <th style="width:14%;">Allowed Prefix</th>
+                <th style="width:8%;">CC</th>
+                <th style="width:12%;">Channels</th>
+                <th style="width:10%;">Status</th>
+                <th style="width:20%;text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <!-- Rendered via renderCustomersTable() -->
+            </tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: VENDOR MANAGEMENT -->
+    <!-- ========================================================================= -->
+    <div id="tab-vendors" class="tab-pane">
+      <div class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">🏢</div>
+            <div>
+              <h2>Vendor Management</h2>
+              <div class="card-subtitle">Manage termination carriers, outbound SIP trunk gateways, prefixes and maximum channel capacities</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="openQuickCopyVendorModal()">
+              📋 Copy Existing
+            </button>
+            <button type="button" class="btn btn-primary" onclick="openVendorModal()">
+              + Add Vendor
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <input type="text" id="vend-search" class="filter-input" placeholder="Search vendor name or IP..." oninput="filterVendorsTable()" style="min-width:240px;">
+            <span id="vend-table-count" style="font-size:12px;color:var(--text-muted);font-weight:700;">3 vendors</span>
+          </div>
+          <div class="filter-group">
+            <button type="button" class="btn btn-outline btn-sm" onclick="loadVendors()">↺ Refresh</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="carrier-table">
+            <thead>
+              <tr>
+                <th style="width:16%;">Vendor</th>
+                <th style="width:20%;">Outbound IP:Port</th>
+                <th style="width:12%;">Vendor Prefix</th>
+                <th style="width:8%;">CC</th>
+                <th style="width:12%;">Channels</th>
+                <th style="width:12%;">Caller ID</th>
+                <th style="width:10%;">Status</th>
+                <th style="width:18%;text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendors-tbody">
+              <!-- Rendered via renderVendorsTable() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: CUSTOMER VENDOR MAPPING -->
+    <!-- ========================================================================= -->
+    <div id="tab-mappings" class="tab-pane">
+      <div class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">🔀</div>
+            <div>
+              <h2>Customer to Vendor Routing & Failover Management</h2>
+              <div class="card-subtitle">Intelligent customer-prefix-to-vendor routing, prefix translation & multi-tier priority failover</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button" class="btn btn-outline" onclick="openQuickCopyMappingModal()">
+              📋 Copy Existing
+            </button>
+            <button type="button" class="btn btn-primary" onclick="openMappingModal()">
+              + Add Routing Mapping
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner explaining routing priority & failover -->
+        <div style="padding:14px 22px;background:var(--blue-bg);border-bottom:1px solid var(--blue-border);display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;color:var(--cyan);">ℹ️</span>
+          <div style="font-size:12px;color:#0369A1;line-height:1.45;">
+            <b>Automated Multi-Priority Failover:</b> Calls attempt the <b>Priority 1</b> active vendor first. If unavailable, busy (SIP 486), or rejected (SIP 503 Channel Limit), Asterisk automatically fails over to <b>Priority 2</b>, then <b>Priority 3</b>. Outbound dialed numbers are dynamically translated while preserving original CDR records.
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="carrier-table">
+            <thead>
+              <tr>
+                <th style="width:14%;">Customer</th>
+                <th style="width:14%;">Assigned Vendor</th>
+                <th style="width:12%;">Cust Prefix</th>
+                <th style="width:12%;">Vend Prefix</th>
+                <th style="width:20%;">Prefix Translation Preview</th>
+                <th style="width:12%;">Priority</th>
+                <th style="width:10%;">Status</th>
+                <th style="width:10%;text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="mappings-tbody">
+              <!-- Rendered via renderMappingsTable() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: CHANNEL CONCURRENCY MANAGEMENT -->
+    <!-- ========================================================================= -->
+    <div id="tab-channels" class="tab-pane">
+      <div class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">📞</div>
+            <div>
+              <h2>Channel Concurrency Management</h2>
+              <div class="card-subtitle">Thread-safe Asterisk GROUP() channel limits, preventing double counting and stale counters</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="loadChannels()">↺ Refresh Channels</button>
+        </div>
+
+        <div style="padding:22px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            
+            <!-- Customer Channel Concurrency Table -->
+            <div style="background:var(--bg-card-subtle);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+              <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:12px;font-weight:750;color:var(--text);display:flex;justify-content:space-between;">
+                <span>Customer Channel Allocation & Utilization</span>
+                <span id="cust-total-chan-badge" style="color:var(--cyan);font-weight:800;">150 CH Total</span>
+              </div>
+              <table class="carrier-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Allocated</th>
+                    <th>Active</th>
+                    <th>Available</th>
+                    <th>Headroom</th>
+                  </tr>
+                </thead>
+                <tbody id="chan-cust-tbody">
+                  <!-- Filled via loadChannels() -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Vendor Channel Concurrency Table -->
+            <div style="background:var(--bg-card-subtle);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+              <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:12px;font-weight:750;color:var(--text);display:flex;justify-content:space-between;">
+                <span>Vendor Channel Capacity & Utilization</span>
+                <span id="vend-total-chan-badge" style="color:var(--emerald-dark);font-weight:800;">450 CH Total</span>
+              </div>
+              <table class="carrier-table">
+                <thead>
+                  <tr>
+                    <th>Vendor</th>
+                    <th>Capacity</th>
+                    <th>Active</th>
+                    <th>Available</th>
+                    <th>Headroom</th>
+                  </tr>
+                </thead>
+                <tbody id="chan-vend-tbody">
+                  <!-- Filled via loadChannels() -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: CDR & CALL TRACKING -->
+    <!-- ========================================================================= -->
+    <div id="tab-cdr" class="tab-pane">
+      <div class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">📜</div>
+            <div>
+              <h2>Call Detail Records (CDR) & SIP Audit Trail</h2>
+              <div class="card-subtitle">Comprehensive call tracking identifying customer, vendor, dialed destination, duration and SIP codes</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline btn-sm" style="color:#DC2626;border-color:#FCA5A5;" onclick="trimCdrs()" title="Keep only last 100 records and free up server disk space">🧹 Keep Last 100 CDRs</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="exportCdrCsv()">📥 Export CSV</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="loadCdr()">↺ Refresh CDR</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <select id="cdr-filter-cust" class="filter-input" onchange="loadCdr()">
+              <option value="">All Customers</option>
+            </select>
+            <select id="cdr-filter-vend" class="filter-input" onchange="loadCdr()">
+              <option value="">All Vendors</option>
+            </select>
+            <select id="cdr-filter-status" class="filter-input" onchange="loadCdr()">
+              <option value="">All Statuses</option>
+              <option value="ANSWERED">ANSWERED</option>
+              <option value="BUSY">BUSY</option>
+              <option value="FAILED">FAILED</option>
+              <option value="NO ANSWER">NO ANSWER</option>
+            </select>
+            <input type="text" id="cdr-search" class="filter-input" placeholder="Search number or Call ID..." oninput="debounceCdrSearch()">
+          </div>
+          <span id="cdr-total-count" style="font-size:12px;color:var(--text-muted);font-weight:700;">Loading CDRs...</span>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="carrier-table">
+            <thead>
+              <tr>
+                <th style="width:16%;">Date & Time</th>
+                <th style="width:14%;">Call ID</th>
+                <th style="width:12%;">Customer</th>
+                <th style="width:12%;">Vendor</th>
+                <th style="width:12%;">Caller ID (CLI)</th>
+                <th style="width:16%;">Destination Number</th>
+                <th style="width:8%;">Duration</th>
+                <th style="width:10%;">SIP Code</th>
+              </tr>
+            </thead>
+            <tbody id="cdr-tbody">
+              <!-- Rendered via renderCdrTable() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: SWITCH & TRUNKS (EXISTING INTACT MODULE) -->
+    <!-- ========================================================================= -->
+    <div id="tab-switch" class="tab-pane">
+      
+      <!-- Destination Traffic Routes Section Card -->
+      <section class="dashboard-card">
+        <div class="card-topbar">
+          <div class="card-title-group">
+            <div class="card-icon-badge">🌐</div>
+            <div>
+              <h2>Destination Traffic Routes</h2>
+              <div class="card-subtitle">
+                Live Asterisk SIP generation channels, quota monitoring & engine control
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="startAll()">▶ Start All</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="stopAll()">⏹ Stop All</button>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="hangupAll()">🛑 Hangup All</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="resetAllQuotas()">↺ Reset All Quotas</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="routes-table">
+            <thead>
+              <tr>
+                <th style="width:13%;min-width:120px;">Destination</th>
+                <th style="width:11%;min-width:100px;">Context</th>
+                <th style="width:16%;min-width:145px;">Live Channels</th>
+                <th style="width:24%;min-width:210px;">Monthly Minutes Quota</th>
+                <th style="width:14%;min-width:145px;">Target IP</th>
+                <th style="width:12%;min-width:120px;">Dialing Prefix</th>
+                <th style="width:10%;min-width:215px;text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="routes-table-tbody">
+              <!-- Populated via buildRouteTableRow() -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Dedicated Inbound Call Gateway & Allowed Source IPs -->
+      <section class="dashboard-card">
+        <div style="padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+            <div class="card-title-group">
+              <div class="card-icon-badge">📥</div>
+              <div>
+                <h2 style="font-size:16px;font-weight:800;color:var(--text);margin:0;">Inbound Call Gateway & Allowed Source IPs</h2>
+                <div class="card-subtitle">
+                  Manage authorized inbound source IPs and allowed breakout prefixes
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="inbound-active-badge" style="background:#F1F5F9;color:var(--text-muted);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">
+                ○ 0 Active Inbound Calls
+              </span>
+            </div>
+          </div>
+
+          <!-- Allowed Source IPs Table -->
+          <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);overflow:hidden;">
+            <div style="padding:12px 16px;background:#F8FAFC;border-bottom:1px solid var(--border);font-size:11.5px;font-weight:750;color:var(--text);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span>Authorized Inbound Source IPs (Remote PBX / Forwarders)</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="source-ips-count" style="font-weight:700;color:var(--cyan);background:#FFFFFF;border:1px solid var(--border);padding:3px 10px;border-radius:12px;font-size:11px;text-transform:none;">
+                  2 IPs authorized
+                </span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAddSourceIpModal()" style="padding:6px 14px;font-size:12px;font-weight:700;">
+                  + Add Allowed Source IP
+                </button>
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
+                    <th style="padding:11px 16px;width:24%;">Source IP Address</th>
+                    <th style="padding:11px 16px;width:20%;">Gateway Label / Note</th>
+                    <th style="padding:11px 16px;width:22%;">Allowed CC & Prefixes</th>
+                    <th style="padding:11px 16px;width:18%;">Assigned Context</th>
+                    <th style="padding:11px 16px;width:16%;text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="source-ips-tbody">
+                  <!-- Populated via renderSourceIpsTable() -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Inbound Breakout Prefix Routing & Context Duration Limits -->
+          <div style="margin-bottom:20px;background:var(--bg-card-subtle);border-radius:10px;border:1px solid var(--border);padding:18px;">
+            <div style="margin-bottom:14px;">
+              <span style="font-size:12px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
+                ⏱ Inbound Breakout Prefix Routing & Context Duration Limits
+              </span>
+              <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
+                Configure allowed breakout prefixes and maximum call timeouts in Asterisk dialplan
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:16px;">
+              <!-- [testcall] Breakout Card -->
+              <div class="breakout-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:14px;font-weight:800;color:var(--text);">testcall Breakout</div>
+                  <div style="display:gap;gap:6px;align-items:center;">
+                    <span class="ctx-pill testcall">[testcall]</span>
+                    <span style="background:var(--emerald-bg);color:var(--emerald-dark);border:1px solid var(--emerald-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                    <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                    <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
+                  </label>
+                  <input type="text" id="inbound-testcall-pfx" name="testcall_prefixes" value="444453, 619334221" placeholder="444453, 619334221" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:10px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
+                      MAX CALL DURATION LIMIT
+                    </label>
+                    <span id="testcall-human-dur" style="font-size:11.5px;color:var(--cyan);font-weight:700;">60s (1m)</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="number" id="input-testcall-dur" min="1" max="86400" value="60" oninput="updateDurHuman('testcall')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
+                    <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- [testcall2] Breakout Card -->
+              <div class="breakout-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:14px;font-weight:800;color:var(--text);">testcall2 Breakout</div>
+                  <div style="display:gap;gap:6px;align-items:center;">
+                    <span class="ctx-pill testcall2">[testcall2]</span>
+                    <span style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">Strict Routing</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;display:flex;justify-content:space-between;margin-bottom:5px;">
+                    <span>ALLOWED BREAKOUT PREFIXES / CC</span>
+                    <span style="font-size:10.5px;font-weight:600;color:var(--text-dim);text-transform:none;">Comma separated</span>
+                  </label>
+                  <input type="text" id="inbound-testcall2-pfx" name="testcall2_prefixes" value="2237" placeholder="2237" style="width:100%;padding:9px 12px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;">
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:10px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <label style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">
+                      MAX CALL DURATION LIMIT
+                    </label>
+                    <span id="testcall2-human-dur" style="font-size:11.5px;color:var(--purple);font-weight:700;">50s</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="number" id="input-testcall2-dur" min="1" max="86400" value="50" oninput="updateDurHuman('testcall2')" style="flex:1;padding:7px 12px;font-size:13px;font-weight:700;">
+                    <span style="font-size:11.5px;font-weight:700;color:var(--text-muted);">seconds</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-save-breakout" onclick="saveBreakoutSettings()" style="padding:7px 20px;font-size:12.5px;font-weight:750;">
+                💾 Save Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Monthly Inbound Consumed Minutes Table -->
+          <div style="background:var(--bg-card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);">
+            <div style="padding:12px 16px;background:var(--bg-card-subtle);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div>
+                <span style="font-size:12.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">
+                  📊 Monthly Inbound Consumed Minutes (Cuba, Mali, Senegal)
+                </span>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+                  Accrued CDR minutes from Asterisk SQLite database for the current calendar month
+                </div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:10.5px;font-weight:750;text-transform:uppercase;background:var(--bg-card-subtle);">
+                    <th style="padding:10px 16px;">Destination Route</th>
+                    <th style="padding:10px 16px;">Country Code & Prefix</th>
+                    <th style="padding:10px 16px;">Total Inbound Calls</th>
+                    <th style="padding:10px 16px;">Answered Calls</th>
+                    <th style="padding:10px 16px;">Total Consumed Minutes</th>
+                    <th style="padding:10px 16px;">Active Channels</th>
+                  </tr>
+                </thead>
+                <tbody id="country-records-tbody">
+                  <!-- Populated via renderCountryRecordsTable() -->
+                </tbody>
+                <tfoot id="country-records-tfoot">
+                  <!-- Total Row -->
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
   </main>
 
-  <!-- Change Password Modal Dialog -->
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / EDIT CUSTOMER -->
+  <!-- ========================================================================= -->
+  <div id="customer-modal-overlay" class="modal-overlay hidden" onclick="handleCustomerOverlayClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;color:var(--cyan);">👥</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="customer-modal-title">Add New Customer</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Configure authorized customer SIP PBX, prefixes and capacity</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeCustomerModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="customer-form" onsubmit="saveCustomerForm(event)">
+          <input type="hidden" id="cust-form-id">
+
+          <!-- Quick Setup Copy Selector -->
+          <div id="cust-quick-copy-bar" style="background:#F0FDF4;border:1px solid #BBF7D0;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span style="font-size:12px;color:#166534;font-weight:700;">📋 Quick Setup: Copy from existing customer</span>
+            <select id="cust-copy-source-select" onchange="applyCustomerCopy(this.value)" style="font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid #86EFAC;background:#FFFFFF;max-width:240px;">
+              <option value="">-- Select Customer to Copy --</option>
+            </select>
+          </div>
+          
+          <div class="form-grid-2">
+            <div class="field-group full">
+              <label>Customer Name *</label>
+              <input type="text" id="cust-form-name" required placeholder="e.g. PTCL, Ufone, Carrier Corp">
+            </div>
+
+            <div class="field-group">
+              <label>SIP IP Address *</label>
+              <input type="text" id="cust-form-ip" required placeholder="e.g. 192.168.1.10">
+              <span class="field-hint">Public/Private IP of customer PBX</span>
+            </div>
+
+            <div class="field-group">
+              <label>SIP Port *</label>
+              <input type="number" id="cust-form-port" value="5060" min="1" max="65535" required>
+              <span class="field-hint">Default SIP port is 5060</span>
+            </div>
+
+            <div class="field-group">
+              <label>Allowed Prefix(es) *</label>
+              <input type="text" id="cust-form-prefixes" required placeholder="e.g. 92300, 92301, 92">
+              <span class="field-hint">Comma separated prefixes customer may send</span>
+            </div>
+
+            <div class="field-group">
+              <label>Country Code (CC)</label>
+              <input type="text" id="cust-form-cc" placeholder="e.g. 92">
+            </div>
+
+            <div class="field-group">
+              <label>Allocated Channels *</label>
+              <input type="number" id="cust-form-channels" value="100" min="1" max="5000" required>
+              <span class="field-hint">Simultaneous call limit</span>
+            </div>
+
+            <div class="field-group">
+              <label>Status</label>
+              <select id="cust-form-status">
+                <option value="active">Active (Permit Traffic)</option>
+                <option value="blocked">Blocked (Reject Calls Immediately)</option>
+              </select>
+            </div>
+
+            <div class="field-group full">
+              <label>Description / Carrier Notes</label>
+              <textarea id="cust-form-desc" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeCustomerModal()">Cancel</button>
+            <button type="submit" id="cust-save-btn" class="btn btn-primary">💾 Save Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / EDIT VENDOR -->
+  <!-- ========================================================================= -->
+  <div id="vendor-modal-overlay" class="modal-overlay hidden" onclick="handleVendorOverlayClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;color:var(--emerald);">🏢</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="vendor-modal-title">Add New Vendor</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Configure termination carrier endpoint, prefixes and capacity</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeVendorModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="vendor-form" onsubmit="saveVendorForm(event)">
+          <input type="hidden" id="vend-form-id">
+
+          <!-- Quick Setup Copy Selector -->
+          <div id="vend-quick-copy-bar" style="background:#F0FDF4;border:1px solid #BBF7D0;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span style="font-size:12px;color:#166534;font-weight:700;">📋 Quick Setup: Copy from existing vendor</span>
+            <select id="vend-copy-source-select" onchange="applyVendorCopy(this.value)" style="font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid #86EFAC;background:#FFFFFF;max-width:240px;">
+              <option value="">-- Select Vendor to Copy --</option>
+            </select>
+          </div>
+          
+          <div class="form-grid-2">
+            <div class="field-group full">
+              <label>Vendor Name *</label>
+              <input type="text" id="vend-form-name" required placeholder="e.g. BOC, Vendor 2, Tata, IDT">
+            </div>
+
+            <div class="field-group">
+              <label>Vendor SIP IP Address *</label>
+              <input type="text" id="vend-form-ip" required placeholder="e.g. 10.10.10.10">
+              <span class="field-hint">Outbound SIP trunk target IP</span>
+            </div>
+
+            <div class="field-group">
+              <label>Vendor SIP Port *</label>
+              <input type="number" id="vend-form-port" value="5060" min="1" max="65535" required>
+              <span class="field-hint">Default: 5060</span>
+            </div>
+
+            <div class="field-group">
+              <label>Vendor Outbound Prefix</label>
+              <input type="text" id="vend-form-prefix" placeholder="e.g. 1, 44, 00">
+              <span class="field-hint">Prefix required by this vendor</span>
+            </div>
+
+            <div class="field-group">
+              <label>Country Code (CC)</label>
+              <input type="text" id="vend-form-cc" placeholder="e.g. 1, 44, 92">
+            </div>
+
+            <div class="field-group">
+              <label>Maximum Channels (Capacity) *</label>
+              <input type="number" id="vend-form-channels" value="200" min="1" max="5000" required>
+              <span class="field-hint">Max simultaneous calls sent to this vendor</span>
+            </div>
+
+            <div class="field-group">
+              <label>Caller ID Format (CLI)</label>
+              <input type="text" id="vend-form-cli" placeholder="e.g. +1, +44, original">
+            </div>
+
+            <div class="field-group">
+              <label>Status</label>
+              <select id="vend-form-status">
+                <option value="active">Active (Route Traffic)</option>
+                <option value="blocked">Blocked (Do Not Route)</option>
+              </select>
+            </div>
+
+            <div class="field-group full">
+              <label>Description / Carrier Notes</label>
+              <textarea id="vend-form-desc" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeVendorModal()">Cancel</button>
+            <button type="submit" id="vend-save-btn" class="btn btn-primary">💾 Save Vendor</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / EDIT CUSTOMER-VENDOR ROUTING MAPPING -->
+  <!-- ========================================================================= -->
+  <div id="mapping-modal-overlay" class="modal-overlay hidden" onclick="handleMappingOverlayClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;color:var(--cyan);">🔀</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="mapping-modal-title">Configure Routing Mapping</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">Set customer prefix routing, vendor translation and priority tier</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeMappingModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="mapping-form" onsubmit="saveMappingForm(event)">
+          <input type="hidden" id="map-form-id">
+
+          <!-- Quick Setup Copy Selector -->
+          <div id="map-quick-copy-bar" style="background:#F0FDF4;border:1px solid #BBF7D0;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span style="font-size:12px;color:#166534;font-weight:700;">📋 Quick Setup: Copy from existing mapping</span>
+            <select id="map-copy-source-select" onchange="applyMappingCopy(this.value)" style="font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid #86EFAC;background:#FFFFFF;max-width:280px;">
+              <option value="">-- Select Mapping to Copy --</option>
+            </select>
+          </div>
+          
+          <div class="form-grid-2">
+            <div class="field-group">
+              <label>Source Customer *</label>
+              <select id="map-form-customer" required onchange="handleMappingCustomerChange()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Target Vendor *</label>
+              <select id="map-form-vendor" required onchange="handleMappingVendorChange()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label style="display:flex;align-items:center;justify-content:space-between;">
+                <span>Customer Inbound Prefix *</span>
+                <span style="font-size:10.5px;color:#0284C7;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                  🔒 Defined in Customer
+                </span>
+              </label>
+              <div id="cust-pfx-container">
+                <input type="text" id="map-form-cust-pfx" required readonly style="background:#F1F5F9;cursor:not-allowed;font-weight:700;color:#0F172A;" placeholder="Inherited from Customer" oninput="updateMappingPreview()">
+              </div>
+              <span class="field-hint" style="color:#64748B;">Prefix customer sends to Asterisk. Asterisk matches and strips this prefix. <b>Inherited from Customer profile (Read-only).</b></span>
+            </div>
+
+            <div class="field-group">
+              <label style="display:flex;align-items:center;justify-content:space-between;">
+                <span>Vendor Outbound Prefix</span>
+                <span style="font-size:10.5px;color:#0284C7;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                  🔒 Defined in Vendor
+                </span>
+              </label>
+              <div id="vend-pfx-container">
+                <input type="text" id="map-form-vend-pfx" readonly style="background:#F1F5F9;cursor:not-allowed;font-weight:700;color:#0F172A;" placeholder="Inherited from Vendor" oninput="updateMappingPreview()">
+              </div>
+              <span class="field-hint" style="color:#64748B;">Prefix required by vendor. Asterisk prepends this to destination. <b>Inherited from Vendor profile (Read-only).</b></span>
+            </div>
+
+            <div class="field-group">
+              <label>Country Code (CC)</label>
+              <input type="text" id="map-form-cc" placeholder="e.g. 92" oninput="updateMappingPreview()">
+              <span class="field-hint">e.g. 92 for Pakistan traffic</span>
+            </div>
+
+            <div class="field-group">
+              <label>Routing Priority *</label>
+              <select id="map-form-priority">
+                <option value="1">Priority 1 (Primary Route)</option>
+                <option value="2">Priority 2 (Secondary Failover)</option>
+                <option value="3">Priority 3 (Tertiary Backup)</option>
+                <option value="4">Priority 4</option>
+                <option value="5">Priority 5</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Route Channel Limit</label>
+              <input type="number" id="map-form-channels" value="60" min="1" max="2000">
+            </div>
+
+            <div class="field-group">
+              <label>Status</label>
+              <select id="map-form-status">
+                <option value="active">Active (Route Traffic)</option>
+                <option value="disabled">Disabled (Bypass Route)</option>
+              </select>
+            </div>
+
+            <!-- Dynamic Prefix Translation Preview Tester -->
+            <div class="field-group full" style="background:#F8FAFC;border:1px solid var(--border);padding:14px;border-radius:8px;">
+              <div style="font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">
+                ⚡ Real-Time Prefix Translation Pipeline Preview
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <label style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;">Test Called Number:</label>
+                <input type="text" id="map-preview-input" value="923001234567" placeholder="e.g. 923001234567 or 76666923001234567" oninput="updateMappingPreview()" style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12.5px;max-width:260px;">
+              </div>
+              <div id="map-preview-output">
+                <!-- Populated dynamically via updateMappingPreview() -->
+              </div>
+              <span class="field-hint" style="margin-top:8px;display:block;color:var(--text-muted);">
+                Customer dials matching prefix (7666692xxx) ➔ Asterisk accepts and strips prefix (92xxx) ➔ Asterisk adds vendor prefix and sends to vendor (8855592xxx).
+              </span>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeMappingModal()">Cancel</button>
+            <button type="submit" id="map-save-btn" class="btn btn-primary">💾 Save Mapping</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DETAILS VIEW (CUSTOMER / VENDOR) -->
+  <!-- ========================================================================= -->
+  <div id="details-modal-overlay" class="modal-overlay hidden" onclick="handleDetailsOverlayClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;color:var(--cyan);" id="details-modal-icon">ℹ️</span>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:var(--text);" id="details-modal-title">Entity Details</div>
+            <div style="font-size:11.5px;color:var(--text-muted);" id="details-modal-sub">Comprehensive configuration & routing overview</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="details-modal-body">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- EXISTING MODALS (PASSWORD, SOURCE IP, TRUNK CONFIG) -->
+  <!-- ========================================================================= -->
+
+  <!-- Change Password Modal -->
   <div id="password-modal-overlay" class="modal-overlay hidden" onclick="handlePasswordOverlayClick(event)">
     <div class="modal-dialog" style="max-width:440px;" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -1166,9 +2175,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div style="font-size:11px;color:var(--text-muted);">Update access password for your operator account</div>
           </div>
         </div>
-        <button type="button" class="modal-close" onclick="closePasswordModal()" title="Close">&times;</button>
+        <button type="button" class="modal-close" onclick="closePasswordModal()">&times;</button>
       </div>
-
       <div class="modal-body">
         <form id="password-form" onsubmit="savePasswordItem(event)">
           <div style="display:flex;flex-direction:column;gap:14px;">
@@ -1191,19 +2199,15 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           </div>
 
           <div style="margin-top:22px;display:flex;gap:10px;justify-content:flex-end;">
-            <button type="button" class="btn btn-outline" style="padding:9px 18px;font-size:13px;" onclick="closePasswordModal()">
-              Cancel
-            </button>
-            <button type="submit" id="btn-save-pwd" class="btn btn-primary" style="padding:9px 20px;font-size:13px;font-weight:700;">
-              💾 Update Password
-            </button>
+            <button type="button" class="btn btn-outline" onclick="closePasswordModal()">Cancel</button>
+            <button type="submit" id="btn-save-pwd" class="btn btn-primary">💾 Update Password</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Add / Edit Allowed Inbound Source IP Modal Dialog -->
+  <!-- Allowed Source IP Modal -->
   <div id="source-ip-modal-overlay" class="modal-overlay hidden" onclick="handleSourceIpOverlayClick(event)">
     <div class="modal-dialog" style="max-width:480px;" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -1214,9 +2218,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div style="font-size:11px;color:var(--text-muted);">Configure remote authorized gateway & prefixes</div>
           </div>
         </div>
-        <button type="button" class="modal-close" onclick="closeSourceIpModal()" title="Close">&times;</button>
+        <button type="button" class="modal-close" onclick="closeSourceIpModal()">&times;</button>
       </div>
-
       <div class="modal-body">
         <form id="source-ip-form" onsubmit="saveSourceIpItem(event)">
           <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1224,12 +2227,10 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <div class="field-group">
                 <label>Source IP Address / Host</label>
                 <input type="text" id="sip-input-ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.1.13">
-                <span style="font-size:10px;color:var(--text-dim);">Remote PBX address sending incoming calls</span>
               </div>
               <div class="field-group">
                 <label>SIP Port</label>
-                <input type="number" id="sip-input-port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;text-align:center;">
-                <span style="font-size:10px;color:var(--text-dim);">Default: 5060</span>
+                <input type="number" id="sip-input-port" min="1" max="65535" value="5060" required style="font-weight:700;text-align:center;">
               </div>
             </div>
 
@@ -1239,48 +2240,30 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
 
             <div class="field-group">
-              <label>Allowed CC & Prefixes (Comma Separated)</label>
+              <label>Allowed CC & Prefixes</label>
               <input type="text" id="sip-input-prefix" placeholder="e.g. 444453, 619334221, 2237">
-              <span style="font-size:10px;color:var(--text-dim);">Prefixes/CC associated with this gateway</span>
-              <div style="display:flex;gap:5px;margin-top:6px;align-items:center;flex-wrap:wrap;">
-                <span style="font-size:10.5px;color:var(--text-muted);font-weight:600;">Quick Insert:</span>
-                <button type="button" class="preset-pill" onclick="insertSipPfx('444453, 619334221, 2237')">All Breakouts</button>
-                <button type="button" class="preset-pill" onclick="insertSipPfx('444453')">Cuba (444453)</button>
-                <button type="button" class="preset-pill" onclick="insertSipPfx('619334221')">Senegal (619334221)</button>
-                <button type="button" class="preset-pill" onclick="insertSipPfx('2237')">Mali (2237)</button>
-              </div>
             </div>
 
             <div class="field-group">
-              <label>Country Code (Optional)</label>
-              <input type="text" id="sip-input-cc" placeholder="e.g. 223, 53, 221">
-            </div>
-
-            <div class="field-group">
-              <label>Target Dialplan Context (Where calls route)</label>
-              <select id="sip-input-context" style="width:100%;padding:10px 14px;border-radius:8px;font-weight:600;font-size:13px;">
+              <label>Target Dialplan Context</label>
+              <select id="sip-input-context" style="width:100%;padding:10px 14px;border-radius:8px;font-weight:600;">
                 <option value="auto">⚡ Auto-Route by Prefix (Default)</option>
                 <option value="testcall">[testcall]</option>
                 <option value="testcall2">[testcall2]</option>
               </select>
-              <span style="font-size:10px;color:var(--text-dim);margin-top:2px;">Select which dialplan context handles incoming calls from this gateway</span>
             </div>
           </div>
 
           <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
-            <button type="button" class="btn btn-outline" style="padding:9px 18px;font-size:13px;" onclick="closeSourceIpModal()">
-              Cancel
-            </button>
-            <button type="submit" id="btn-save-sip-item" class="btn btn-primary" style="padding:9px 20px;font-size:13px;font-weight:700;">
-              💾 Save Source IP
-            </button>
+            <button type="button" class="btn btn-outline" onclick="closeSourceIpModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">💾 Save Source IP</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Configuration Modal Dialog -->
+  <!-- Trunk Configuration Modal -->
   <div id="config-modal-overlay" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
     <div class="modal-dialog" role="dialog" aria-modal="true">
       <div class="modal-header">
@@ -1291,40 +2274,36 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             <div style="font-size:11.5px;color:var(--text-muted);" id="modal-script">Trunk parameters & destination routing</div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span id="modal-status" class="status-pill"></span>
-          <button type="button" class="modal-close" onclick="closeConfigModal()" title="Close">&times;</button>
-        </div>
+        <button type="button" class="modal-close" onclick="closeConfigModal()">&times;</button>
       </div>
-
       <div class="modal-body">
         <form id="modal-form" onsubmit="saveTrunkModal(event)">
           <input type="hidden" id="modal-trunk-id" name="trunk">
           
-          <div class="fields-grid">
-            <div class="field-group full">
+          <div class="fields-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="field-group full" style="grid-column:span 2;">
               <label>Route / Destination Name</label>
-              <input type="text" id="modal-name" name="name" placeholder="e.g. Mali, Cuba, Senegal, China" oninput="handleModalNameChange(this.value)" required>
+              <input type="text" id="modal-name" name="name" required>
             </div>
             <div class="field-group">
-              <label>Destination IP (Target Host)</label>
-              <input type="text" id="modal-ip" name="target_ip" required pattern="[A-Za-z0-9.:-]+" placeholder="e.g. 192.168.88.76">
+              <label>Destination IP</label>
+              <input type="text" id="modal-ip" name="target_ip" required>
             </div>
             <div class="field-group">
               <label>SIP Port</label>
-              <input type="number" id="modal-port" name="sip_port" min="1" max="65535" value="5060" placeholder="5060" required style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;">
+              <input type="number" id="modal-port" name="sip_port" value="5060" required>
             </div>
             <div class="field-group">
               <label>Country Code (CC)</label>
-              <input type="text" id="modal-cc" name="country_code" placeholder="e.g. 53, 221, 2237" oninput="handleModalPrefixCCChange()">
+              <input type="text" id="modal-cc" name="country_code">
             </div>
             <div class="field-group">
               <label>Prefix</label>
-              <input type="text" id="modal-prefix" name="prefix" placeholder="e.g. 4444, 619334" oninput="handleModalPrefixCCChange()">
+              <input type="text" id="modal-prefix" name="prefix">
             </div>
-            <div class="field-group">
+            <div class="field-group full" style="grid-column:span 2;">
               <label>Full Dialed Prefix (Prefix + CC)</label>
-              <input type="text" id="modal-prefix-cid" name="prefix_cid" placeholder="e.g. 444453">
+              <input type="text" id="modal-prefix-cid" name="prefix_cid">
             </div>
             <div class="field-group">
               <label>Max Concurrency (Channels)</label>
@@ -1332,294 +2311,31 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
             <div class="field-group">
               <label>Monthly Quota Limit (Minutes)</label>
-              <input type="number" id="modal-limit" name="monthly_limit" min="1" max="10000000" required>
-              <div style="margin-top:6px;display:flex;justify-content:flex-end;">
-                <button type="button" class="btn-reset-quota" onclick="resetQuotaFromModal()" title="Reset current usage to 0">
-                  ↺ Reset Consumed Minutes to 0
-                </button>
-              </div>
+              <input type="number" id="modal-limit" name="monthly_limit" min="1" required>
             </div>
-            <div class="field-group">
+            <div class="field-group full" style="grid-column:span 2;">
               <label>Assigned Dialplan Context</label>
-              <select id="modal-ctx" name="context" style="width:100%;padding:10px 14px;border-radius:8px;font-weight:600;">
+              <select id="modal-ctx" name="context">
                 <option value="testcall">[testcall]</option>
                 <option value="testcall2">[testcall2]</option>
               </select>
             </div>
-            <input type="hidden" id="modal-dur" name="call_duration" value="600">
           </div>
 
           <div style="margin-top:22px;display:flex;gap:12px;justify-content:flex-end;">
-            <button type="button" class="btn btn-outline" style="padding:10px 20px;font-size:13px;" onclick="closeConfigModal()">
-              Cancel
-            </button>
-            <button type="submit" id="modal-save-btn" class="btn btn-primary" style="padding:10px 24px;font-size:13.5px;font-weight:750;">
-              💾 Save Settings
-            </button>
+            <button type="button" class="btn btn-outline" onclick="closeConfigModal()">Cancel</button>
+            <button type="submit" id="modal-save-btn" class="btn btn-primary">💾 Save Settings</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT CONTROLLER CORE -->
+  <!-- ========================================================================= -->
   <script>
-
-
-    let currentModalTrunkId = null;
-
-    // Password Modal Logic
-    function openPasswordModal() {
-      const overlay = document.getElementById('password-modal-overlay');
-      const form = document.getElementById('password-form');
-      const msg = document.getElementById('pwd-msg');
-      if (form) form.reset();
-      if (msg) {
-        msg.style.display = 'none';
-        msg.textContent = '';
-      }
-      if (overlay) overlay.classList.remove('hidden');
-    }
-
-    function closePasswordModal() {
-      const overlay = document.getElementById('password-modal-overlay');
-      if (overlay) overlay.classList.add('hidden');
-    }
-
-    function handlePasswordOverlayClick(e) {
-      if (e.target && e.target.id === 'password-modal-overlay') {
-        closePasswordModal();
-      }
-    }
-
-    async function savePasswordItem(e) {
-      e.preventDefault();
-      const curPass = (document.getElementById('pwd-current')?.value || '').trim();
-      const newPass = (document.getElementById('pwd-new')?.value || '').trim();
-      const confirmPass = (document.getElementById('pwd-confirm')?.value || '').trim();
-      const msg = document.getElementById('pwd-msg');
-      const btn = document.getElementById('btn-save-pwd');
-
-      if (!curPass) {
-        showPwdMsg('Please enter current password', true);
-        return;
-      }
-      if (newPass.length < 4) {
-        showPwdMsg('New password must be at least 4 characters', true);
-        return;
-      }
-      if (newPass !== confirmPass) {
-        showPwdMsg('New passwords do not match', true);
-        return;
-      }
-
-      try {
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = 'Updating...';
-        }
-        const res = await api('change-password', {
-          current_password: curPass,
-          new_password: newPass
-        });
-        showPwdMsg(res.message || 'Password updated successfully!', false);
-        if (btn) btn.textContent = '✓ Updated!';
-        setTimeout(() => {
-          closePasswordModal();
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = '💾 Update Password';
-          }
-        }, 1200);
-      } catch (err) {
-        showPwdMsg(err.message || 'Failed to update password', true);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = '💾 Update Password';
-        }
-      }
-    }
-
-    function showPwdMsg(text, isError) {
-      const msg = document.getElementById('pwd-msg');
-      if (!msg) return;
-      msg.style.display = 'block';
-      msg.textContent = text;
-      if (isError) {
-        msg.style.background = 'var(--red-bg)';
-        msg.style.color = 'var(--red-dark)';
-        msg.style.border = '1px solid var(--red-border)';
-      } else {
-        msg.style.background = 'var(--emerald-bg)';
-        msg.style.color = 'var(--emerald-dark)';
-        msg.style.border = '1px solid var(--emerald-border)';
-      }
-    }
-
-    function openConfigModal(id) {
-      const t = trunksData[id];
-      if (!t) return;
-      currentModalTrunkId = id;
-
-      const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
-
-      const idEl = document.getElementById('modal-trunk-id');
-      if (idEl) idEl.value = id;
-      const titleEl = document.getElementById('modal-title');
-      if (titleEl) titleEl.textContent = `${routeName} Configuration`;
-
-      const modalStatus = document.getElementById('modal-status');
-      if (modalStatus) {
-        if (t.running) {
-          modalStatus.className = 'status-pill active';
-          modalStatus.innerHTML = '<span class="dot"></span><span>Active</span>';
-        } else {
-          modalStatus.className = 'status-pill standby';
-          modalStatus.innerHTML = '<span class="dot"></span><span>Standby</span>';
-        }
-      }
-
-      const nameEl = document.getElementById('modal-name');
-      if (nameEl) nameEl.value = routeName;
-      let host = t.target_ip || '';
-      let port = t.sip_port || 5060;
-      if (host.includes(':')) {
-        const parts = host.split(':');
-        host = parts[0];
-        port = parseInt(parts[1], 10) || port;
-      }
-      const ipEl = document.getElementById('modal-ip');
-      if (ipEl) ipEl.value = host;
-      const portEl = document.getElementById('modal-port');
-      if (portEl) portEl.value = port;
-      const ccEl = document.getElementById('modal-cc');
-      if (ccEl) ccEl.value = t.country_code || '';
-      const pfxEl = document.getElementById('modal-prefix');
-      if (pfxEl) pfxEl.value = t.prefix || '';
-      const cidEl = document.getElementById('modal-prefix-cid');
-      if (cidEl) cidEl.value = t.prefix_cid || '';
-      const limEl = document.getElementById('modal-limit');
-      if (limEl) limEl.value = t.monthly_limit || 100000;
-      const maxEl = document.getElementById('modal-max');
-      if (maxEl) maxEl.value = t.max_channels || '';
-      const durEl = document.getElementById('modal-dur');
-      if (durEl) durEl.value = t.call_duration || 600;
-      const ctxEl = document.getElementById('modal-ctx');
-      if (ctxEl) ctxEl.value = t.context || 'testcall';
-
-      const saveBtn = document.getElementById('modal-save-btn');
-      if (saveBtn) {
-        saveBtn.innerHTML = '💾 Save Settings';
-        saveBtn.style.background = '';
-        saveBtn.style.color = '';
-        saveBtn.disabled = false;
-      }
-
-      const overlay = document.getElementById('config-modal-overlay');
-      if (overlay) overlay.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeConfigModal() {
-      const overlay = document.getElementById('config-modal-overlay');
-      if (overlay) overlay.classList.add('hidden');
-      document.body.style.overflow = '';
-      currentModalTrunkId = null;
-    }
-
-    function handleModalOverlayClick(e) {
-      if (e.target && e.target.id === 'config-modal-overlay') {
-        closeConfigModal();
-      }
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeConfigModal();
-        closeSourceIpModal();
-        closePasswordModal();
-      }
-    });
-
-    function handleModalPrefixCCChange() {
-      const pfx = (document.getElementById('modal-prefix').value || '').trim();
-      const cc = (document.getElementById('modal-cc').value || '').trim();
-      const cid = document.getElementById('modal-prefix-cid');
-      if (cid) cid.value = pfx + cc;
-    }
-
-    function handleModalNameChange(val) {
-      const displayName = val.trim() || 'Trunk';
-      const titleEl = document.getElementById('modal-title');
-      if (titleEl) titleEl.textContent = `${displayName} Configuration`;
-    }
-
-    async function saveTrunkModal(e) {
-      e.preventDefault();
-      const id = currentModalTrunkId;
-      if (!id) return;
-
-      const saveBtn = document.getElementById('modal-save-btn');
-      try {
-        if (saveBtn) {
-          saveBtn.innerHTML = '⏳ Saving...';
-          saveBtn.disabled = true;
-        }
-
-        const form = document.getElementById('modal-form');
-        const d = Object.fromEntries(new FormData(form));
-        d.trunk = id;
-        let host = (d.target_ip || '').trim();
-        let port = parseInt(d.sip_port || '5060', 10);
-        if (host.includes(':')) {
-          const parts = host.split(':');
-          host = parts[0];
-          if (isNaN(port) || port === 5060) port = parseInt(parts[1], 10) || 5060;
-        }
-        if (isNaN(port) || port < 1 || port > 65535) port = 5060;
-        d.target_ip = host ? `${host}:${port}` : '';
-        d.sip_port = port;
-        d.monthly_limit = Number(d.monthly_limit);
-        d.max_channels = Number(d.max_channels);
-        d.call_duration = Number(d.call_duration || (trunksData[id] && trunksData[id].call_duration) || 600);
-
-        const res = await api('save', d);
-
-        if (saveBtn) {
-          saveBtn.innerHTML = '✓ Settings Saved!';
-          saveBtn.style.background = 'var(--emerald)';
-          saveBtn.style.color = '#FFFFFF';
-        }
-
-        // Instant local sync
-        if (trunksData[id]) {
-          trunksData[id] = { ...trunksData[id], ...d };
-        }
-        updateMetricsOnly(trunksData, false);
-
-        setTimeout(() => {
-          closeConfigModal();
-          refreshAll(true);
-        }, 600);
-      } catch (err) {
-        console.error("Save error:", err);
-        if (saveBtn) {
-          saveBtn.innerHTML = "❌ " + (err.message || "Save Failed");
-          saveBtn.style.background = "var(--red)";
-          saveBtn.style.color = "#FFFFFF";
-          setTimeout(() => {
-            saveBtn.innerHTML = "💾 Save Settings";
-            saveBtn.style.background = "";
-            saveBtn.style.color = "";
-            saveBtn.disabled = false;
-          }, 3000);
-        }
-        alert("Save Error: " + err.message);
-      }
-    }
-
-    let trunksData = {};
-    let isInitialized = false;
-
+    // Universal API Caller
     async function api(action, payload = {}) {
       const apiEndpoint = window.location.pathname.includes('/callgen') ? '/callgen/api.php' : 'api.php';
       const res = await fetch(apiEndpoint + '?action=' + action, {
@@ -1631,6 +2347,1350 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       if (!res.ok || !data.ok) throw new Error(data.error || 'API call failed');
       return data;
     }
+
+    // Tab Navigation
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      const targetPane = document.getElementById(tabId);
+      const targetBtn = document.getElementById('btn-' + tabId);
+
+      if (targetPane) targetPane.classList.add('active');
+      if (targetBtn) targetBtn.classList.add('active');
+
+      localStorage.setItem('m5_active_tab', tabId);
+
+      if (tabId === 'tab-customers') loadCustomers();
+      if (tabId === 'tab-vendors') loadVendors();
+      if (tabId === 'tab-mappings') loadMappings();
+      if (tabId === 'tab-channels') loadChannels();
+      if (tabId === 'tab-cdr') loadCdr();
+      if (tabId === 'tab-dashboard') updateDashboardStats();
+    }
+
+    // Restore saved tab or default
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('m5_active_tab') || 'tab-dashboard';
+      showTab(saved);
+    });
+
+    // =========================================================================
+    // 1. CUSTOMERS MANAGEMENT
+    // =========================================================================
+    let allCustomers = [];
+
+    async function loadCustomers() {
+      try {
+        const res = await api('customers');
+        allCustomers = res.customers || [];
+        renderCustomersTable(allCustomers);
+        updateCustomerBadges();
+      } catch (e) {
+        console.error('Error loading customers:', e);
+      }
+    }
+
+    function updateCustomerBadges() {
+      const b = document.getElementById('tab-cust-count');
+      if (b) b.textContent = allCustomers.length;
+      const c = document.getElementById('cust-table-count');
+      if (c) c.textContent = allCustomers.length + ' customer' + (allCustomers.length === 1 ? '' : 's');
+    }
+
+    function renderCustomersTable(list) {
+      const tbody = document.getElementById('customers-tbody');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:22px;text-align:center;color:var(--text-muted);">No customers found. Click <b>+ Add Customer</b> to register one.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(c => {
+        const ips = c.ips || [];
+        const ipStr = ips.length > 0 ? ips.map(i => i.ip + ':' + (i.port || 5060)).join('<br>') : (c.primary_ip || '-');
+        const pfxStr = c.prefix_str || (c.prefixes ? c.prefixes.join(', ') : '-');
+        const isBlocked = c.status === 'blocked';
+        const activeCalls = Number(c.active_calls ?? c.active ?? 0);
+        const maxCh = Number(c.max_channels) || 100;
+        const pct = Math.min(100, Math.round((activeCalls / maxCh) * 100)) || 0;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800;font-size:14px;color:var(--text);">${c.name}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${c.description || 'Customer PBX'}</div>
+            </td>
+            <td>
+              <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12.5px;font-weight:700;color:var(--text);">
+                ${ipStr}
+              </div>
+            </td>
+            <td>
+              <span class="prefix-pill">${pfxStr}</span>
+            </td>
+            <td>
+              <span style="font-weight:700;color:var(--text-muted);">+${c.country_code || '-'}</span>
+            </td>
+            <td>
+              <div style="font-weight:750;font-size:13px;color:${activeCalls > 0 ? 'var(--emerald-dark)' : 'var(--text)'};">
+                ${activeCalls} <span style="font-size:11px;color:var(--text-muted);">/ ${maxCh} ch</span>
+              </div>
+              <div class="meter-track" style="margin-top:4px;">
+                <div class="meter-fill" style="width:${pct}%;"></div>
+              </div>
+            </td>
+            <td>
+              <span class="badge-status ${isBlocked ? 'blocked' : 'active'}">
+                <span class="badge-dot"></span>
+                ${isBlocked ? 'Blocked' : 'Active'}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <div class="btn-action-group">
+                <button type="button" class="btn btn-outline btn-sm" onclick="copyCustomer('${c.id}')" title="Copy configuration to quick setup">📋 Copy</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="editCustomer('${c.id}')">✏ Edit</button>
+                ${isBlocked 
+                  ? `<button type="button" class="btn btn-success-outline btn-sm" onclick="toggleCustomerBlock('${c.id}', false)">✅ Unblock</button>`
+                  : `<button type="button" class="btn btn-danger-outline btn-sm" onclick="toggleCustomerBlock('${c.id}', true)">⛔ Block</button>`
+                }
+                <button type="button" class="btn btn-outline btn-sm" onclick="viewCustomerDetails('${c.id}')">ℹ Details</button>
+                <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteCustomer('${c.id}')">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterCustomersTable() {
+      const q = (document.getElementById('cust-search')?.value || '').toLowerCase().trim();
+      if (!q) return renderCustomersTable(allCustomers);
+      const filtered = allCustomers.filter(c => 
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        (c.primary_ip && c.primary_ip.toLowerCase().includes(q)) ||
+        (c.prefix_str && c.prefix_str.includes(q))
+      );
+      renderCustomersTable(filtered);
+    }
+
+    function populateCustomerCopySelect() {
+      const copySelect = document.getElementById('cust-copy-source-select');
+      if (copySelect) {
+        copySelect.innerHTML = '<option value="">-- Select Customer to Copy --</option>' +
+          allCustomers.map(c => `<option value="${c.id}">${c.name} (${(c.ips && c.ips[0] ? c.ips[0].ip : c.primary_ip) || ''})</option>`).join('');
+      }
+    }
+
+    function openCustomerModal(id = null) {
+      const overlay = document.getElementById('customer-modal-overlay');
+      const form = document.getElementById('customer-form');
+      if (form) form.reset();
+
+      populateCustomerCopySelect();
+
+      const title = document.getElementById('customer-modal-title');
+      const idInput = document.getElementById('cust-form-id');
+
+      if (id && allCustomers.find(c => c.id === id)) {
+        const c = allCustomers.find(c => c.id === id);
+        title.textContent = `Edit Customer: ${c.name}`;
+        idInput.value = c.id;
+        document.getElementById('cust-form-name').value = c.name || '';
+        const ip0 = (c.ips && c.ips[0]) ? c.ips[0] : {};
+        document.getElementById('cust-form-ip').value = ip0.ip || '';
+        document.getElementById('cust-form-port').value = ip0.port || 5060;
+        document.getElementById('cust-form-prefixes').value = c.prefix_str || (c.prefixes ? c.prefixes.join(', ') : '');
+        document.getElementById('cust-form-cc').value = c.country_code || '';
+        document.getElementById('cust-form-channels').value = c.max_channels || 100;
+        document.getElementById('cust-form-status').value = c.status || 'active';
+        document.getElementById('cust-form-desc').value = c.description || '';
+      } else {
+        title.textContent = 'Add New Customer';
+        idInput.value = '';
+        document.getElementById('cust-form-port').value = 5060;
+        document.getElementById('cust-form-channels').value = 100;
+        document.getElementById('cust-form-status').value = 'active';
+      }
+
+      overlay.classList.remove('hidden');
+    }
+
+    function openQuickCopyCustomerModal() {
+      openCustomerModal(null);
+      document.getElementById('customer-modal-title').textContent = 'Quick Setup: Copy Existing Customer';
+      const sel = document.getElementById('cust-copy-source-select');
+      if (sel) sel.focus();
+    }
+
+    function applyCustomerCopy(sourceId) {
+      if (!sourceId) return;
+      const c = allCustomers.find(x => x.id === sourceId);
+      if (!c) return;
+      document.getElementById('cust-form-id').value = '';
+      document.getElementById('cust-form-name').value = `${c.name}-Copy`;
+      const ip0 = (c.ips && c.ips[0]) ? c.ips[0] : {};
+      document.getElementById('cust-form-ip').value = ip0.ip || c.primary_ip || '';
+      document.getElementById('cust-form-port').value = ip0.port || c.sip_port || 5060;
+      document.getElementById('cust-form-prefixes').value = c.prefix_str || (c.prefixes ? c.prefixes.join(', ') : '');
+      document.getElementById('cust-form-cc').value = c.country_code || '';
+      document.getElementById('cust-form-channels').value = c.max_channels || 100;
+      document.getElementById('cust-form-status').value = c.status || 'active';
+      document.getElementById('cust-form-desc').value = c.description ? `Copy of ${c.name}: ${c.description}` : `Copy of ${c.name}`;
+      document.getElementById('customer-modal-title').textContent = `Quick Setup: Clone of ${c.name}`;
+    }
+
+    function copyCustomer(id) {
+      openCustomerModal(null);
+      const sel = document.getElementById('cust-copy-source-select');
+      if (sel) sel.value = id;
+      applyCustomerCopy(id);
+    }
+
+    function closeCustomerModal() {
+      document.getElementById('customer-modal-overlay')?.classList.add('hidden');
+    }
+
+    function handleCustomerOverlayClick(e) {
+      if (e.target.id === 'customer-modal-overlay') closeCustomerModal();
+    }
+
+    function editCustomer(id) {
+      openCustomerModal(id);
+    }
+
+    async function saveCustomerForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('cust-form-id').value;
+      const name = document.getElementById('cust-form-name').value.trim();
+      const ip = document.getElementById('cust-form-ip').value.trim();
+      const port = parseInt(document.getElementById('cust-form-port').value, 10) || 5060;
+      const prefixes = document.getElementById('cust-form-prefixes').value.trim();
+      const cc = document.getElementById('cust-form-cc').value.trim();
+      const channels = parseInt(document.getElementById('cust-form-channels').value, 10) || 100;
+      const status = document.getElementById('cust-form-status').value;
+      const desc = document.getElementById('cust-form-desc').value.trim();
+
+      const btn = document.getElementById('cust-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        await api('customer-save', {
+          id, name, ip, port, prefixes, country_code: cc, max_channels: channels, status, description: desc
+        });
+        closeCustomerModal();
+        await loadCustomers();
+        updateDashboardStats();
+      } catch (err) {
+        alert('Failed to save customer: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Customer';
+      }
+    }
+
+    async function toggleCustomerBlock(id, doBlock) {
+      const c = allCustomers.find(x => x.id === id);
+      const name = c ? c.name : id;
+      const actionName = doBlock ? 'Block' : 'Unblock';
+
+      if (!confirm(`Are you sure you want to ${actionName.toUpperCase()} customer "${name}"?\n${doBlock ? 'New incoming calls will be rejected immediately.' : 'Customer traffic permissions will be restored.'}`)) {
+        return;
+      }
+
+      try {
+        await api(doBlock ? 'customer-block' : 'customer-unblock', { id });
+        await loadCustomers();
+        updateDashboardStats();
+      } catch (err) {
+        alert(`Failed to ${actionName} customer: ` + err.message);
+      }
+    }
+
+    async function deleteCustomer(id) {
+      const c = allCustomers.find(x => x.id === id);
+      const name = c ? c.name : id;
+      if (!confirm(`Permanently delete customer "${name}" and all associated routing mappings?`)) return;
+
+      try {
+        await api('customer-delete', { id });
+        await loadCustomers();
+        updateDashboardStats();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    }
+
+    function viewCustomerDetails(id) {
+      const c = allCustomers.find(x => x.id === id);
+      if (!c) return;
+
+      const title = document.getElementById('details-modal-title');
+      const body = document.getElementById('details-modal-body');
+      title.textContent = `Customer: ${c.name}`;
+
+      const ips = c.ips || [];
+      const ipListHtml = ips.length > 0 
+        ? ips.map(i => `<li><b>${i.ip}:${i.port || 5060}</b></li>`).join('')
+        : `<li>${c.primary_ip || 'None'}</li>`;
+
+      body.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <span style="font-size:16px;font-weight:850;color:var(--text);">${c.name}</span>
+            <span class="badge-status ${c.status === 'blocked' ? 'blocked' : 'active'}">
+              <span class="badge-dot"></span> ${c.status.toUpperCase()}
+            </span>
+          </div>
+
+          <div>
+            <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Authorized Inbound SIP IP(s)</div>
+            <ul style="margin:6px 0 0 18px;font-size:13px;">${ipListHtml}</ul>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Allowed Prefixes</div>
+              <div style="font-weight:700;margin-top:3px;"><span class="prefix-pill">${c.prefix_str || '-'}</span></div>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Country Code</div>
+              <div style="font-weight:700;margin-top:3px;">+${c.country_code || '-'}</div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Allocated Channels</div>
+              <div style="font-size:14px;font-weight:800;color:var(--cyan);margin-top:3px;">${c.max_channels} Simultaneous CH</div>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">AstDB Status Key</div>
+              <div style="font-family:ui-monospace, monospace;font-size:12px;margin-top:3px;">customer/cust_${c.id}/status</div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Notes</div>
+            <div style="font-size:12.5px;color:var(--text);margin-top:3px;">${c.description || 'No notes entered.'}</div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('details-modal-overlay')?.classList.remove('hidden');
+    }
+
+    // =========================================================================
+    // 2. VENDORS MANAGEMENT
+    // =========================================================================
+    let allVendors = [];
+
+    async function loadVendors() {
+      try {
+        const res = await api('vendors');
+        allVendors = res.vendors || [];
+        renderVendorsTable(allVendors);
+        updateVendorBadges();
+      } catch (e) {
+        console.error('Error loading vendors:', e);
+      }
+    }
+
+    function updateVendorBadges() {
+      const b = document.getElementById('tab-vend-count');
+      if (b) b.textContent = allVendors.length;
+      const c = document.getElementById('vend-table-count');
+      if (c) c.textContent = allVendors.length + ' vendor' + (allVendors.length === 1 ? '' : 's');
+    }
+
+    function renderVendorsTable(list) {
+      const tbody = document.getElementById('vendors-tbody');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:22px;text-align:center;color:var(--text-muted);">No vendors configured. Click <b>+ Add Vendor</b> to configure one.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(v => {
+        const ips = v.ips || [];
+        const ipStr = ips.length > 0 ? ips.map(i => i.ip + ':' + (i.port || 5060)).join('<br>') : (v.primary_ip || '-');
+        const pfxStr = v.prefix_str || (v.prefixes ? v.prefixes.join(', ') : '-');
+        const isBlocked = v.status === 'blocked';
+        const activeCalls = Number(v.active_calls ?? v.active ?? 0);
+        const maxCh = Number(v.max_channels) || 200;
+        const pct = Math.min(100, Math.round((activeCalls / maxCh) * 100)) || 0;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800;font-size:14px;color:var(--text);">${v.name}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${v.description || 'Termination Carrier'}</div>
+            </td>
+            <td>
+              <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12.5px;font-weight:700;color:var(--text);">
+                ${ipStr}
+              </div>
+            </td>
+            <td>
+              <span class="prefix-pill">${pfxStr}</span>
+            </td>
+            <td>
+              <span style="font-weight:700;color:var(--text-muted);">+${v.country_code || '-'}</span>
+            </td>
+            <td>
+              <div style="font-weight:750;font-size:13px;color:${activeCalls > 0 ? 'var(--emerald-dark)' : 'var(--text)'};">
+                ${activeCalls} <span style="font-size:11px;color:var(--text-muted);">/ ${maxCh} ch</span>
+              </div>
+              <div class="meter-track" style="margin-top:4px;">
+                <div class="meter-fill" style="width:${pct}%;"></div>
+              </div>
+            </td>
+            <td>
+              <span style="font-family:ui-monospace, monospace;font-size:12px;color:var(--text-muted);">${v.caller_id || 'Original CLI'}</span>
+            </td>
+            <td>
+              <span class="badge-status ${isBlocked ? 'blocked' : 'active'}">
+                <span class="badge-dot"></span>
+                ${isBlocked ? 'Blocked' : 'Active'}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <div class="btn-action-group">
+                <button type="button" class="btn btn-outline btn-sm" onclick="copyVendor('${v.id}')" title="Copy configuration to quick setup">📋 Copy</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="editVendor('${v.id}')">✏ Edit</button>
+                ${isBlocked 
+                  ? `<button type="button" class="btn btn-success-outline btn-sm" onclick="toggleVendorBlock('${v.id}', false)">✅ Unblock</button>`
+                  : `<button type="button" class="btn btn-danger-outline btn-sm" onclick="toggleVendorBlock('${v.id}', true)">⛔ Block</button>`
+                }
+                <button type="button" class="btn btn-outline btn-sm" onclick="viewVendorDetails('${v.id}')">ℹ Details</button>
+                <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteVendor('${v.id}')">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterVendorsTable() {
+      const q = (document.getElementById('vend-search')?.value || '').toLowerCase().trim();
+      if (!q) return renderVendorsTable(allVendors);
+      const filtered = allVendors.filter(v => 
+        (v.name && v.name.toLowerCase().includes(q)) ||
+        (v.primary_ip && v.primary_ip.toLowerCase().includes(q)) ||
+        (v.prefix_str && v.prefix_str.includes(q))
+      );
+      renderVendorsTable(filtered);
+    }
+
+    function populateVendorCopySelect() {
+      const copySelect = document.getElementById('vend-copy-source-select');
+      if (copySelect) {
+        copySelect.innerHTML = '<option value="">-- Select Vendor to Copy --</option>' +
+          allVendors.map(v => `<option value="${v.id}">${v.name} (${(v.ips && v.ips[0] ? v.ips[0].ip : v.primary_ip) || ''})</option>`).join('');
+      }
+    }
+
+    function openVendorModal(id = null) {
+      const overlay = document.getElementById('vendor-modal-overlay');
+      const form = document.getElementById('vendor-form');
+      if (form) form.reset();
+
+      populateVendorCopySelect();
+
+      const title = document.getElementById('vendor-modal-title');
+      const idInput = document.getElementById('vend-form-id');
+
+      if (id && allVendors.find(v => v.id === id)) {
+        const v = allVendors.find(v => v.id === id);
+        title.textContent = `Edit Vendor: ${v.name}`;
+        idInput.value = v.id;
+        document.getElementById('vend-form-name').value = v.name || '';
+        const ip0 = (v.ips && v.ips[0]) ? v.ips[0] : {};
+        document.getElementById('vend-form-ip').value = ip0.ip || '';
+        document.getElementById('vend-form-port').value = ip0.port || 5060;
+        document.getElementById('vend-form-prefix').value = v.prefix_str || (v.prefixes ? v.prefixes.join(', ') : '');
+        document.getElementById('vend-form-cc').value = v.country_code || '';
+        document.getElementById('vend-form-channels').value = v.max_channels || 200;
+        document.getElementById('vend-form-cli').value = v.caller_id || '';
+        document.getElementById('vend-form-status').value = v.status || 'active';
+        document.getElementById('vend-form-desc').value = v.description || '';
+      } else {
+        title.textContent = 'Add New Vendor';
+        idInput.value = '';
+        document.getElementById('vend-form-port').value = 5060;
+        document.getElementById('vend-form-channels').value = 200;
+        document.getElementById('vend-form-status').value = 'active';
+      }
+
+      overlay.classList.remove('hidden');
+    }
+
+    function openQuickCopyVendorModal() {
+      openVendorModal(null);
+      document.getElementById('vendor-modal-title').textContent = 'Quick Setup: Copy Existing Vendor';
+      const sel = document.getElementById('vend-copy-source-select');
+      if (sel) sel.focus();
+    }
+
+    function applyVendorCopy(sourceId) {
+      if (!sourceId) return;
+      const v = allVendors.find(x => x.id === sourceId);
+      if (!v) return;
+      document.getElementById('vend-form-id').value = '';
+      document.getElementById('vend-form-name').value = `${v.name}-Copy`;
+      const ip0 = (v.ips && v.ips[0]) ? v.ips[0] : {};
+      document.getElementById('vend-form-ip').value = ip0.ip || v.primary_ip || '';
+      document.getElementById('vend-form-port').value = ip0.port || v.sip_port || 5060;
+      document.getElementById('vend-form-prefix').value = v.prefix_str || (v.prefixes ? v.prefixes.join(', ') : '');
+      document.getElementById('vend-form-cc').value = v.country_code || '';
+      document.getElementById('vend-form-channels').value = v.max_channels || 200;
+      document.getElementById('vend-form-cli').value = v.caller_id || '';
+      document.getElementById('vend-form-status').value = v.status || 'active';
+      document.getElementById('vend-form-desc').value = v.description ? `Copy of ${v.name}: ${v.description}` : `Copy of ${v.name}`;
+      document.getElementById('vendor-modal-title').textContent = `Quick Setup: Clone of ${v.name}`;
+    }
+
+    function copyVendor(id) {
+      openVendorModal(null);
+      const sel = document.getElementById('vend-copy-source-select');
+      if (sel) sel.value = id;
+      applyVendorCopy(id);
+    }
+
+    function closeVendorModal() {
+      document.getElementById('vendor-modal-overlay')?.classList.add('hidden');
+    }
+
+    function handleVendorOverlayClick(e) {
+      if (e.target.id === 'vendor-modal-overlay') closeVendorModal();
+    }
+
+    function editVendor(id) {
+      openVendorModal(id);
+    }
+
+    async function saveVendorForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('vend-form-id').value;
+      const name = document.getElementById('vend-form-name').value.trim();
+      const ip = document.getElementById('vend-form-ip').value.trim();
+      const port = parseInt(document.getElementById('vend-form-port').value, 10) || 5060;
+      const prefix = document.getElementById('vend-form-prefix').value.trim();
+      const cc = document.getElementById('vend-form-cc').value.trim();
+      const channels = parseInt(document.getElementById('vend-form-channels').value, 10) || 200;
+      const cli = document.getElementById('vend-form-cli').value.trim();
+      const status = document.getElementById('vend-form-status').value;
+      const desc = document.getElementById('vend-form-desc').value.trim();
+
+      const btn = document.getElementById('vend-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        await api('vendor-save', {
+          id, name, ip, port, prefix, country_code: cc, max_channels: channels, caller_id: cli, status, description: desc
+        });
+        closeVendorModal();
+        await loadVendors();
+        updateDashboardStats();
+      } catch (err) {
+        alert('Failed to save vendor: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Vendor';
+      }
+    }
+
+    async function toggleVendorBlock(id, doBlock) {
+      const v = allVendors.find(x => x.id === id);
+      const name = v ? v.name : id;
+      const actionName = doBlock ? 'Block' : 'Unblock';
+
+      if (!confirm(`Are you sure you want to ${actionName.toUpperCase()} vendor "${name}"?\n${doBlock ? 'Asterisk will immediately stop sending traffic to this vendor and failover to next eligible vendor.' : 'Vendor traffic routing will be restored.'}`)) {
+        return;
+      }
+
+      try {
+        await api(doBlock ? 'vendor-block' : 'vendor-unblock', { id });
+        await loadVendors();
+        updateDashboardStats();
+      } catch (err) {
+        alert(`Failed to ${actionName} vendor: ` + err.message);
+      }
+    }
+
+    async function deleteVendor(id) {
+      const v = allVendors.find(x => x.id === id);
+      const name = v ? v.name : id;
+      if (!confirm(`Permanently delete vendor "${name}" and all associated routing mappings?`)) return;
+
+      try {
+        await api('vendor-delete', { id });
+        await loadVendors();
+        updateDashboardStats();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    }
+
+    function viewVendorDetails(id) {
+      const v = allVendors.find(x => x.id === id);
+      if (!v) return;
+
+      const title = document.getElementById('details-modal-title');
+      const body = document.getElementById('details-modal-body');
+      title.textContent = `Vendor: ${v.name}`;
+
+      const ips = v.ips || [];
+      const ipListHtml = ips.length > 0 
+        ? ips.map(i => `<li><b>${i.ip}:${i.port || 5060}</b></li>`).join('')
+        : `<li>${v.primary_ip || 'None'}</li>`;
+
+      body.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <span style="font-size:16px;font-weight:850;color:var(--text);">${v.name}</span>
+            <span class="badge-status ${v.status === 'blocked' ? 'blocked' : 'active'}">
+              <span class="badge-dot"></span> ${v.status.toUpperCase()}
+            </span>
+          </div>
+
+          <div>
+            <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Outbound SIP Endpoints</div>
+            <ul style="margin:6px 0 0 18px;font-size:13px;">${ipListHtml}</ul>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Vendor Prefix</div>
+              <div style="font-weight:700;margin-top:3px;"><span class="prefix-pill">${v.prefix_str || '-'}</span></div>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Country Code</div>
+              <div style="font-weight:700;margin-top:3px;">+${v.country_code || '-'}</div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Max Concurrency</div>
+              <div style="font-size:14px;font-weight:800;color:var(--emerald);margin-top:3px;">${v.max_channels} Simultaneous CH</div>
+            </div>
+            <div>
+              <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">AstDB Status Key</div>
+              <div style="font-family:ui-monospace, monospace;font-size:12px;margin-top:3px;">vendor/vend_${v.id}/status</div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:11.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;">Notes</div>
+            <div style="font-size:12.5px;color:var(--text);margin-top:3px;">${v.description || 'No notes entered.'}</div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('details-modal-overlay')?.classList.remove('hidden');
+    }
+
+    function closeDetailsModal() {
+      document.getElementById('details-modal-overlay')?.classList.add('hidden');
+    }
+    function handleDetailsOverlayClick(e) {
+      if (e.target.id === 'details-modal-overlay') closeDetailsModal();
+    }
+
+    // =========================================================================
+    // 3. CUSTOMER-VENDOR ROUTING MAPPINGS
+    // =========================================================================
+    let allMappings = [];
+
+    async function loadMappings() {
+      try {
+        const res = await api('mappings');
+        allMappings = res.mappings || [];
+        renderMappingsTable(allMappings);
+        const b = document.getElementById('tab-map-count');
+        if (b) b.textContent = allMappings.length;
+      } catch (e) {
+        console.error('Error loading mappings:', e);
+      }
+    }
+
+    function renderMappingsTable(list) {
+      const tbody = document.getElementById('mappings-tbody');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:22px;text-align:center;color:var(--text-muted);">No customer-to-vendor mappings configured. Click <b>+ Add Routing Mapping</b> to create one.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(m => {
+        const cp = (m.customer_prefix || '').trim();
+        const vp = (m.vendor_prefix || '').trim();
+        const cc = (m.country_code || '92').trim();
+        const cleanDest = cc + '3001234567';
+        const prioClass = m.priority === 1 ? 'prio-1' : (m.priority === 2 ? 'prio-2' : 'prio-3');
+        const prioLabel = m.priority === 1 ? 'Priority 1 (Primary)' : (m.priority === 2 ? 'Priority 2 (Failover)' : `Priority ${m.priority} (Backup)`);
+        const isActive = m.status === 'active';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800;color:var(--text);">${m.customer_name || m.customer_id}</div>
+              <span class="badge-status ${m.customer_status === 'blocked' ? 'blocked' : 'active'}" style="font-size:10px;padding:1px 6px;">
+                ${m.customer_status === 'blocked' ? 'Customer Blocked' : 'Customer Active'}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight:800;color:var(--text);">${m.vendor_name || m.vendor_id}</div>
+              <span class="badge-status ${m.vendor_status === 'blocked' ? 'blocked' : 'active'}" style="font-size:10px;padding:1px 6px;">
+                ${m.vendor_status === 'blocked' ? 'Vendor Blocked' : 'Vendor Active'}
+              </span>
+            </td>
+            <td>
+              <span class="prefix-pill" style="background:#E0F2FE;color:var(--cyan);font-weight:750;">${cp || 'None'}</span>
+            </td>
+            <td>
+              <span class="prefix-pill" style="background:#D1FAE5;color:var(--emerald-dark);font-weight:750;">${vp || 'None'}</span>
+            </td>
+            <td>
+              <div class="trans-flow" style="display:flex;flex-direction:column;gap:3px;">
+                <div style="display:flex;align-items:center;gap:6px;font-family:ui-monospace, monospace;font-size:12.5px;">
+                  <span title="Inbound Customer Call">
+                    ${cp ? `<span style="color:var(--cyan);font-weight:800;">${cp}</span>` : ''}<span style="color:var(--text);font-weight:700;">${cleanDest}</span>
+                  </span>
+                  <span class="trans-arrow" style="color:var(--text-muted);font-weight:700;">➔</span>
+                  <span title="Outbound to Vendor">
+                    ${vp ? `<span style="color:var(--emerald-dark);font-weight:800;">${vp}</span>` : ''}<span style="color:var(--text);font-weight:700;">${cleanDest}</span>
+                  </span>
+                </div>
+                <div style="font-size:10.5px;color:var(--text-muted);">
+                  ${cp ? `<span style="color:var(--red-dark);font-weight:600;">-${cp} (Strip)</span>` : 'Direct'}&nbsp;|&nbsp;${vp ? `<span style="color:var(--emerald-dark);font-weight:600;">+${vp} (Prepend)</span>` : 'No Prefix'}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="prio-badge ${prioClass}">${prioLabel}</span>
+            </td>
+            <td>
+              <span class="badge-status ${isActive ? 'active' : 'disabled'}">
+                <span class="badge-dot"></span>
+                ${isActive ? 'Active' : 'Disabled'}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <div class="btn-action-group">
+                <button type="button" class="btn btn-outline btn-sm" onclick="copyMapping(${m.id})" title="Copy mapping to quick setup">📋 Copy</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="editMapping(${m.id})">✏ Edit</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="toggleMapping(${m.id})">
+                  ${isActive ? '⏸ Disable' : '▶ Enable'}
+                </button>
+                <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteMapping(${m.id})">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleMapping(id) {
+      try {
+        await api('mapping-toggle', { id });
+        await loadMappings();
+      } catch (err) {
+        alert('Failed to toggle mapping: ' + err.message);
+      }
+    }
+
+    async function deleteMapping(id) {
+      if (!confirm('Are you sure you want to delete this routing mapping?')) return;
+      try {
+        await api('mapping-delete', { id });
+        await loadMappings();
+      } catch (err) {
+        alert('Failed to delete mapping: ' + err.message);
+      }
+    }
+
+    function populateMappingCopySelect() {
+      const copySelect = document.getElementById('map-copy-source-select');
+      if (copySelect) {
+        copySelect.innerHTML = '<option value="">-- Select Mapping to Copy --</option>' +
+          allMappings.map(m => `<option value="${m.id}">${m.customer_name || m.customer_id} ➔ ${m.vendor_name || m.vendor_id} (Prio ${m.priority})</option>`).join('');
+      }
+    }
+
+    function openMappingModal(id = null) {
+      const overlay = document.getElementById('mapping-modal-overlay');
+      const form = document.getElementById('mapping-form');
+      if (form) form.reset();
+
+      populateMappingCopySelect();
+
+      const custSelect = document.getElementById('map-form-customer');
+      const vendSelect = document.getElementById('map-form-vendor');
+
+      // Populate options
+      custSelect.innerHTML = allCustomers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      vendSelect.innerHTML = allVendors.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+
+      const title = document.getElementById('mapping-modal-title');
+      const idInput = document.getElementById('map-form-id');
+
+      if (id && allMappings.find(m => m.id === id)) {
+        const m = allMappings.find(m => m.id === id);
+        title.textContent = `Edit Routing Mapping #${m.id}`;
+        idInput.value = m.id;
+        custSelect.value = m.customer_id;
+        vendSelect.value = m.vendor_id;
+        handleMappingCustomerChange(m.customer_prefix);
+        handleMappingVendorChange(m.vendor_prefix);
+        document.getElementById('map-form-cc').value = m.country_code || '';
+        document.getElementById('map-form-priority').value = m.priority || 1;
+        document.getElementById('map-form-channels').value = m.max_channels || 60;
+        document.getElementById('map-form-status').value = m.status || 'active';
+      } else {
+        title.textContent = 'Configure New Routing Mapping';
+        idInput.value = '';
+        document.getElementById('map-form-priority').value = 1;
+        document.getElementById('map-form-channels').value = 60;
+        document.getElementById('map-form-status').value = 'active';
+        handleMappingCustomerChange();
+        handleMappingVendorChange();
+      }
+
+      updateMappingPreview();
+      overlay.classList.remove('hidden');
+    }
+
+    function openQuickCopyMappingModal() {
+      openMappingModal(null);
+      document.getElementById('mapping-modal-title').textContent = 'Quick Setup: Copy Existing Mapping';
+      const sel = document.getElementById('map-copy-source-select');
+      if (sel) sel.focus();
+    }
+
+    function applyMappingCopy(sourceId) {
+      if (!sourceId) return;
+      const m = allMappings.find(x => String(x.id) === String(sourceId));
+      if (!m) return;
+      document.getElementById('map-form-id').value = '';
+      document.getElementById('map-form-customer').value = m.customer_id;
+      document.getElementById('map-form-vendor').value = m.vendor_id;
+      handleMappingCustomerChange(m.customer_prefix);
+      handleMappingVendorChange(m.vendor_prefix);
+      document.getElementById('map-form-cc').value = m.country_code || '';
+      document.getElementById('map-form-priority').value = (m.priority || 1) + 1;
+      document.getElementById('map-form-channels').value = m.max_channels || 60;
+      document.getElementById('map-form-status').value = m.status || 'active';
+      document.getElementById('mapping-modal-title').textContent = `Quick Setup: Clone Mapping (${m.customer_name || m.customer_id} ➔ ${m.vendor_name || m.vendor_id})`;
+      updateMappingPreview();
+    }
+
+    function copyMapping(id) {
+      openMappingModal(null);
+      const sel = document.getElementById('map-copy-source-select');
+      if (sel) sel.value = id;
+      applyMappingCopy(id);
+    }
+
+    function closeMappingModal() {
+      document.getElementById('mapping-modal-overlay')?.classList.add('hidden');
+    }
+    function handleMappingOverlayClick(e) {
+      if (e.target.id === 'mapping-modal-overlay') closeMappingModal();
+    }
+    function editMapping(id) {
+      openMappingModal(id);
+    }
+
+    function handleMappingCustomerChange(preferredPfx = null) {
+      const cid = document.getElementById('map-form-customer')?.value;
+      const c = allCustomers.find(x => x.id === cid);
+      const container = document.getElementById('cust-pfx-container');
+      if (!c) return;
+
+      const prefixes = (c.prefixes && c.prefixes.length > 0) ? c.prefixes : (c.prefix_str ? c.prefix_str.split(',').map(s=>s.trim()).filter(Boolean) : []);
+
+      if (container) {
+        if (prefixes.length > 1) {
+          container.innerHTML = `
+            <select id="map-form-cust-pfx" class="form-control" style="background:#F8FAFC;font-weight:700;color:#0F172A;" onchange="updateMappingPreview()">
+              ${prefixes.map(p => `<option value="${p}" ${preferredPfx === p ? 'selected' : ''}>${p}</option>`).join('')}
+            </select>
+          `;
+        } else {
+          const val = prefixes[0] || c.prefix_str || '';
+          container.innerHTML = `
+            <input type="text" id="map-form-cust-pfx" readonly required style="background:#F1F5F9;cursor:not-allowed;font-weight:700;color:#0F172A;" value="${val}" oninput="updateMappingPreview()">
+          `;
+        }
+      } else {
+        const input = document.getElementById('map-form-cust-pfx');
+        if (input) input.value = (prefixes[0] || c.prefix_str || '');
+      }
+
+      document.getElementById('map-form-cc').value = c.country_code || '';
+      updateMappingPreview();
+    }
+
+    function handleMappingVendorChange(preferredPfx = null) {
+      const vid = document.getElementById('map-form-vendor')?.value;
+      const v = allVendors.find(x => x.id === vid);
+      const container = document.getElementById('vend-pfx-container');
+      if (!v) return;
+
+      const prefixes = (v.prefixes && v.prefixes.length > 0) ? v.prefixes : (v.prefix_str ? v.prefix_str.split(',').map(s=>s.trim()).filter(Boolean) : []);
+
+      if (container) {
+        if (prefixes.length > 1) {
+          container.innerHTML = `
+            <select id="map-form-vend-pfx" class="form-control" style="background:#F8FAFC;font-weight:700;color:#0F172A;" onchange="updateMappingPreview()">
+              ${prefixes.map(p => `<option value="${p}" ${preferredPfx === p ? 'selected' : ''}>${p}</option>`).join('')}
+            </select>
+          `;
+        } else {
+          const val = prefixes[0] || v.prefix_str || '';
+          container.innerHTML = `
+            <input type="text" id="map-form-vend-pfx" readonly style="background:#F1F5F9;cursor:not-allowed;font-weight:700;color:#0F172A;" value="${val}" oninput="updateMappingPreview()">
+          `;
+        }
+      } else {
+        const input = document.getElementById('map-form-vend-pfx');
+        if (input) input.value = (prefixes[0] || v.prefix_str || '');
+      }
+
+      updateMappingPreview();
+    }
+
+    function updateMappingPreview() {
+      const custPfx = (document.getElementById('map-form-cust-pfx')?.value || '').trim();
+      const vendPfx = (document.getElementById('map-form-vend-pfx')?.value || '').trim();
+      const cc = (document.getElementById('map-form-cc')?.value || '92').trim();
+      const input = document.getElementById('map-preview-input');
+      const output = document.getElementById('map-preview-output');
+
+      if (!output) return;
+
+      let rawInput = (input?.value || '').trim();
+      if (!rawInput) {
+        rawInput = cc ? (cc + '3001234567') : '923001234567';
+      }
+
+      // Determine clean destination (destination without customer prefix)
+      let cleanDest = rawInput;
+      let inboundDnis = rawInput;
+      if (custPfx && rawInput.startsWith(custPfx)) {
+        cleanDest = rawInput.slice(custPfx.length);
+        inboundDnis = rawInput;
+      } else if (custPfx) {
+        inboundDnis = custPfx + rawInput;
+        cleanDest = rawInput;
+      }
+
+      // Outbound to vendor: prepend vendor prefix to clean destination
+      const outboundDnis = vendPfx ? (vendPfx + cleanDest) : cleanDest;
+
+      output.innerHTML = `
+        <div style="display:flex;align-items:stretch;gap:8px;font-family:ui-monospace, monospace;font-size:12px;flex-wrap:wrap;">
+          <div style="background:#FFFFFF;border:1px solid #CBD5E1;padding:6px 10px;border-radius:6px;flex:1;min-width:160px;">
+            <div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">1. Inbound Customer Call</div>
+            <div style="font-size:13px;font-weight:750;color:var(--text);">
+              ${custPfx ? `<span style="color:var(--cyan);background:#E0F2FE;padding:1px 4px;border-radius:3px;">${custPfx}</span>` : ''}<span>${cleanDest}</span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;color:var(--text-muted);font-weight:750;font-size:16px;">➔</div>
+
+          <div style="background:#FFFFFF;border:1px solid #CBD5E1;padding:6px 10px;border-radius:6px;flex:1;min-width:160px;">
+            <div style="font-size:10px;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:2px;">2. Asterisk Strips Prefix</div>
+            <div style="font-size:13px;font-weight:750;color:var(--text);">
+              <span>${cleanDest}</span>
+              ${custPfx ? `<span style="font-size:10.5px;color:var(--red-dark);font-weight:700;margin-left:4px;">(-${custPfx})</span>` : '<span style="font-size:10.5px;color:var(--text-muted);margin-left:4px;">(Direct)</span>'}
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;color:var(--text-muted);font-weight:750;font-size:16px;">➔</div>
+
+          <div style="background:#E0F2FE;border:1px solid #BAE6FD;padding:6px 10px;border-radius:6px;flex:1;min-width:160px;">
+            <div style="font-size:10px;color:var(--cyan);font-weight:750;text-transform:uppercase;margin-bottom:2px;">3. Vendor Receives Call</div>
+            <div style="font-size:13px;font-weight:800;color:var(--cyan);">
+              ${vendPfx ? `<span style="color:var(--emerald-dark);background:#D1FAE5;padding:1px 4px;border-radius:3px;">${vendPfx}</span>` : ''}<span>${cleanDest}</span>
+              ${vendPfx ? `<span style="font-size:10.5px;color:var(--emerald-dark);font-weight:700;margin-left:4px;">(+${vendPfx})</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveMappingForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('map-form-id').value;
+      const cid = document.getElementById('map-form-customer').value;
+      const vid = document.getElementById('map-form-vendor').value;
+      const cp = document.getElementById('map-form-cust-pfx').value.trim();
+      const vp = document.getElementById('map-form-vend-pfx').value.trim();
+      const cc = document.getElementById('map-form-cc').value.trim();
+      const prio = parseInt(document.getElementById('map-form-priority').value, 10) || 1;
+      const ch = parseInt(document.getElementById('map-form-channels').value, 10) || 60;
+      const status = document.getElementById('map-form-status').value;
+
+      const btn = document.getElementById('map-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        await api('mapping-save', {
+          id: id ? parseInt(id, 10) : 0,
+          customer_id: cid,
+          vendor_id: vid,
+          customer_prefix: cp,
+          vendor_prefix: vp,
+          country_code: cc,
+          priority: prio,
+          max_channels: ch,
+          status
+        });
+        closeMappingModal();
+        await loadMappings();
+      } catch (err) {
+        alert('Failed to save mapping: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Mapping';
+      }
+    }
+
+    // =========================================================================
+    // 4. CHANNEL CONCURRENCY DASHBOARD
+    // =========================================================================
+    async function loadChannels() {
+      try {
+        const res = await api('live-channels');
+        renderChannelsDashboard(res);
+      } catch (e) {
+        console.error('Error loading channels:', e);
+      }
+    }
+
+    function renderChannelsDashboard(data) {
+      if (!data) return;
+
+      // Customers Channel Table
+      const custTbody = document.getElementById('chan-cust-tbody');
+      if (custTbody && data.customers) {
+        let totalAlloc = 0;
+        let totalActive = 0;
+        custTbody.innerHTML = data.customers.map(c => {
+          totalAlloc += c.allocated;
+          totalActive += c.active;
+          const pct = Math.round((c.active / c.allocated) * 100) || 0;
+          return `
+            <tr>
+              <td>
+                <span style="font-weight:750;color:var(--text);">${c.name}</span>
+              </td>
+              <td><b>${c.allocated}</b> ch</td>
+              <td style="color:${c.active > 0 ? 'var(--emerald-dark)' : 'var(--text-muted)'};font-weight:750;">
+                ${c.active} ch
+              </td>
+              <td><span style="color:var(--cyan);font-weight:700;">${c.available} ch</span></td>
+              <td style="min-width:110px;">
+                <div class="chan-meter-wrap">
+                  <div class="chan-meter-header">
+                    <span>${pct}%</span>
+                  </div>
+                  <div class="meter-track">
+                    <div class="meter-fill ${pct > 80 ? 'danger' : ''}" style="width:${pct}%;"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        const b = document.getElementById('cust-total-chan-badge');
+        if (b) b.textContent = `${totalActive} / ${totalAlloc} CH Active`;
+      }
+
+      // Vendors Channel Table
+      const vendTbody = document.getElementById('chan-vend-tbody');
+      if (vendTbody && data.vendors) {
+        let totalAlloc = 0;
+        let totalActive = 0;
+        vendTbody.innerHTML = data.vendors.map(v => {
+          totalAlloc += v.allocated;
+          totalActive += v.active;
+          const pct = Math.round((v.active / v.allocated) * 100) || 0;
+          return `
+            <tr>
+              <td>
+                <span style="font-weight:750;color:var(--text);">${v.name}</span>
+              </td>
+              <td><b>${v.allocated}</b> ch</td>
+              <td style="color:${v.active > 0 ? 'var(--emerald-dark)' : 'var(--text-muted)'};font-weight:750;">
+                ${v.active} ch
+              </td>
+              <td><span style="color:var(--cyan);font-weight:700;">${v.available} ch</span></td>
+              <td style="min-width:110px;">
+                <div class="chan-meter-wrap">
+                  <div class="chan-meter-header">
+                    <span>${pct}%</span>
+                  </div>
+                  <div class="meter-track">
+                    <div class="meter-fill ${pct > 80 ? 'danger' : ''}" style="width:${pct}%;"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        const b = document.getElementById('vend-total-chan-badge');
+        if (b) b.textContent = `${totalActive} / ${totalAlloc} CH Active`;
+      }
+    }
+
+    // =========================================================================
+    // 5. CDR REPORTS
+    // =========================================================================
+    let allCdrs = [];
+    let cdrDebounceTimer = null;
+
+    async function loadCdr() {
+      const cust = document.getElementById('cdr-filter-cust')?.value || '';
+      const vend = document.getElementById('cdr-filter-vend')?.value || '';
+      const status = document.getElementById('cdr-filter-status')?.value || '';
+      const search = document.getElementById('cdr-search')?.value.trim() || '';
+
+      const countEl = document.getElementById('cdr-total-count');
+      if (countEl) countEl.textContent = 'Fetching records...';
+
+      try {
+        const res = await api('cdr-list', { customer: cust, vendor: vend, status, search, limit: 100 });
+        allCdrs = res.cdrs || [];
+        renderCdrTable(allCdrs);
+        if (countEl) countEl.textContent = allCdrs.length + ' Call Records (Capped at last 100)';
+
+        // Populate filters if needed
+        populateCdrFilters();
+      } catch (e) {
+        console.error('Error loading CDR:', e);
+      }
+    }
+
+    async function trimCdrs() {
+      if (!confirm('This will permanently delete older CDR records and keep only the latest 100 CDRs to free up server disk space. Continue?')) return;
+      showToast('Pruning CDRs and freeing disk space...', 'info');
+      try {
+        const res = await api('trim-cdrs', { keep: 100 });
+        if (res.ok) {
+          showToast(`CDRs pruned: kept latest ${res.kept || 100} records. Disk space reclaimed!`, 'success');
+          loadCdr();
+        } else {
+          showToast(res.error || 'Failed to prune CDRs', 'error');
+        }
+      } catch (e) {
+        showToast('Network error while pruning CDRs', 'error');
+      }
+    }
+
+    function populateCdrFilters() {
+      const cSel = document.getElementById('cdr-filter-cust');
+      if (cSel && cSel.options.length <= 1) {
+        allCustomers.forEach(c => {
+          cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+      }
+      const vSel = document.getElementById('cdr-filter-vend');
+      if (vSel && vSel.options.length <= 1) {
+        allVendors.forEach(v => {
+          vSel.innerHTML += `<option value="${v.id}">${v.name}</option>`;
+        });
+      }
+    }
+
+    function debounceCdrSearch() {
+      clearTimeout(cdrDebounceTimer);
+      cdrDebounceTimer = setTimeout(loadCdr, 350);
+    }
+
+    function renderCdrTable(list) {
+      const tbody = document.getElementById('cdr-tbody');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:22px;text-align:center;color:var(--text-muted);">No Call Detail Records matching selected criteria.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        let statusBadge = '';
+        if (r.disposition === 'ANSWERED') {
+          statusBadge = '<span class="badge-status active"><span class="badge-dot"></span>ANSWERED</span>';
+        } else if (r.disposition === 'BUSY') {
+          statusBadge = '<span class="badge-status blocked" style="background:#FFFBEB;color:#B45309;border-color:#FDE68A;"><span class="badge-dot" style="background:#D97706;"></span>BUSY</span>';
+        } else {
+          statusBadge = '<span class="badge-status blocked"><span class="badge-dot"></span>FAILED</span>';
+        }
+
+        const durMin = Math.floor((r.duration || 0) / 60);
+        const durSec = (r.duration || 0) % 60;
+        const durStr = durMin > 0 ? `${durMin}m ${durSec}s` : `${durSec}s`;
+
+        return `
+          <tr>
+            <td>
+              <span style="font-family:ui-monospace, monospace;font-size:12px;font-weight:600;color:var(--text);">${r.calldate}</span>
+            </td>
+            <td>
+              <span style="font-family:ui-monospace, monospace;font-size:11.5px;color:var(--text-muted);">${r.uniqueid}</span>
+            </td>
+            <td>
+              <span style="font-weight:750;color:var(--text);">${r.customer_name || r.customer_id || '-'}</span>
+            </td>
+            <td>
+              <span style="font-weight:750;color:var(--cyan);">${r.vendor_name || r.vendor_id || '-'}</span>
+            </td>
+            <td>
+              <span style="font-family:ui-monospace, monospace;font-size:12px;color:var(--text-dim);">${r.src}</span>
+            </td>
+            <td>
+              <div style="font-family:ui-monospace, monospace;font-size:12.5px;font-weight:750;color:var(--text);">${r.dst}</div>
+              ${r.inbound_dst && r.inbound_dst !== r.dst ? `<div style="font-size:10.5px;color:var(--text-muted);font-family:ui-monospace, monospace;" title="Inbound customer dialed number">In: ${r.inbound_dst}</div>` : ''}
+            </td>
+            <td>
+              <span style="font-weight:700;">${durStr}</span>
+            </td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                ${statusBadge}
+                <span style="font-size:10px;color:var(--text-dim);font-family:ui-monospace, monospace;">${r.sip_code || 'SIP 200 OK'}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportCdrCsv() {
+      if (!allCdrs || allCdrs.length === 0) return alert('No CDR data to export');
+      const headers = ['Calldate', 'Call_ID', 'Customer', 'Vendor', 'Caller_ID', 'Destination', 'Duration_Sec', 'Status', 'SIP_Code'];
+      const rows = allCdrs.map(r => [
+        `"${r.calldate}"`, `"${r.uniqueid}"`, `"${r.customer_name || ''}"`, `"${r.vendor_name || ''}"`,
+        `"${r.src}"`, `"${r.dst}"`, r.duration, `"${r.disposition}"`, `"${r.sip_code || ''}"`
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `cdr_report_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // =========================================================================
+    // 6. DASHBOARD TOP KPI & SUMMARY
+    // =========================================================================
+    async function updateDashboardStats() {
+      try {
+        const stats = await api('traffic-stats');
+        if (!stats.ok) return;
+
+        const s = stats.summary;
+        // 1. KPI cards
+        const custTot = document.getElementById('dash-cust-total');
+        if (custTot) custTot.textContent = `${s.total_customers} Customers`;
+        const custAct = document.getElementById('dash-cust-active');
+        if (custAct) custAct.textContent = `${s.active_customers} Active`;
+        const custBlk = document.getElementById('dash-cust-blocked');
+        if (custBlk) custBlk.textContent = `${s.blocked_customers} Blocked`;
+        const custCh = document.getElementById('dash-cust-channels');
+        if (custCh) custCh.textContent = `${s.customer_allocated_channels} CH Alloc`;
+
+        const vendTot = document.getElementById('dash-vend-total');
+        if (vendTot) vendTot.textContent = `${s.total_vendors} Vendors`;
+        const vendAct = document.getElementById('dash-vend-active');
+        if (vendAct) vendAct.textContent = `${s.active_vendors} Active`;
+        const vendBlk = document.getElementById('dash-vend-blocked');
+        if (vendBlk) vendBlk.textContent = `${s.blocked_vendors} Blocked`;
+        const vendCh = document.getElementById('dash-vend-channels');
+        if (vendCh) vendCh.textContent = `${s.vendor_allocated_channels} CH Alloc`;
+
+        const totCalls = document.getElementById('dash-total-calls');
+        if (totCalls) totCalls.textContent = `${s.total_active_calls} Calls`;
+
+        const asrEl = document.getElementById('dash-asr-val');
+        if (asrEl) asrEl.textContent = `${s.asr}% ASR`;
+        const acdEl = document.getElementById('dash-acd-val');
+        if (acdEl) acdEl.textContent = `${s.acd}m ACD`;
+
+        // 2. Customer preview table
+        const custTbody = document.getElementById('dash-cust-tbody');
+        if (custTbody && stats.customers) {
+          custTbody.innerHTML = stats.customers.map(c => {
+            const pct = Math.round((c.active / c.allocated) * 100) || 0;
+            return `
+              <tr>
+                <td><b>${c.name}</b></td>
+                <td>
+                  <span class="badge-status ${c.status === 'blocked' ? 'blocked' : 'active'}" style="font-size:10px;padding:1px 6px;">
+                    ${c.status.toUpperCase()}
+                  </span>
+                </td>
+                <td>${c.allocated} ch</td>
+                <td style="color:var(--emerald-dark);font-weight:750;">${c.active}</td>
+                <td><span style="color:var(--cyan);font-weight:700;">${c.available}</span></td>
+                <td style="min-width:90px;">
+                  <div class="meter-track">
+                    <div class="meter-fill" style="width:${pct}%;"></div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        // 3. Vendor preview table
+        const vendTbody = document.getElementById('dash-vend-tbody');
+        if (vendTbody && stats.vendors) {
+          vendTbody.innerHTML = stats.vendors.map(v => {
+            const pct = Math.round((v.active / v.allocated) * 100) || 0;
+            return `
+              <tr>
+                <td><b>${v.name}</b></td>
+                <td>
+                  <span class="badge-status ${v.status === 'blocked' ? 'blocked' : 'active'}" style="font-size:10px;padding:1px 6px;">
+                    ${v.status.toUpperCase()}
+                  </span>
+                </td>
+                <td>${v.allocated} ch</td>
+                <td style="color:var(--emerald-dark);font-weight:750;">${v.active}</td>
+                <td><span style="color:var(--cyan);font-weight:700;">${v.available}</span></td>
+                <td style="min-width:90px;">
+                  <div class="meter-track">
+                    <div class="meter-fill" style="width:${pct}%;"></div>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+      } catch (e) {
+        console.error('Error updating dashboard stats:', e);
+      }
+    }
+
+    // =========================================================================
+    // 7. EXISTING SWITCH & TRUNKS LOGIC (PRESERVED)
+    // =========================================================================
+    let currentModalTrunkId = null;
+    let trunksData = {};
+    let isInitialized = false;
 
     function buildRouteTableRow(id, t) {
       const routeName = t.name || (id.charAt(0).toUpperCase() + id.slice(1));
@@ -1652,17 +3712,8 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
       const tr = document.createElement('tr');
       tr.id = 'route-row-' + id;
       tr.innerHTML = `
-        <!-- 1. Destination -->
-        <td>
-          <span style="font-weight:750;font-size:14px;color:var(--text);" id="tbl-name-${id}">${routeName}</span>
-        </td>
-
-        <!-- 2. Context -->
-        <td>
-          <span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span>
-        </td>
-
-        <!-- 3. Live Channels -->
+        <td><span style="font-weight:750;font-size:14px;color:var(--text);" id="tbl-name-${id}">${routeName}</span></td>
+        <td><span class="ctx-pill ${ctxName}" id="tbl-ctx-${id}">[${ctxName}]</span></td>
         <td>
           <div style="display:flex;flex-direction:column;gap:5px;">
             <div style="font-weight:750;font-size:13.5px;color:${(t.running && activeCalls > 0) ? 'var(--emerald-dark)' : 'var(--text)'};" id="active-txt-${id}">
@@ -1673,13 +3724,11 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
             </div>
           </div>
         </td>
-
-        <!-- 4. Monthly Minutes Quota -->
         <td>
           <div style="display:flex;flex-direction:column;gap:5px;max-width:240px;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;">
-              <span style="font-weight:750;font-size:13.5px;color:var(--text);letter-spacing:-0.2px;" id="used-min-${id}">
-                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--text-muted);">min</span>
+              <span style="font-weight:750;font-size:13.5px;color:var(--text);" id="used-min-${id}">
+                ${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;color:var(--text-muted);">min</span>
               </span>
               <span style="font-size:11px;font-weight:750;color:${pct > 90 ? 'var(--red)' : '#334155'};background:${pct > 90 ? 'var(--red-bg)' : '#F1F5F9'};padding:1px 6px;border-radius:4px;border:1px solid ${pct > 90 ? 'var(--red-border)' : 'var(--border)'};" id="limit-pct-${id}">
                 ${pct}% used
@@ -1689,43 +3738,31 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
               <div id="prog-bar-${id}" style="width:${pct}%;height:100%;background:${pct > 90 ? 'var(--red)' : 'var(--cyan)'};border-radius:3px;transition:width 0.3s;"></div>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-              <div style="font-size:11px;color:var(--text-muted);" id="limit-txt-${id}">
-                Monthly Limit: <b>${limitMin.toLocaleString()}</b> min
-              </div>
-              <button type="button" class="btn-reset-quota" onclick="resetQuota('${id}')" title="Reset consumed minutes for ${routeName} to 0">
-                ↺ Reset
-              </button>
+              <div style="font-size:11px;color:var(--text-muted);" id="limit-txt-${id}">Monthly Limit: <b>${limitMin.toLocaleString()}</b> min</div>
+              <button type="button" class="btn-reset-quota" onclick="resetQuota('${id}')" title="Reset quota">↺ Reset</button>
             </div>
           </div>
         </td>
-
-        <!-- 5. Target IP -->
         <td>
-          <span style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:13px;font-weight:700;color:var(--text);" id="disp-ip-${id}">
+          <span style="font-family:ui-monospace, monospace;font-size:13px;font-weight:700;color:var(--text);" id="disp-ip-${id}">
             ${targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-')}
           </span>
         </td>
-
-        <!-- 6. Dialing Prefix -->
         <td>
-          <div style="display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12.5px;">
+          <div style="display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace, monospace;font-size:12.5px;">
             <span style="color:var(--text-muted);font-weight:600;" id="disp-cc-${id}">+${t.country_code || '-'}</span>
             <span style="font-weight:750;color:#0F172A;" id="disp-dial-${id}">(${t.prefix_cid || t.prefix || '-'})</span>
           </div>
         </td>
-
-        <!-- 7. Action -->
         <td style="text-align:right;">
           <div class="btn-action-group">
-            <button type="button" class="btn-config" onclick="openConfigModal('${id}')" title="Configure ${routeName} Settings">
-              ⚙ Config
-            </button>
+            <button type="button" class="btn-config" onclick="openConfigModal('${id}')">⚙ Config</button>
             <span id="actions-${id}">
               <button type="button" class="${t.running ? 'btn-stop' : 'btn-start'}" id="btn-toggle-${id}" onclick="toggleTrunk('${id}', '${t.running ? 'stop' : 'start'}')">
                 ${t.running ? '⏹ Stop' : '▶ Start'}
               </button>
             </span>
-            <button type="button" class="btn-hangup" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')" title="Terminate all live calls on ${routeName} route">
+            <button type="button" class="btn-hangup" id="btn-hangup-${id}" onclick="hangupTrunk('${id}')">
               <span class="hangup-dot"></span> Hangup
             </button>
           </div>
@@ -1747,7 +3784,7 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           targetHost = parts[0];
           targetPort = parseInt(parts[1], 10) || targetPort;
         }
-        // 1. Route Name & context badge
+
         const tblName = document.getElementById('tbl-name-' + id);
         if (tblName) tblName.textContent = curName;
 
@@ -1757,7 +3794,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           tblCtx.textContent = `[${ctxName}]`;
         }
 
-        // 3. Channels count & utilization bar
         const activeTxt = document.getElementById('active-txt-' + id);
         if (activeTxt) {
           activeTxt.innerHTML = `${activeCalls} <span style="font-size:11.5px;font-weight:500;color:var(--text-muted);">/ ${maxChan} ch</span>`;
@@ -1770,13 +3806,12 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           chanBar.style.background = chanPct > 80 ? 'var(--red)' : 'var(--cyan)';
         }
 
-        // 4. Monthly Minutes Quota update
         const limitMin = Number(t.monthly_limit) || 100000;
         const usedMin = Number(t.used_minutes) || 0;
         const pct = Math.min(100, Math.round((usedMin / limitMin) * 100)) || 0;
 
         const usedMinEl = document.getElementById('used-min-' + id);
-        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;font-weight:500;color:var(--text-muted);">min</span>`;
+        if (usedMinEl) usedMinEl.innerHTML = `${usedMin.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} <span style="font-size:11px;color:var(--text-muted);">min</span>`;
         const limitTxtEl = document.getElementById('limit-txt-' + id);
         if (limitTxtEl) limitTxtEl.innerHTML = `Monthly Limit: <b>${limitMin.toLocaleString()}</b> min`;
         const limitPctEl = document.getElementById('limit-pct-' + id);
@@ -1791,7 +3826,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           progBarEl.style.background = pct > 90 ? 'var(--red)' : 'var(--cyan)';
         }
 
-        // 5. Target IP & Dialing Prefix
         const dispIp = document.getElementById('disp-ip-' + id);
         if (dispIp) dispIp.textContent = targetHost ? `${targetHost}:${targetPort}` : (t.target_ip || '-');
         const dispCc = document.getElementById('disp-cc-' + id);
@@ -1799,7 +3833,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
         const dispDial = document.getElementById('disp-dial-' + id);
         if (dispDial) dispDial.textContent = `(${t.prefix_cid || t.prefix || '-'})`;
 
-        // 6. Start/Stop Action button
         const actionsDiv = document.getElementById('actions-' + id);
         if (actionsDiv) {
           actionsDiv.innerHTML = `
@@ -1809,429 +3842,6 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           `;
         }
       }
-    }
-
-    // ==========================================
-    // INBOUND CALL GATEWAY & SOURCE IP MANAGEMENT
-    // ==========================================
-    let currentSourceIps = [];
-    let editingSourceIpIndex = -1;
-
-    function openAddSourceIpModal(index = -1) {
-      editingSourceIpIndex = index;
-      const overlay = document.getElementById('source-ip-modal-overlay');
-      const title = document.getElementById('source-ip-modal-title');
-      const ipIn = document.getElementById('sip-input-ip');
-      const lblIn = document.getElementById('sip-input-label');
-      const pfxIn = document.getElementById('sip-input-prefix');
-      const ccIn = document.getElementById('sip-input-cc');
-      const ctxIn = document.getElementById('sip-input-context');
-      const portIn = document.getElementById('sip-input-port');
-
-      if (index >= 0 && currentSourceIps[index]) {
-        const item = currentSourceIps[index];
-        title.textContent = 'Edit Allowed Source IP';
-        ipIn.value = item.ip || '';
-        if (portIn) portIn.value = item.port || 5060;
-        lblIn.value = item.label || '';
-        pfxIn.value = item.prefix || '';
-        ccIn.value = item.country_code || item.cc || '';
-        ctxIn.value = item.context || 'auto';
-      } else {
-        title.textContent = 'Add Allowed Source IP';
-        ipIn.value = '';
-        if (portIn) portIn.value = '5060';
-        lblIn.value = '';
-        pfxIn.value = '';
-        ccIn.value = '';
-        ctxIn.value = 'auto';
-      }
-
-      overlay.classList.remove('hidden');
-    }
-
-    function closeSourceIpModal() {
-      const overlay = document.getElementById('source-ip-modal-overlay');
-      if (overlay) overlay.classList.add('hidden');
-      editingSourceIpIndex = -1;
-    }
-
-    function insertSipPfx(val) {
-      const el = document.getElementById('sip-input-prefix');
-      if (!el) return;
-      if (!el.value.trim() || val.includes(',')) {
-        el.value = val;
-      } else {
-        const existing = el.value.split(',').map(s => s.trim()).filter(Boolean);
-        if (!existing.includes(val)) existing.push(val);
-        el.value = existing.join(', ');
-      }
-    }
-
-    function handleSourceIpOverlayClick(e) {
-      if (e.target.id === 'source-ip-modal-overlay') {
-        closeSourceIpModal();
-      }
-    }
-
-    async function saveSourceIpItem(e) {
-      e.preventDefault();
-      let ip = document.getElementById('sip-input-ip').value.trim();
-      let port = parseInt(document.getElementById('sip-input-port')?.value || '5060', 10);
-      if (ip.includes(':')) {
-        const parts = ip.split(':');
-        ip = parts[0];
-        if (isNaN(port) || port === 5060) port = parseInt(parts[1], 10) || 5060;
-      }
-      if (isNaN(port) || port < 1 || port > 65535) port = 5060;
-
-      const label = document.getElementById('sip-input-label').value.trim();
-      const prefix = document.getElementById('sip-input-prefix').value.trim();
-      const cc = document.getElementById('sip-input-cc').value.trim();
-      const context = document.getElementById('sip-input-context').value;
-
-      if (!ip) {
-        alert('Please enter a valid IP address or hostname');
-        return;
-      }
-
-      const item = {
-        id: editingSourceIpIndex >= 0 ? (currentSourceIps[editingSourceIpIndex].id || ('src-' + (editingSourceIpIndex + 1))) : ('src-' + Date.now()),
-        ip: ip,
-        port: port,
-        label: label || ('Gateway ' + (currentSourceIps.length + 1)),
-        prefix: prefix,
-        country_code: cc,
-        context: context
-      };
-
-      if (editingSourceIpIndex >= 0) {
-        currentSourceIps[editingSourceIpIndex] = item;
-      } else {
-        const exists = currentSourceIps.some(s => s.ip === item.ip && s.port === item.port);
-        if (exists) {
-          alert('IP address ' + item.ip + ':' + item.port + ' is already registered in the allowed list.');
-          return;
-        }
-        currentSourceIps.push(item);
-      }
-
-      closeSourceIpModal();
-      renderSourceIpsTable();
-      await persistInboundSettings(true);
-    }
-
-    async function deleteSourceIp(index) {
-      if (index < 0 || index >= currentSourceIps.length) return;
-      const item = currentSourceIps[index];
-      if (currentSourceIps.length <= 1) {
-        if (!confirm('Warning: This is the only allowed source IP (' + item.ip + '). If removed, no remote PBX will be allowed to send calls. Remove anyway?')) {
-          return;
-        }
-      } else {
-        if (!confirm('Remove ' + item.ip + ' (' + (item.label || 'Gateway') + ') from allowed inbound source IPs?')) {
-          return;
-        }
-      }
-
-      currentSourceIps.splice(index, 1);
-      renderSourceIpsTable();
-      await persistInboundSettings(true);
-    }
-
-    function renderSourceIpsTable() {
-      const tbody = document.getElementById('source-ips-tbody');
-      const countEl = document.getElementById('source-ips-count');
-      if (countEl) {
-        countEl.textContent = currentSourceIps.length + ' IP' + (currentSourceIps.length === 1 ? '' : 's') + ' authorized';
-      }
-      if (!tbody) return;
-
-      if (currentSourceIps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No allowed source IPs configured. Click <b>+ Add Allowed Source IP</b> to authorize a gateway.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = currentSourceIps.map((s, idx) => {
-        const pfxParts = [];
-        if (s.prefix) pfxParts.push(s.prefix);
-        if (s.country_code && !String(s.prefix || '').includes(s.country_code)) pfxParts.push('+' + s.country_code);
-        const pfxDisplay = pfxParts.join(', ');
-        const curCtx = s.context || 'auto';
-        let ctxBadge = '';
-        if (curCtx === 'testcall2') {
-          ctxBadge = '<span class="ctx-pill testcall2">[testcall2]</span>';
-        } else if (curCtx === 'testcall') {
-          ctxBadge = '<span class="ctx-pill testcall">[testcall]</span>';
-        } else {
-          ctxBadge = '<span class="ctx-pill auto">⚡ Auto (Prefix)</span>';
-        }
-        return `
-          <tr style="border-bottom:1px solid var(--border-subtle);">
-            <td style="padding:11px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:700;color:var(--text);">
-              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--emerald);margin-right:8px;"></span>
-              ${s.ip}:${s.port || 5060}
-            </td>
-            <td style="padding:11px 16px;font-weight:600;color:var(--text);">
-              ${s.label || '<span style="color:var(--text-dim);font-style:italic;">None</span>'}
-            </td>
-            <td style="padding:11px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;color:var(--text-muted);">
-              ${pfxDisplay || '<span style="color:var(--text-dim);">All (Auto)</span>'}
-            </td>
-            <td style="padding:11px 16px;">
-              ${ctxBadge}
-            </td>
-            <td style="padding:11px 16px;text-align:right;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})" style="padding:4px 8px;font-size:11px;margin-right:4px;">
-                ✏ Edit
-              </button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="deleteSourceIp(${idx})" style="padding:4px 8px;font-size:11px;color:var(--red);border-color:var(--red-border);">
-                🗑 Delete
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function renderCountryRecordsTable(records) {
-      const tbody = document.getElementById('country-records-tbody');
-      const tfoot = document.getElementById('country-records-tfoot');
-      if (!tbody) return;
-
-      if (!records) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">No monthly records available for Cuba, Mali, and Senegal.</td></tr>';
-        if (tfoot) tfoot.innerHTML = '';
-        return;
-      }
-
-      // Pre-ordered strictly for Cuba, Mali, Senegal
-      const targets = ['cuba', 'mali', 'senegal'];
-      let totalCalls = 0;
-      let totalAnswered = 0;
-      let totalMinutes = 0;
-      let totalActive = 0;
-
-      const rowsHtml = targets.map(key => {
-        const c = records[key] || {
-          name: key.charAt(0).toUpperCase() + key.slice(1),
-          code: key === 'cuba' ? '53' : (key === 'mali' ? '223' : '221'),
-          prefix: key === 'cuba' ? '4444, 53' : (key === 'mali' ? '2237' : '619334, 221'),
-          calls: 0,
-          answered: 0,
-          minutes: 0,
-          active: 0
-        };
-
-        totalCalls += (c.calls || 0);
-        totalAnswered += (c.answered || 0);
-        totalMinutes += (c.minutes || 0);
-        totalActive += (c.active || 0);
-
-        return `
-          <tr style="border-bottom:1px solid var(--border-subtle);">
-            <td style="padding:10px 16px;font-weight:750;color:var(--text);">
-              ${c.name}
-            </td>
-            <td style="padding:10px 16px;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:12px;color:var(--text-muted);">
-              <b>+${c.code}</b> <span style="color:var(--text-dim);font-size:11px;">(${c.prefix})</span>
-            </td>
-            <td style="padding:10px 16px;font-weight:600;color:var(--text);">
-              ${c.calls}
-            </td>
-            <td style="padding:10px 16px;font-weight:600;color:var(--text);">
-              ${c.answered}
-            </td>
-            <td style="padding:10px 16px;font-size:13.5px;font-weight:800;color:var(--cyan);">
-              ${Number(c.minutes).toFixed(2)} <span style="font-size:11px;font-weight:600;color:var(--text-muted);">min</span>
-            </td>
-            <td style="padding:10px 16px;">
-              ${c.active > 0 
-                ? '<span style="background:var(--emerald-bg);color:var(--emerald-dark);border:1px solid var(--emerald-border);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🟢 ' + c.active + ' Live</span>' 
-                : '<span style="color:var(--text-dim);font-size:11px;">0 active</span>'}
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      tbody.innerHTML = rowsHtml;
-
-      if (tfoot) {
-        tfoot.innerHTML = `
-          <tr style="background:var(--bg-card-subtle);font-weight:800;border-top:2px solid var(--border);color:var(--text);">
-            <td style="padding:10px 16px;" colspan="2">Monthly Monitored Total</td>
-            <td style="padding:10px 16px;">${totalCalls}</td>
-            <td style="padding:10px 16px;">${totalAnswered}</td>
-            <td style="padding:10px 16px;font-size:13.5px;color:var(--cyan);">${totalMinutes.toFixed(2)} <span style="font-size:11px;color:var(--text-muted);font-weight:600;">min</span></td>
-            <td style="padding:10px 16px;">${totalActive > 0 ? '<span style="color:var(--emerald);">🟢 ' + totalActive + ' Live</span>' : '0 active'}</td>
-          </tr>
-        `;
-      }
-    }
-
-    function formatSecondsHuman(sec) {
-      sec = parseInt(sec, 10);
-      if (isNaN(sec) || sec < 0) return '0s';
-      if (sec < 60) return sec + 's';
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return s > 0 ? (m + 'm ' + s + 's') : (m + 'm');
-    }
-
-    function updateDurHuman(ctx) {
-      const input = document.getElementById('input-' + ctx + '-dur');
-      const el = document.getElementById(ctx + '-human-dur');
-      if (input && el) {
-        el.textContent = formatSecondsHuman(input.value);
-      }
-    }
-
-    function setDurPreset(ctx, seconds) {
-      const input = document.getElementById('input-' + ctx + '-dur');
-      if (input) {
-        input.value = seconds;
-        updateDurHuman(ctx);
-      }
-    }
-
-    async function saveBreakoutSettings() {
-      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
-      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
-      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
-      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
-
-      if (isNaN(dur1) || dur1 < 1 || isNaN(dur2) || dur2 < 1) {
-        alert('Please enter valid positive duration limits in seconds (e.g. 60)');
-        return;
-      }
-
-      const btn = document.getElementById('btn-save-breakout');
-      const originalText = btn ? btn.textContent : '💾 Save Settings';
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Saving...';
-      }
-
-      try {
-        const payload = {
-          testcall_duration: dur1,
-          testcall2_duration: dur2,
-          testcall_prefixes: pfx1,
-          testcall2_prefixes: pfx2,
-          source_ips: currentSourceIps
-        };
-        const res = await api('save-inbound', payload);
-        if (btn) {
-          btn.textContent = '✓ Saved!';
-          setTimeout(() => {
-            btn.textContent = originalText;
-            btn.disabled = false;
-          }, 2000);
-        }
-        await refreshAll(true);
-      } catch (err) {
-        console.error('Failed to save breakout settings:', err);
-        alert('Failed to save breakout settings: ' + err.message);
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = originalText;
-        }
-      }
-    }
-
-    async function persistInboundSettings(notify = false) {
-      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
-      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
-      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
-      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
-      const d = {
-        source_ips: currentSourceIps,
-        testcall_duration: dur1,
-        testcall2_duration: dur2,
-        testcall_prefixes: pfx1,
-        testcall2_prefixes: pfx2
-      };
-
-      try {
-        const res = await api('save-inbound', d);
-        await refreshAll(true);
-        return res;
-      } catch (err) {
-        console.error('Failed to persist inbound settings:', err);
-        if (notify) {
-          alert('Inbound Save Error: ' + err.message);
-        }
-        throw err;
-      }
-    }
-
-    function renderInboundSection(inbound, forceSync = false) {
-      if (!inbound) return;
-
-      // 1. Active calls badge
-      const activeCount = inbound.active_channels || (inbound.active_calls ? inbound.active_calls.length : 0);
-      const activeBadge = document.getElementById('inbound-active-badge');
-      if (activeBadge) {
-        if (activeCount > 0) {
-          activeBadge.style.background = 'var(--emerald-bg)';
-          activeBadge.style.color = 'var(--emerald-dark)';
-          activeBadge.style.borderColor = 'var(--emerald-border)';
-          activeBadge.innerHTML = '🟢 <b>' + activeCount + '</b> Active Inbound Call' + (activeCount > 1 ? 's' : '');
-        } else {
-          activeBadge.style.background = '#F1F5F9';
-          activeBadge.style.color = 'var(--text-muted)';
-          activeBadge.style.borderColor = 'var(--border)';
-          activeBadge.innerHTML = '○ 0 Active Inbound Calls';
-        }
-      }
-
-      // 2. Breakout Prefixes & Context Call Duration Limits ([testcall] and [testcall2])
-      const pfx1Input = document.getElementById('inbound-testcall-pfx');
-      const pfx2Input = document.getElementById('inbound-testcall2-pfx');
-      if (pfx1Input && (document.activeElement !== pfx1Input || forceSync)) {
-        if (inbound.testcall_prefixes !== undefined && inbound.testcall_prefixes !== null) {
-          pfx1Input.value = inbound.testcall_prefixes;
-        }
-      }
-      if (pfx2Input && (document.activeElement !== pfx2Input || forceSync)) {
-        if (inbound.testcall2_prefixes !== undefined && inbound.testcall2_prefixes !== null) {
-          pfx2Input.value = inbound.testcall2_prefixes;
-        }
-      }
-
-      const dur1Input = document.getElementById('input-testcall-dur');
-      const dur2Input = document.getElementById('input-testcall2-dur');
-      if (dur1Input && (document.activeElement !== dur1Input || forceSync)) {
-        if (inbound.testcall_duration !== undefined && inbound.testcall_duration !== null) {
-          dur1Input.value = inbound.testcall_duration;
-          updateDurHuman('testcall');
-        }
-      }
-      if (dur2Input && (document.activeElement !== dur2Input || forceSync)) {
-        if (inbound.testcall2_duration !== undefined && inbound.testcall2_duration !== null) {
-          dur2Input.value = inbound.testcall2_duration;
-          updateDurHuman('testcall2');
-        }
-      }
-
-      // 3. Source IPs Table
-      if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
-        currentSourceIps = inbound.source_ips;
-        renderSourceIpsTable();
-      } else if (currentSourceIps.length === 0) {
-        currentSourceIps = [{
-          id: 'src-1',
-          ip: inbound.source_ip || '192.168.1.13',
-          label: 'Default Gateway',
-          prefix: '444453, 619334221, 2237',
-          country_code: '223, 53, 221',
-          context: 'auto'
-        }];
-        renderSourceIpsTable();
-      }
-
-      // 4. Monthly Inbound Consumed Minutes Table (Strictly Cuba, Mali, Senegal)
-      renderCountryRecordsTable(inbound.country_records);
     }
 
     async function refreshAll(forceSync = false) {
@@ -2259,18 +3869,14 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
           renderInboundSection(res.inbound, forceSync);
         }
       } catch (e) {
-        console.error('Error fetching status: ' + e.message);
+        console.error('Error fetching switch status: ' + e.message);
       }
     }
 
+    // Trunk Actions
     async function toggleTrunk(id, action) {
-      const btn = document.getElementById('btn-toggle-' + id);
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = action === 'start' ? 'Starting...' : 'Stopping...';
-      }
       try {
-        const res = await api(action, { trunk: id });
+        await api(action, { trunk: id });
         setTimeout(() => refreshAll(false), 500);
       } catch (e) {
         alert(e.message);
@@ -2279,42 +3885,18 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     async function hangupTrunk(id) {
-      const t = trunksData[id];
-      const name = t ? (t.name || id) : id;
-      const btn = document.getElementById('btn-hangup-' + id);
-      const origHtml = btn ? btn.innerHTML : '🛑 Hangup';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Hanging up...';
-      }
       try {
-        const res = await api('hangup', { trunk: id });
-        if (btn) {
-          btn.innerHTML = '✓ Terminated';
-          btn.style.color = 'var(--emerald-dark)';
-          btn.style.borderColor = 'var(--emerald-border)';
-          setTimeout(() => {
-            btn.innerHTML = origHtml;
-            btn.style.color = '';
-            btn.style.borderColor = '';
-            btn.disabled = false;
-          }, 1800);
-        }
+        await api('hangup', { trunk: id });
         setTimeout(() => refreshAll(false), 600);
       } catch (err) {
-        console.error('Hangup error:', err);
-        alert(`Failed to hangup calls on ${name}: ${err.message}`);
-        if (btn) {
-          btn.innerHTML = origHtml;
-          btn.disabled = false;
-        }
+        alert(`Failed to hangup: ${err.message}`);
       }
     }
 
     async function hangupAll() {
       if (!confirm('Are you sure you want to hangup ALL active calls across all routes?')) return;
       try {
-        const res = await api('hangup', { trunk: 'all' });
+        await api('hangup', { trunk: 'all' });
         refreshAll(false);
       } catch (err) {
         alert('Hangup All failed: ' + err.message);
@@ -2322,64 +3904,257 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     }
 
     async function resetQuota(id) {
-      const t = trunksData[id];
-      const name = t ? (t.name || id) : id;
-      if (!confirm(`Are you sure you want to reset monthly consumed minutes for ${name} to 0.0 min?`)) return;
+      if (!confirm(`Reset monthly consumed minutes for ${id} to 0.0 min?`)) return;
       try {
-        const res = await api('reset-quota', { trunk: id });
-        if (trunksData[id]) {
-          trunksData[id].used_minutes = 0.0;
-          trunksData[id].limit_reached = false;
-        }
-        updateMetricsOnly(trunksData, false);
+        await api('reset-quota', { trunk: id });
         await refreshAll(true);
       } catch (err) {
-        alert(`Failed to reset quota for ${name}: ` + err.message);
+        alert('Failed to reset quota: ' + err.message);
       }
     }
 
     async function resetAllQuotas() {
-      if (!confirm('Are you sure you want to reset monthly consumed minutes to 0 for ALL routes?')) return;
+      if (!confirm('Reset monthly consumed minutes to 0 for ALL routes?')) return;
       try {
-        const res = await api('reset-quota', { trunk: 'all' });
-        for (const k of Object.keys(trunksData)) {
-          trunksData[k].used_minutes = 0.0;
-          trunksData[k].limit_reached = false;
-        }
-        updateMetricsOnly(trunksData, false);
+        await api('reset-quota', { trunk: 'all' });
         await refreshAll(true);
       } catch (err) {
         alert('Failed to reset all quotas: ' + err.message);
       }
     }
 
-    async function resetQuotaFromModal() {
-      const id = document.getElementById('modal-trunk-id').value;
-      if (!id) return;
-      await resetQuota(id);
-      closeConfigModal();
-    }
-
     async function startAll() {
       try {
-        const res = await api('start', { trunk: 'all' });
+        await api('start', { trunk: 'all' });
         refreshAll(false);
-      } catch (e) {
-        alert(e.message);
-      }
+      } catch (e) { alert(e.message); }
     }
 
     async function stopAll() {
-      if (!confirm('Are you sure you want to stop ALL active call routes?')) return;
+      if (!confirm('Stop ALL active call routes?')) return;
       try {
-        const res = await api('stop', { trunk: 'all' });
+        await api('stop', { trunk: 'all' });
         refreshAll(false);
-      } catch (e) {
-        alert('Error stopping all trunks: ' + e.message);
+      } catch (e) { alert(e.message); }
+    }
+
+    // Trunk Config Modal
+    function openConfigModal(id) {
+      const t = trunksData[id];
+      if (!t) return;
+      currentModalTrunkId = id;
+      document.getElementById('modal-trunk-id').value = id;
+      document.getElementById('modal-title').textContent = (t.name || id) + ' Configuration';
+      document.getElementById('modal-name').value = t.name || '';
+      let host = t.target_ip || '';
+      let port = t.sip_port || 5060;
+      if (host.includes(':')) {
+        const parts = host.split(':');
+        host = parts[0];
+        port = parseInt(parts[1], 10) || port;
+      }
+      document.getElementById('modal-ip').value = host;
+      document.getElementById('modal-port').value = port;
+      document.getElementById('modal-cc').value = t.country_code || '';
+      document.getElementById('modal-prefix').value = t.prefix || '';
+      document.getElementById('modal-prefix-cid').value = t.prefix_cid || '';
+      document.getElementById('modal-limit').value = t.monthly_limit || 100000;
+      document.getElementById('modal-max').value = t.max_channels || '';
+      document.getElementById('modal-ctx').value = t.context || 'testcall';
+      document.getElementById('config-modal-overlay')?.classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal-overlay')?.classList.add('hidden');
+      currentModalTrunkId = null;
+    }
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'config-modal-overlay') closeConfigModal();
+    }
+
+    async function saveTrunkModal(e) {
+      e.preventDefault();
+      const id = currentModalTrunkId;
+      if (!id) return;
+      const form = document.getElementById('modal-form');
+      const d = Object.fromEntries(new FormData(form));
+      d.trunk = id;
+      try {
+        await api('save', d);
+        closeConfigModal();
+        await refreshAll(true);
+      } catch (err) {
+        alert('Save Error: ' + err.message);
       }
     }
 
-    // Live clock update
+    // Inbound Gateway Config
+    let currentSourceIps = [];
+    let editingSourceIpIndex = -1;
+
+    function renderSourceIpsTable() {
+      const tbody = document.getElementById('source-ips-tbody');
+      const countEl = document.getElementById('source-ips-count');
+      if (countEl) countEl.textContent = currentSourceIps.length + ' IP' + (currentSourceIps.length === 1 ? '' : 's') + ' authorized';
+      if (!tbody) return;
+
+      tbody.innerHTML = currentSourceIps.map((s, idx) => `
+        <tr style="border-bottom:1px solid var(--border-subtle);">
+          <td style="padding:11px 16px;font-family:ui-monospace, monospace;font-weight:700;">
+            <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--emerald);margin-right:8px;"></span>
+            ${s.ip}:${s.port || 5060}
+          </td>
+          <td style="padding:11px 16px;font-weight:600;">${s.label || '-'}</td>
+          <td style="padding:11px 16px;font-family:ui-monospace, monospace;font-size:12px;">${s.prefix || 'All'}</td>
+          <td style="padding:11px 16px;"><span class="ctx-pill ${s.context || 'auto'}">[${s.context || 'auto'}]</span></td>
+          <td style="padding:11px 16px;text-align:right;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openAddSourceIpModal(${idx})">✏ Edit</button>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteSourceIp(${idx})">🗑</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddSourceIpModal(index = -1) {
+      editingSourceIpIndex = index;
+      const overlay = document.getElementById('source-ip-modal-overlay');
+      const title = document.getElementById('source-ip-modal-title');
+      if (index >= 0 && currentSourceIps[index]) {
+        const item = currentSourceIps[index];
+        title.textContent = 'Edit Allowed Source IP';
+        document.getElementById('sip-input-ip').value = item.ip || '';
+        document.getElementById('sip-input-port').value = item.port || 5060;
+        document.getElementById('sip-input-label').value = item.label || '';
+        document.getElementById('sip-input-prefix').value = item.prefix || '';
+        document.getElementById('sip-input-context').value = item.context || 'auto';
+      } else {
+        title.textContent = 'Add Allowed Source IP';
+        document.getElementById('sip-input-ip').value = '';
+        document.getElementById('sip-input-port').value = 5060;
+        document.getElementById('sip-input-label').value = '';
+        document.getElementById('sip-input-prefix').value = '';
+        document.getElementById('sip-input-context').value = 'auto';
+      }
+      overlay.classList.remove('hidden');
+    }
+
+    function closeSourceIpModal() {
+      document.getElementById('source-ip-modal-overlay')?.classList.add('hidden');
+    }
+    function handleSourceIpOverlayClick(e) {
+      if (e.target.id === 'source-ip-modal-overlay') closeSourceIpModal();
+    }
+
+    async function saveSourceIpItem(e) {
+      e.preventDefault();
+      const ip = document.getElementById('sip-input-ip').value.trim();
+      const port = parseInt(document.getElementById('sip-input-port').value, 10) || 5060;
+      const label = document.getElementById('sip-input-label').value.trim();
+      const prefix = document.getElementById('sip-input-prefix').value.trim();
+      const context = document.getElementById('sip-input-context').value;
+
+      const item = { ip, port, label, prefix, context };
+      if (editingSourceIpIndex >= 0) {
+        currentSourceIps[editingSourceIpIndex] = item;
+      } else {
+        currentSourceIps.push(item);
+      }
+      closeSourceIpModal();
+      renderSourceIpsTable();
+      await persistInboundSettings();
+    }
+
+    async function deleteSourceIp(idx) {
+      if (!confirm('Remove this source IP?')) return;
+      currentSourceIps.splice(idx, 1);
+      renderSourceIpsTable();
+      await persistInboundSettings();
+    }
+
+    async function persistInboundSettings() {
+      const dur1 = parseInt(document.getElementById('input-testcall-dur')?.value || '60', 10);
+      const dur2 = parseInt(document.getElementById('input-testcall2-dur')?.value || '50', 10);
+      const pfx1 = (document.getElementById('inbound-testcall-pfx')?.value || '').trim();
+      const pfx2 = (document.getElementById('inbound-testcall2-pfx')?.value || '').trim();
+      try {
+        await api('save-inbound', {
+          source_ips: currentSourceIps,
+          testcall_duration: dur1,
+          testcall2_duration: dur2,
+          testcall_prefixes: pfx1,
+          testcall2_prefixes: pfx2
+        });
+        await refreshAll(true);
+      } catch (err) {
+        alert('Inbound Save Error: ' + err.message);
+      }
+    }
+
+    async function saveBreakoutSettings() {
+      await persistInboundSettings();
+      alert('Breakout settings saved successfully!');
+    }
+
+    function updateDurHuman(ctx) {
+      const val = document.getElementById('input-' + ctx + '-dur')?.value || 60;
+      const el = document.getElementById(ctx + '-human-dur');
+      if (el) el.textContent = val + 's';
+    }
+
+    function renderCountryRecordsTable(records) {
+      const tbody = document.getElementById('country-records-tbody');
+      if (!tbody || !records) return;
+      const targets = ['cuba', 'mali', 'senegal'];
+      tbody.innerHTML = targets.map(k => {
+        const r = records[k] || { name: k, total_calls: 0, answered_calls: 0, billed_minutes: 0 };
+        return `
+          <tr style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 16px;font-weight:750;">${r.name || k}</td>
+            <td style="padding:10px 16px;font-family:ui-monospace, monospace;color:var(--text-muted);">${k === 'cuba' ? '+53 (444453)' : (k === 'mali' ? '+223 (2237)' : '+221 (619334)')}</td>
+            <td style="padding:10px 16px;">${r.total_calls || 0}</td>
+            <td style="padding:10px 16px;">${r.answered_calls || 0}</td>
+            <td style="padding:10px 16px;font-weight:800;color:var(--cyan);">${Number(r.billed_minutes || 0).toFixed(1)} min</td>
+            <td style="padding:10px 16px;"><span class="badge-status active">● Live</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderInboundSection(inbound, forceSync) {
+      if (inbound.source_ips && (currentSourceIps.length === 0 || forceSync)) {
+        currentSourceIps = inbound.source_ips;
+        renderSourceIpsTable();
+      }
+      renderCountryRecordsTable(inbound.country_records);
+    }
+
+    // Password Modal
+    function openPasswordModal() {
+      document.getElementById('password-form')?.reset();
+      document.getElementById('password-modal-overlay')?.classList.remove('hidden');
+    }
+    function closePasswordModal() {
+      document.getElementById('password-modal-overlay')?.classList.add('hidden');
+    }
+    function handlePasswordOverlayClick(e) {
+      if (e.target.id === 'password-modal-overlay') closePasswordModal();
+    }
+    async function savePasswordItem(e) {
+      e.preventDefault();
+      const cur = document.getElementById('pwd-current').value;
+      const n1 = document.getElementById('pwd-new').value;
+      const n2 = document.getElementById('pwd-confirm').value;
+      if (n1 !== n2) return alert('New passwords do not match');
+      try {
+        await api('change-password', { current_password: cur, new_password: n1 });
+        alert('Password changed successfully!');
+        closePasswordModal();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // Live Clock & Periodic Refresh Loop
     setInterval(() => {
       const el = document.getElementById('live-clock');
       if (el) el.textContent = new Date().toLocaleTimeString();
@@ -2387,8 +4162,25 @@ if (empty($_SESSION["m5_auth"]) && empty($_COOKIE["m5_auth"])): ?>
     const clockEl = document.getElementById('live-clock');
     if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
 
+    // Initial Load
     refreshAll(true);
-    setInterval(() => refreshAll(false), 3000);
+    loadCustomers();
+    loadVendors();
+    loadMappings();
+    loadChannels();
+    loadCdr();
+    updateDashboardStats();
+
+    // Regular 3-second heartbeat sync
+    setInterval(() => {
+      refreshAll(false);
+      updateDashboardStats();
+      const activeTab = localStorage.getItem('m5_active_tab') || 'tab-dashboard';
+      if (activeTab === 'tab-channels') loadChannels();
+      if (activeTab === 'tab-customers') loadCustomers();
+      if (activeTab === 'tab-vendors') loadVendors();
+    }, 3000);
+
   </script>
 </body>
 </html>

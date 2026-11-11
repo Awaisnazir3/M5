@@ -99,6 +99,17 @@ mkdir -p /var/lib/callgen
 chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
 chmod 2775 /var/lib/callgen 2>/dev/null || true
 
+# Copy initial callgen-config.json if not present
+if [ ! -f /var/lib/callgen/callgen-config.json ]; then
+    if [ -f "${SCRIPT_DIR}/callgen-config.json" ]; then
+        cp "${SCRIPT_DIR}/callgen-config.json" /var/lib/callgen/callgen-config.json 2>/dev/null || true
+    elif [ -f "${SCRIPT_DIR}/../callgen-config.json" ]; then
+        cp "${SCRIPT_DIR}/../callgen-config.json" /var/lib/callgen/callgen-config.json 2>/dev/null || true
+    fi
+fi
+chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
+chmod 666 /var/lib/callgen/callgen-config.json 2>/dev/null || true
+
 install -m 755 "${SCRIPT_DIR}/bin/callgen_db.py" /usr/local/sbin/callgen_db.py
 for pydir in /usr/local/lib/python3.*/site-packages /usr/lib/python3.*/site-packages; do
     if [ -d "$pydir" ]; then
@@ -121,6 +132,7 @@ chown -R asterisk:asterisk /var/log/asterisk 2>/dev/null || true
 mkdir -p /var/spool/asterisk/outgoing /tmp/asterisk_calls_cuba /tmp/asterisk_calls_senegal /tmp/asterisk_calls_mali
 chmod 777 /var/spool/asterisk/outgoing /tmp/asterisk_calls_* 2>/dev/null || true
 chown -R asterisk:asterisk /var/spool/asterisk 2>/dev/null || true
+rm -f /var/spool/asterisk/outgoing/*.call /tmp/asterisk_calls_*/*.call 2>/dev/null || true
 
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_callgen.sh
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
@@ -164,9 +176,27 @@ elif [ -f "${SCRIPT_DIR}/cdr_sqlite3_custom.conf" ]; then
 fi
 
 # Ensure include files exist with proper permissions before Asterisk reads them
-touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf
+touch /etc/asterisk/pjsip_inbound.conf /etc/asterisk/extensions_inbound.conf /etc/asterisk/pjsip_customer_vendor.conf /etc/asterisk/extensions_customer_vendor.conf /etc/asterisk/pjsip_trunks.conf
+if [ -f "${SCRIPT_DIR}/asterisk/pjsip_trunks.conf" ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/pjsip_trunks.conf" /etc/asterisk/pjsip_trunks.conf 2>/dev/null || true
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" ] && [ ! -s /etc/asterisk/pjsip_customer_vendor.conf ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/pjsip_customer_vendor.conf" /etc/asterisk/pjsip_customer_vendor.conf 2>/dev/null || true
+fi
+if [ -f "${SCRIPT_DIR}/asterisk/extensions_customer_vendor.conf" ] && [ ! -s /etc/asterisk/extensions_customer_vendor.conf ]; then
+    cp -f "${SCRIPT_DIR}/asterisk/extensions_customer_vendor.conf" /etc/asterisk/extensions_customer_vendor.conf 2>/dev/null || true
+fi
 chown -R asterisk:asterisk /etc/asterisk 2>/dev/null || true
 chmod 644 /etc/asterisk/*.conf 2>/dev/null || true
+
+# Synchronize PJSIP trunks and reload Asterisk
+if [ -f "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" ]; then
+    python3 "${SCRIPT_DIR}/bin/callgen-sync-inbound.py" 2>/dev/null || true
+fi
+if [ -n "$AST_BIN" ]; then
+    "$AST_BIN" -rx "pjsip reload" 2>/dev/null || true
+    "$AST_BIN" -rx "dialplan reload" 2>/dev/null || true
+fi
 
 # 5. Install Systemd Services for Call Generators
 echo "--- Installing systemd services for Cuba, Senegal, and Mali routes ---"
@@ -315,9 +345,9 @@ cat > "$SUDOERS_FILE" <<EOF
 Defaults:apache !requiretty
 Defaults:www-data !requiretty
 Defaults:nginx !requiretty
-apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
-www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
-nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+apache ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+www-data ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+nginx ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
 EOF
 chmod 440 "$SUDOERS_FILE"
 if command -v visudo >/dev/null 2>&1; then
@@ -339,6 +369,27 @@ elif command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status:
     ufw allow 5060/udp 2>/dev/null || true
     ufw allow 10000:20000/udp 2>/dev/null || true
 fi
+
+# 11. CDR Pruning & Auto-Cleanup Cron (Keep last 100 records to save disk space)
+echo "--- Pruning CDR records to last 100 and installing auto-trim cron ---"
+if [ -f /usr/local/sbin/callgen_db.py ]; then
+    python3 /usr/local/sbin/callgen_db.py trim-cdrs 100 2>/dev/null || true
+fi
+if [ -f /var/log/asterisk/cdr-csv/Master.csv ]; then
+    tail -n 100 /var/log/asterisk/cdr-csv/Master.csv > /tmp/Master.csv.tmp 2>/dev/null && mv -f /tmp/Master.csv.tmp /var/log/asterisk/cdr-csv/Master.csv 2>/dev/null || true
+fi
+
+cat > /etc/cron.daily/callgen-cdr-trim <<'EOF'
+#!/bin/bash
+# Daily CDR auto-prune: keeps only latest 100 records and reclaims SQLite disk space
+if [ -f /usr/local/sbin/callgen_db.py ]; then
+    python3 /usr/local/sbin/callgen_db.py trim-cdrs 100 >/dev/null 2>&1 || true
+fi
+if [ -f /var/log/asterisk/cdr-csv/Master.csv ]; then
+    tail -n 100 /var/log/asterisk/cdr-csv/Master.csv > /tmp/Master.csv.tmp 2>/dev/null && mv -f /tmp/Master.csv.tmp /var/log/asterisk/cdr-csv/Master.csv 2>/dev/null || true
+fi
+EOF
+chmod +x /etc/cron.daily/callgen-cdr-trim 2>/dev/null || true
 
 echo ""
 echo "=================================================================="
