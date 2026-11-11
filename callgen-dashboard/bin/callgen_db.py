@@ -60,6 +60,103 @@ def ensure_schema_migrations(conn):
         g_cols = [r[1] for r in cur.execute("PRAGMA table_info(gateways)").fetchall()]
         if 'port' not in g_cols:
             conn.execute("ALTER TABLE gateways ADD COLUMN port INTEGER DEFAULT 5060")
+
+        # Auto-create Customer, Vendor, and Mapping tables if not present
+        existing_tables = [r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        if 'customers' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS customers (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                allocated_channels INTEGER NOT NULL DEFAULT 50,
+                status TEXT NOT NULL DEFAULT 'active',
+                description TEXT DEFAULT '',
+                blocked_by TEXT DEFAULT '',
+                blocked_at DATETIME DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+        if 'customer_ips' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS customer_ips (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                port INTEGER NOT NULL DEFAULT 5060,
+                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+            )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cust_ips_cust ON customer_ips(customer_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cust_ips_ip ON customer_ips(ip_address)")
+        if 'customer_prefixes' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS customer_prefixes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id TEXT NOT NULL,
+                prefix TEXT NOT NULL,
+                country_code TEXT DEFAULT '',
+                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+            )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cust_pfx_cust ON customer_prefixes(customer_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cust_pfx_val ON customer_prefixes(prefix)")
+        if 'vendors' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS vendors (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                max_channels INTEGER NOT NULL DEFAULT 100,
+                caller_id_format TEXT DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'active',
+                description TEXT DEFAULT '',
+                blocked_by TEXT DEFAULT '',
+                blocked_at DATETIME DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+        if 'vendor_ips' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS vendor_ips (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                vendor_id TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                port INTEGER NOT NULL DEFAULT 5060,
+                FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE
+            )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_vend_ips_vend ON vendor_ips(vendor_id)")
+        if 'vendor_prefixes' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS vendor_prefixes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                vendor_id TEXT NOT NULL,
+                prefix TEXT NOT NULL,
+                country_code TEXT DEFAULT '',
+                FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE
+            )
+            """)
+        if 'customer_vendor_mappings' not in existing_tables:
+            conn.execute("""
+            CREATE TABLE IF NOT EXISTS customer_vendor_mappings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id TEXT NOT NULL,
+                vendor_id TEXT NOT NULL,
+                customer_prefix TEXT NOT NULL DEFAULT '',
+                vendor_prefix TEXT NOT NULL DEFAULT '',
+                country_code TEXT NOT NULL DEFAULT '',
+                priority INTEGER NOT NULL DEFAULT 1,
+                status TEXT NOT NULL DEFAULT 'active',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+                FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE
+            )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cvm_cust ON customer_vendor_mappings(customer_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cvm_vend ON customer_vendor_mappings(vendor_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cvm_pfx ON customer_vendor_mappings(customer_prefix)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_cvm_prio ON customer_vendor_mappings(priority)")
     except Exception:
         pass
 
@@ -291,6 +388,10 @@ def seed_defaults():
         conn.execute("INSERT OR REPLACE INTO inbound_config (key, value) VALUES ('testcall2_prefixes', ?)", (str(inbound_data.get('testcall2_prefixes', '2237')),))
 
     conn.close()
+    try:
+        seed_customer_vendor_defaults()
+    except Exception:
+        pass
 
 def sync_cdrs_from_csv():
     """Syncs unimported CDR records from /var/log/asterisk/cdr-csv/Master.csv into SQLite."""
@@ -525,6 +626,434 @@ def get_inbound_config_dict():
     d = {r['key']: r['value'] for r in cur.fetchall()}
     conn.close()
     return d
+
+# ==============================================================================
+# CUSTOMER & VENDOR TRAFFIC MANAGEMENT MODULE (ASTERISK 23 PJSIP)
+# ==============================================================================
+
+def get_customers():
+    """Returns all customers with aggregated IP addresses and prefixes."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM customers ORDER BY name ASC")
+    customers = []
+    for r in cur.fetchall():
+        c = dict(r)
+        cid = c['id']
+        cur.execute("SELECT ip_address, port FROM customer_ips WHERE customer_id = ?", (cid,))
+        ips = [dict(ip_row) for ip_row in cur.fetchall()]
+        cur.execute("SELECT prefix, country_code FROM customer_prefixes WHERE customer_id = ?", (cid,))
+        pfxs = [dict(pfx_row) for pfx_row in cur.fetchall()]
+
+        c['ips'] = ips
+        c['ip'] = ips[0]['ip_address'] if ips else ''
+        c['port'] = ips[0]['port'] if ips else 5060
+        c['prefixes'] = pfxs
+        c['prefix'] = ', '.join([p['prefix'] for p in pfxs if p.get('prefix')])
+        c['country_code'] = pfxs[0]['country_code'] if pfxs else ''
+        customers.append(c)
+    conn.close()
+    return customers
+
+def get_customer(cid):
+    """Returns single customer by id with ips and prefixes."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM customers WHERE id = ?", (cid,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return None
+    c = dict(row)
+    cur.execute("SELECT ip_address, port FROM customer_ips WHERE customer_id = ?", (cid,))
+    c['ips'] = [dict(r) for r in cur.fetchall()]
+    cur.execute("SELECT prefix, country_code FROM customer_prefixes WHERE customer_id = ?", (cid,))
+    c['prefixes'] = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return c
+
+def save_customer(d):
+    """Creates or updates a customer and associates their IP addresses and prefixes."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cid = str(d.get('id', '')).strip()
+    name = str(d.get('name', '')).strip()
+    channels = int(d.get('allocated_channels', 50) or 50)
+    status = str(d.get('status', 'active')).strip().lower()
+    desc = str(d.get('description', '')).strip()
+
+    if not name:
+        raise ValueError("Customer name is required")
+    if not cid:
+        cid = 'cust-' + re.sub(r'[^a-z0-9]', '', name.lower()) + '-' + str(int(datetime.now().timestamp()))
+
+    with conn:
+        conn.execute("""
+        INSERT INTO customers (id, name, allocated_channels, status, description, updated_at)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            allocated_channels = excluded.allocated_channels,
+            status = excluded.status,
+            description = excluded.description,
+            updated_at = CURRENT_TIMESTAMP
+        """, (cid, name, channels, status, desc))
+
+        # Replace IPs
+        conn.execute("DELETE FROM customer_ips WHERE customer_id = ?", (cid,))
+        ips_raw = d.get('ips', [])
+        if not ips_raw and d.get('ip'):
+            ips_raw = [{'ip_address': d.get('ip'), 'port': int(d.get('port') or 5060)}]
+        for item in ips_raw:
+            ip_val = str(item.get('ip_address') or item.get('ip') or '').strip()
+            port_val = int(item.get('port') or 5060)
+            if ':' in ip_val:
+                ip_parts = ip_val.split(':', 1)
+                ip_val = ip_parts[0]
+                if ip_parts[1].isdigit():
+                    port_val = int(ip_parts[1])
+            if ip_val:
+                conn.execute("INSERT INTO customer_ips (customer_id, ip_address, port) VALUES (?, ?, ?)",
+                             (cid, ip_val, port_val))
+
+        # Replace Prefixes
+        conn.execute("DELETE FROM customer_prefixes WHERE customer_id = ?", (cid,))
+        pfx_raw = d.get('prefixes', [])
+        if not pfx_raw and (d.get('prefix') or d.get('country_code')):
+            raw_pfx = str(d.get('prefix', '')).replace(';', ',').split(',')
+            cc_val = str(d.get('country_code', '')).strip()
+            for p in raw_pfx:
+                clean_p = re.sub(r'[^0-9]', '', p.strip())
+                if clean_p:
+                    conn.execute("INSERT INTO customer_prefixes (customer_id, prefix, country_code) VALUES (?, ?, ?)",
+                                 (cid, clean_p, cc_val))
+        else:
+            for item in pfx_raw:
+                p_val = re.sub(r'[^0-9]', '', str(item.get('prefix') or '').strip())
+                cc_val = re.sub(r'[^0-9]', '', str(item.get('country_code') or '').strip())
+                if p_val:
+                    conn.execute("INSERT INTO customer_prefixes (customer_id, prefix, country_code) VALUES (?, ?, ?)",
+                                 (cid, p_val, cc_val))
+
+    conn.close()
+    return get_customer(cid)
+
+def delete_customer(cid):
+    """Deletes customer, IPs, prefixes, and mappings."""
+    conn = get_connection()
+    with conn:
+        conn.execute("DELETE FROM customers WHERE id = ?", (cid,))
+        conn.execute("DELETE FROM customer_ips WHERE customer_id = ?", (cid,))
+        conn.execute("DELETE FROM customer_prefixes WHERE customer_id = ?", (cid,))
+        conn.execute("DELETE FROM customer_vendor_mappings WHERE customer_id = ?", (cid,))
+    conn.close()
+    return True
+
+def set_customer_status(cid, status, operator='admin'):
+    """Sets customer status to active or blocked immediately."""
+    status = 'blocked' if status == 'blocked' else 'active'
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S') if status == 'blocked' else None
+    blocked_by = operator if status == 'blocked' else ''
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+        UPDATE customers
+        SET status = ?, blocked_by = ?, blocked_at = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """, (status, blocked_by, now, cid))
+    conn.close()
+    return True
+
+def get_vendors():
+    """Returns all vendors with aggregated IP addresses and prefixes."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM vendors ORDER BY name ASC")
+    vendors = []
+    for r in cur.fetchall():
+        v = dict(r)
+        vid = v['id']
+        cur.execute("SELECT ip_address, port FROM vendor_ips WHERE vendor_id = ?", (vid,))
+        ips = [dict(ip_row) for ip_row in cur.fetchall()]
+        cur.execute("SELECT prefix, country_code FROM vendor_prefixes WHERE vendor_id = ?", (vid,))
+        pfxs = [dict(pfx_row) for pfx_row in cur.fetchall()]
+
+        v['ips'] = ips
+        v['ip'] = ips[0]['ip_address'] if ips else ''
+        v['port'] = ips[0]['port'] if ips else 5060
+        v['prefixes'] = pfxs
+        v['prefix'] = pfxs[0]['prefix'] if pfxs else ''
+        v['country_code'] = pfxs[0]['country_code'] if pfxs else ''
+        vendors.append(v)
+    conn.close()
+    return vendors
+
+def get_vendor(vid):
+    """Returns single vendor by id."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM vendors WHERE id = ?", (vid,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return None
+    v = dict(row)
+    cur.execute("SELECT ip_address, port FROM vendor_ips WHERE vendor_id = ?", (vid,))
+    v['ips'] = [dict(r) for r in cur.fetchall()]
+    cur.execute("SELECT prefix, country_code FROM vendor_prefixes WHERE vendor_id = ?", (vid,))
+    v['prefixes'] = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return v
+
+def save_vendor(d):
+    """Creates or updates a vendor."""
+    conn = get_connection()
+    vid = str(d.get('id', '')).strip()
+    name = str(d.get('name', '')).strip()
+    channels = int(d.get('max_channels', 100) or 100)
+    cli_format = str(d.get('caller_id_format', '')).strip()
+    status = str(d.get('status', 'active')).strip().lower()
+    desc = str(d.get('description', '')).strip()
+
+    if not name:
+        raise ValueError("Vendor name is required")
+    if not vid:
+        vid = 'vend-' + re.sub(r'[^a-z0-9]', '', name.lower()) + '-' + str(int(datetime.now().timestamp()))
+
+    with conn:
+        conn.execute("""
+        INSERT INTO vendors (id, name, max_channels, caller_id_format, status, description, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            max_channels = excluded.max_channels,
+            caller_id_format = excluded.caller_id_format,
+            status = excluded.status,
+            description = excluded.description,
+            updated_at = CURRENT_TIMESTAMP
+        """, (vid, name, channels, cli_format, status, desc))
+
+        conn.execute("DELETE FROM vendor_ips WHERE vendor_id = ?", (vid,))
+        ips_raw = d.get('ips', [])
+        if not ips_raw and d.get('ip'):
+            ips_raw = [{'ip_address': d.get('ip'), 'port': int(d.get('port') or 5060)}]
+        for item in ips_raw:
+            ip_val = str(item.get('ip_address') or item.get('ip') or '').strip()
+            port_val = int(item.get('port') or 5060)
+            if ':' in ip_val:
+                ip_parts = ip_val.split(':', 1)
+                ip_val = ip_parts[0]
+                if ip_parts[1].isdigit():
+                    port_val = int(ip_parts[1])
+            if ip_val:
+                conn.execute("INSERT INTO vendor_ips (vendor_id, ip_address, port) VALUES (?, ?, ?)",
+                             (vid, ip_val, port_val))
+
+        conn.execute("DELETE FROM vendor_prefixes WHERE vendor_id = ?", (vid,))
+        p_val = re.sub(r'[^0-9]', '', str(d.get('prefix') or '').strip())
+        cc_val = re.sub(r'[^0-9]', '', str(d.get('country_code') or '').strip())
+        if p_val or cc_val:
+            conn.execute("INSERT INTO vendor_prefixes (vendor_id, prefix, country_code) VALUES (?, ?, ?)",
+                         (vid, p_val, cc_val))
+
+    conn.close()
+    return get_vendor(vid)
+
+def delete_vendor(vid):
+    """Deletes vendor, IPs, prefixes, and mappings."""
+    conn = get_connection()
+    with conn:
+        conn.execute("DELETE FROM vendors WHERE id = ?", (vid,))
+        conn.execute("DELETE FROM vendor_ips WHERE vendor_id = ?", (vid,))
+        conn.execute("DELETE FROM vendor_prefixes WHERE vendor_id = ?", (vid,))
+        conn.execute("DELETE FROM customer_vendor_mappings WHERE vendor_id = ?", (vid,))
+    conn.close()
+    return True
+
+def set_vendor_status(vid, status, operator='admin'):
+    """Sets vendor status to active or blocked immediately."""
+    status = 'blocked' if status == 'blocked' else 'active'
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S') if status == 'blocked' else None
+    blocked_by = operator if status == 'blocked' else ''
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+        UPDATE vendors
+        SET status = ?, blocked_by = ?, blocked_at = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """, (status, blocked_by, now, vid))
+    conn.close()
+    return True
+
+def get_mappings():
+    """Returns all customer-vendor mappings with customer & vendor names."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT 
+        m.*,
+        c.name AS customer_name,
+        c.status AS customer_status,
+        v.name AS vendor_name,
+        v.status AS vendor_status
+    FROM customer_vendor_mappings m
+    LEFT JOIN customers c ON m.customer_id = c.id
+    LEFT JOIN vendors v ON m.vendor_id = v.id
+    ORDER BY c.name ASC, m.priority ASC
+    """)
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows
+
+def save_mapping(d):
+    """Saves or updates a customer-vendor mapping."""
+    conn = get_connection()
+    mid = d.get('id')
+    cid = str(d.get('customer_id', '')).strip()
+    vid = str(d.get('vendor_id', '')).strip()
+    c_pfx = re.sub(r'[^0-9]', '', str(d.get('customer_prefix', '')).strip())
+    v_pfx = re.sub(r'[^0-9]', '', str(d.get('vendor_prefix', '')).strip())
+    cc = re.sub(r'[^0-9]', '', str(d.get('country_code', '')).strip())
+    prio = int(d.get('priority', 1) or 1)
+    status = str(d.get('status', 'active')).strip().lower()
+
+    if not cid or not vid:
+        raise ValueError("Customer ID and Vendor ID are required")
+
+    with conn:
+        if mid:
+            conn.execute("""
+            UPDATE customer_vendor_mappings
+            SET customer_id = ?, vendor_id = ?, customer_prefix = ?, vendor_prefix = ?,
+                country_code = ?, priority = ?, status = ?
+            WHERE id = ?
+            """, (cid, vid, c_pfx, v_pfx, cc, prio, status, mid))
+        else:
+            conn.execute("""
+            INSERT INTO customer_vendor_mappings
+            (customer_id, vendor_id, customer_prefix, vendor_prefix, country_code, priority, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (cid, vid, c_pfx, v_pfx, cc, prio, status))
+    conn.close()
+    return True
+
+def delete_mapping(mid):
+    """Deletes a customer-vendor mapping by ID."""
+    conn = get_connection()
+    with conn:
+        conn.execute("DELETE FROM customer_vendor_mappings WHERE id = ?", (mid,))
+    conn.close()
+    return True
+
+def toggle_mapping(mid, status):
+    """Toggles mapping status active or disabled."""
+    status = 'active' if status == 'active' else 'disabled'
+    conn = get_connection()
+    with conn:
+        conn.execute("UPDATE customer_vendor_mappings SET status = ? WHERE id = ?", (status, mid))
+    conn.close()
+    return True
+
+def seed_customer_vendor_defaults():
+    """Seeds default demo customers, vendors, and mappings if empty."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) AS cnt FROM customers")
+    cust_count = cur.fetchone()['cnt']
+    if cust_count == 0:
+        # Seed Customers: PTCL & Ufone
+        save_customer({
+            'id': 'cust-ptcl',
+            'name': 'PTCL',
+            'ip': '192.168.1.10',
+            'port': 5060,
+            'prefix': '92300',
+            'country_code': '92',
+            'allocated_channels': 100,
+            'status': 'active',
+            'description': 'Primary Pakistan Telecom Customer'
+        })
+        save_customer({
+            'id': 'cust-ufone',
+            'name': 'Ufone',
+            'ip': '192.168.1.20',
+            'port': 5060,
+            'prefix': '92301',
+            'country_code': '92',
+            'allocated_channels': 50,
+            'status': 'active',
+            'description': 'Cellular Mobile Carrier Customer'
+        })
+
+    cur.execute("SELECT COUNT(*) AS cnt FROM vendors")
+    vend_count = cur.fetchone()['cnt']
+    if vend_count == 0:
+        # Seed Vendors: BOC, Vendor 2, Vendor 3
+        save_vendor({
+            'id': 'vend-boc',
+            'name': 'BOC',
+            'ip': '10.10.10.10',
+            'port': 5060,
+            'prefix': '1',
+            'country_code': '1',
+            'max_channels': 200,
+            'status': 'active',
+            'description': 'Tier 1 Wholesale Carrier'
+        })
+        save_vendor({
+            'id': 'vend-vendor2',
+            'name': 'Vendor 2',
+            'ip': '10.10.10.20',
+            'port': 5060,
+            'prefix': '44',
+            'country_code': '44',
+            'max_channels': 100,
+            'status': 'active',
+            'description': 'Secondary Backup Voice Termination'
+        })
+        save_vendor({
+            'id': 'vend-vendor3',
+            'name': 'Vendor 3',
+            'ip': '10.10.10.30',
+            'port': 5060,
+            'prefix': '33',
+            'country_code': '33',
+            'max_channels': 100,
+            'status': 'active',
+            'description': 'Tertiary Failover Vendor'
+        })
+
+    cur.execute("SELECT COUNT(*) AS cnt FROM customer_vendor_mappings")
+    map_count = cur.fetchone()['cnt']
+    if map_count == 0:
+        save_mapping({
+            'customer_id': 'cust-ptcl',
+            'vendor_id': 'vend-boc',
+            'customer_prefix': '92300',
+            'vendor_prefix': '1',
+            'country_code': '92',
+            'priority': 1,
+            'status': 'active'
+        })
+        save_mapping({
+            'customer_id': 'cust-ptcl',
+            'vendor_id': 'vend-vendor2',
+            'customer_prefix': '92300',
+            'vendor_prefix': '44',
+            'country_code': '92',
+            'priority': 2,
+            'status': 'active'
+        })
+        save_mapping({
+            'customer_id': 'cust-ufone',
+            'vendor_id': 'vend-boc',
+            'customer_prefix': '92301',
+            'vendor_prefix': '1',
+            'country_code': '92',
+            'priority': 1,
+            'status': 'active'
+        })
+    conn.close()
 
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'init'

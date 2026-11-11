@@ -14,7 +14,7 @@
     "context": "testcall",
     "ani_prefix": "96655",
     "running": false,
-    "used_minutes": 0,
+    "used_minutes": 4,
     "active_calls": 0,
     "limit_reached": false,
     "last_action": "Settings updated at 8:15:59 PM"
@@ -57,7 +57,7 @@
     "used_minutes": 0,
     "active_calls": 0,
     "limit_reached": false,
-    "last_action": "Settings updated at 7:32:53 PM"
+    "last_action": "Settings updated at 5:47:23 PM"
   },
   "_inbound": {
     "source_ips": [
@@ -113,5 +113,132 @@
   "_auth": {
     "username": "awais",
     "password": "dancom"
-  }
+  },
+  "_customers": [
+    {
+      "id": "zong",
+      "name": "Adil-Telecom-88",
+      "status": "active",
+      "max_channels": 80,
+      "country_code": "92",
+      "description": "",
+      "ips": [
+        {
+          "ip": "192.168.88.88",
+          "port": 5080
+        }
+      ],
+      "prefixes": [
+        "76666"
+      ]
+    },
+    {
+      "id": "192_168_88_88",
+      "name": "BD ingress",
+      "status": "active",
+      "max_channels": 100,
+      "country_code": "880",
+      "description": "",
+      "ips": [
+        {
+          "ip": "192.168.88.88",
+          "port": 5080
+        }
+      ],
+      "prefixes": [
+        "67555"
+      ]
+    }
+  ],
+  "_vendors": [
+    {
+      "id": "boc",
+      "name": "Adil-Vendor-133",
+      "status": "active",
+      "max_channels": 200,
+      "country_code": "92",
+      "caller_id": "+1",
+      "description": "call reciver",
+      "ips": [
+        {
+          "ip": "192.168.88.133",
+          "port": 5060
+        }
+      ],
+      "prefixes": [
+        "88555"
+      ]
+    },
+    {
+      "id": "bd-tel",
+      "name": "BD-Tel",
+      "status": "active",
+      "max_channels": 200,
+      "country_code": "880",
+      "caller_id": "+1",
+      "description": "",
+      "ips": [
+        {
+          "ip": "192.168.88.134",
+          "port": 5060
+        }
+      ],
+      "prefixes": [
+        "99777"
+      ]
+    },
+    {
+      "id": "bd-tel-22",
+      "name": "BD-Tel-22",
+      "status": "active",
+      "max_channels": 200,
+      "country_code": "880",
+      "caller_id": "+1",
+      "description": "",
+      "ips": [
+        {
+          "ip": "192.168.88.150",
+          "port": 5060
+        }
+      ],
+      "prefixes": [
+        "99666"
+      ]
+    }
+  ],
+  "_mappings": [
+    {
+      "id": 2,
+      "customer_id": "zong",
+      "vendor_id": "boc",
+      "customer_prefix": "76666",
+      "vendor_prefix": "88555",
+      "country_code": "92",
+      "priority": 1,
+      "max_channels": 60,
+      "status": "active"
+    },
+    {
+      "id": 3,
+      "customer_id": "192_168_88_88",
+      "vendor_id": "bd-tel",
+      "customer_prefix": "67555",
+      "vendor_prefix": "99777",
+      "country_code": "880",
+      "priority": 1,
+      "max_channels": 60,
+      "status": "active"
+    },
+    {
+      "id": 4,
+      "customer_id": "192_168_88_88",
+      "vendor_id": "bd-tel-22",
+      "customer_prefix": "67555",
+      "vendor_prefix": "99666",
+      "country_code": "880",
+      "priority": 2,
+      "max_channels": 60,
+      "status": "active"
+    }
+  ]
 }
