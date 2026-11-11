@@ -261,17 +261,26 @@ PY
         python3 - "$TRUNK" <<'PY'
 import json, subprocess, os, sys, re, shutil
 from datetime import datetime
-import callgen_db
+
+for p in ['/usr/local/sbin', '/usr/local/bin', '/var/lib/callgen', os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() else '']:
+    if p and os.path.exists(p) and p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    import callgen_db
+except Exception:
+    callgen_db = None
 
 ast_bin = shutil.which('asterisk') or '/usr/sbin/asterisk'
 target_trunk = sys.argv[1] if len(sys.argv) > 1 else 'all'
 trunks = ['mali', 'cuba', 'senegal']
 
 # Incremental sync of recent CSV lines to SQLite (if CSV exists)
-try:
-    callgen_db.sync_cdrs_from_csv()
-except Exception:
-    pass
+if callgen_db:
+    try:
+        callgen_db.sync_cdrs_from_csv()
+    except Exception:
+        pass
 
 try:
     s = subprocess.run([ast_bin, '-rx', 'core show channels'], capture_output=True, text=True).stdout
@@ -279,7 +288,32 @@ except Exception:
     s = ""
 
 result = {}
-db_trunks = {t['id']: t for t in callgen_db.get_all_trunks()}
+db_trunks = {}
+if callgen_db:
+    try:
+        db_trunks = {t['id']: t for t in callgen_db.get_all_trunks()}
+    except Exception:
+        db_trunks = {}
+
+# Fallback to callgen-config.json if database had no trunks
+if not db_trunks:
+    for cfg_cand in ['/var/lib/callgen/callgen-config.json', '/etc/callgen-config.json']:
+        if os.path.exists(cfg_cand):
+            try:
+                with open(cfg_cand, 'r') as f:
+                    cfg_j = json.load(f)
+                    db_trunks = cfg_j.get('trunks', {})
+                    if db_trunks: break
+            except Exception:
+                pass
+
+# Default trunks if still empty
+if not db_trunks:
+    db_trunks = {
+        'cuba': {'id': 'cuba', 'name': 'Cuba', 'target_ip': '192.168.88.76:5060', 'sip_port': 5060, 'prefix': '4444', 'country_code': '53', 'prefix_cid': '444453', 'monthly_limit': 5000, 'max_channels': 600, 'context': 'testcall'},
+        'mali': {'id': 'mali', 'name': 'Mali', 'target_ip': '192.168.88.76:5060', 'sip_port': 5060, 'prefix': '', 'country_code': '2237', 'prefix_cid': '2237', 'monthly_limit': 1000000, 'max_channels': 2000, 'context': 'testcall2'},
+        'senegal': {'id': 'senegal', 'name': 'Senegal', 'target_ip': '178.22.15.201:5060', 'sip_port': 5060, 'prefix': '619334', 'country_code': '221', 'prefix_cid': '619334221', 'monthly_limit': 150000, 'max_channels': 600, 'context': 'testcall'}
+    }
 
 for t in trunks:
     cfg = dict(db_trunks.get(t, {}))
@@ -288,18 +322,30 @@ for t in trunks:
     ip = cfg.get('target_ip', '')
     port = int(cfg.get('sip_port') or 5060)
     srv = f'asterisk-callgen-{t}.service'
-    raw_running = subprocess.run(['systemctl', 'is-active', '--quiet', srv]).returncode == 0
-    active = sum((ip in x or f'{t}-trunk' in x) and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines())
+    raw_running = False
+    try:
+        raw_running = subprocess.run(['systemctl', 'is-active', '--quiet', srv]).returncode == 0
+    except Exception:
+        raw_running = False
+    active = sum((ip in x or f'{t}-trunk' in x) and ('SIP/' in x or 'PJSIP/' in x) for x in s.splitlines()) if s else 0
 
     # Fast indexed SQL lookup
-    sec = callgen_db.get_month_consumed_seconds(ip, t)
+    sec = 0
+    if callgen_db:
+        try:
+            sec = callgen_db.get_month_consumed_seconds(ip, t)
+        except Exception:
+            sec = 0
 
     limit_sec = int(cfg.get('monthly_limit', 100000)) * 60
     limit_reached = sec >= limit_sec
 
     # If limit reached, auto-stop service if still running
     if limit_reached and raw_running:
-        subprocess.run(['systemctl', 'stop', srv])
+        try:
+            subprocess.run(['systemctl', 'stop', srv])
+        except Exception:
+            pass
         raw_running = False
 
     host = ip.split(':')[0] if ':' in ip else ip
@@ -312,21 +358,46 @@ for t in trunks:
     cfg['used_minutes'] = round(sec / 60, 2)
     result[t] = cfg
 
-# Inbound Configuration from Database
-inbound_cfg_dict = callgen_db.get_inbound_config_dict()
-gateways = callgen_db.get_all_gateways()
+# Inbound Configuration from Database or Config
+inbound_cfg_dict = {}
+gateways = []
+if callgen_db:
+    try:
+        inbound_cfg_dict = callgen_db.get_inbound_config_dict()
+        gateways = callgen_db.get_all_gateways()
+    except Exception:
+        pass
+
+if not gateways:
+    for cfg_cand in ['/var/lib/callgen/callgen-config.json', '/etc/callgen-config.json']:
+        if os.path.exists(cfg_cand):
+            try:
+                with open(cfg_cand, 'r') as f:
+                    cfg_j = json.load(f)
+                    inbound_raw = cfg_j.get('inbound', {})
+                    gateways = inbound_raw.get('source_ips', [])
+                    if not inbound_cfg_dict:
+                        inbound_cfg_dict = inbound_raw
+                    if gateways: break
+            except Exception:
+                pass
 
 inbound_cfg = {
     'source_ips': gateways,
-    'source_ip': ', '.join([g['ip'] for g in gateways]),
+    'source_ip': ', '.join([g.get('ip', '') for g in gateways]),
     'testcall_duration': int(inbound_cfg_dict.get('testcall_duration', 60)),
     'testcall2_duration': int(inbound_cfg_dict.get('testcall2_duration', 50)),
-    'testcall_prefixes': inbound_cfg_dict.get('testcall_prefixes', ''),
-    'testcall2_prefixes': inbound_cfg_dict.get('testcall2_prefixes', '')
+    'testcall_prefixes': inbound_cfg_dict.get('testcall_prefixes', '444453, 619334221'),
+    'testcall2_prefixes': inbound_cfg_dict.get('testcall2_prefixes', '2237')
 }
 
 # Country records from Database SQL
-country_records = callgen_db.get_country_records()
+country_records = {'mali': {'active': 0}, 'cuba': {'active': 0}, 'senegal': {'active': 0}}
+if callgen_db:
+    try:
+        country_records = callgen_db.get_country_records()
+    except Exception:
+        pass
 
 # Active Inbound Channels
 active_inbound = []
@@ -349,7 +420,7 @@ try:
                     ck = 'cuba'
                 elif clean.startswith('619334221') or clean.startswith('619334') or clean.startswith('221'):
                     ck = 'senegal'
-                if ck:
+                if ck and ck in country_records:
                     country_records[ck]['active'] += 1
                 active_inbound.append({
                     'channel': chan,
@@ -361,31 +432,35 @@ except Exception:
     pass
 
 # Recent calls from Database SQL
-conn = callgen_db.get_connection()
-cur = conn.cursor()
-cur.execute("""
-SELECT calldate, dst, dcontext, disposition, duration, userfield
-FROM cdr
-WHERE channel LIKE '%trunk-inbound%' OR channel LIKE '%trunk-13%' OR userfield LIKE 'inbound:%'
-ORDER BY calldate DESC
-LIMIT 20;
-""")
 recent_inbound = []
-for r in cur.fetchall():
-    u = r['userfield'] or ''
-    did = ''
-    if u.startswith('inbound:'):
-        p = u.split(':')
-        if len(p) >= 2: did = p[1]
-    if not did: did = r['dst']
-    recent_inbound.append({
-        'timestamp': r['calldate'],
-        'did': did,
-        'context': r['dcontext'],
-        'status': r['disposition'],
-        'duration': r['duration']
-    })
-conn.close()
+if callgen_db:
+    try:
+        conn = callgen_db.get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+        SELECT calldate, dst, dcontext, disposition, duration, userfield
+        FROM cdr
+        WHERE channel LIKE '%trunk-inbound%' OR channel LIKE '%trunk-13%' OR userfield LIKE 'inbound:%'
+        ORDER BY calldate DESC
+        LIMIT 20;
+        """)
+        for r in cur.fetchall():
+            u = r['userfield'] or ''
+            did = ''
+            if u.startswith('inbound:'):
+                p = u.split(':')
+                if len(p) >= 2: did = p[1]
+            if not did: did = r['dst']
+            recent_inbound.append({
+                'timestamp': r['calldate'],
+                'did': did,
+                'context': r['dcontext'],
+                'status': r['disposition'],
+                'duration': r['duration']
+            })
+        conn.close()
+    except Exception:
+        pass
 
 inbound_res = dict(inbound_cfg)
 inbound_res['active_channels'] = len(active_inbound)

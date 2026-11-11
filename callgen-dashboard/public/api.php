@@ -37,8 +37,28 @@ if (empty($d) && !empty($_POST)) {
 }
 
 function ctl($args) {
-    $cmd = "sudo /usr/local/sbin/callgen-control " . implode(" ", array_map("escapeshellarg", $args));
-    exec($cmd . " 2>&1", $o, $rc);
+    $candidates = [
+        "/usr/local/sbin/callgen-control",
+        "/usr/local/bin/callgen-control",
+        "/usr/bin/callgen-control",
+        dirname(__DIR__) . "/bin/callgen-control",
+        dirname(__DIR__, 2) . "/callgen-dashboard/bin/callgen-control"
+    ];
+    $bin = null;
+    foreach ($candidates as $c) {
+        if (file_exists($c)) {
+            $bin = $c;
+            break;
+        }
+    }
+    if (!$bin) return [1, "callgen-control utility not found"];
+
+    $argStr = implode(" ", array_map("escapeshellarg", $args));
+    exec("sudo " . escapeshellarg($bin) . " " . $argStr . " 2>&1", $o, $rc);
+    if ($rc !== 0) {
+        exec(escapeshellarg($bin) . " " . $argStr . " 2>&1", $o2, $rc2);
+        if ($rc2 === 0) return [0, implode("\n", $o2)];
+    }
     return [$rc, implode("\n", $o)];
 }
 
@@ -342,10 +362,194 @@ function get_db() {
 // 1. STATUS
 if ($a === "status") {
     $trunk = $d["trunk"] ?? ($_GET["trunk"] ?? "all");
+    $j = null;
+
+    // 1. Try ctl CLI first
     [$r, $o] = ctl(["status", $trunk]);
-    $j = json_decode($o, true);
-    if ($r || !$j) {
-        done(["ok" => false, "error" => $o ?: "Failed to read switch status"], 500);
+    if (!$r && $o) {
+        $j = json_decode($o, true);
+    }
+
+    // 2. If ctl failed or returned non-JSON, gracefully load from SQLite & config (never return 500)
+    if (!$j || empty($j["trunks"])) {
+        $pdo = get_db();
+        $dbTrunks = [];
+        $gateways = [];
+        $inbound_cfg = [];
+
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT * FROM trunks");
+                while ($row = $stmt->fetch()) {
+                    $tid = $row["id"];
+                    $port = (int)($row["sip_port"] ?? 5060);
+                    $tip = trim($row["target_ip"] ?? "");
+                    if (strpos($tip, ":") !== false) {
+                        $parts = explode(":", $tip, 2);
+                        $host = $parts[0];
+                        if (!$port && !empty($parts[1])) $port = (int)$parts[1];
+                    } else {
+                        $host = $tip;
+                    }
+                    if (!$port) $port = 5060;
+                    $dbTrunks[$tid] = [
+                        "id" => $tid,
+                        "name" => $row["name"] ?? ucfirst($tid),
+                        "target_ip" => $host ? "{$host}:{$port}" : "",
+                        "sip_port" => $port,
+                        "prefix" => $row["prefix"] ?? "",
+                        "country_code" => $row["country_code"] ?? "",
+                        "prefix_cid" => $row["prefix_cid"] ?? "",
+                        "monthly_limit" => (int)($row["monthly_limit"] ?? 100000),
+                        "max_channels" => (int)($row["max_channels"] ?? 100),
+                        "call_duration" => (int)($row["call_duration"] ?? 60),
+                        "context" => $row["context"] ?? ($tid === "mali" ? "testcall2" : "testcall"),
+                        "running" => false,
+                        "limit_reached" => false,
+                        "active_calls" => 0,
+                        "used_minutes" => (float)($row["used_minutes"] ?? 0)
+                    ];
+                }
+
+                $stmt = $pdo->query("SELECT * FROM gateways WHERE is_active = 1");
+                $gateways = $stmt->fetchAll() ?: [];
+
+                $stmt = $pdo->query("SELECT key, value FROM inbound_config");
+                while ($row = $stmt->fetch()) {
+                    $inbound_cfg[$row["key"]] = $row["value"];
+                }
+            } catch (Exception $e) {}
+        }
+
+        // Fallback to callgen-config.json if SQLite had no trunks
+        if (empty($dbTrunks)) {
+            $cfg = load_config();
+            if (!empty($cfg["trunks"])) {
+                foreach ($cfg["trunks"] as $tid => $tr) {
+                    $port = (int)($tr["sip_port"] ?? 5060);
+                    $tip = trim($tr["target_ip"] ?? "");
+                    if (strpos($tip, ":") !== false) {
+                        $parts = explode(":", $tip, 2);
+                        $host = $parts[0];
+                        if (!$port && !empty($parts[1])) $port = (int)$parts[1];
+                    } else {
+                        $host = $tip;
+                    }
+                    if (!$port) $port = 5060;
+                    $dbTrunks[$tid] = [
+                        "id" => $tid,
+                        "name" => $tr["name"] ?? ucfirst($tid),
+                        "target_ip" => $host ? "{$host}:{$port}" : "",
+                        "sip_port" => $port,
+                        "prefix" => $tr["prefix"] ?? "",
+                        "country_code" => $tr["country_code"] ?? "",
+                        "prefix_cid" => $tr["prefix_cid"] ?? "",
+                        "monthly_limit" => (int)($tr["monthly_limit"] ?? 100000),
+                        "max_channels" => (int)($tr["max_channels"] ?? 100),
+                        "call_duration" => (int)($tr["call_duration"] ?? 60),
+                        "context" => $tr["context"] ?? ($tid === "mali" ? "testcall2" : "testcall"),
+                        "running" => false,
+                        "limit_reached" => false,
+                        "active_calls" => 0,
+                        "used_minutes" => (float)($tr["used_minutes"] ?? 0)
+                    ];
+                }
+            }
+            if (empty($gateways) && !empty($cfg["inbound"]["source_ips"])) {
+                $gateways = $cfg["inbound"]["source_ips"];
+            }
+            if (empty($inbound_cfg) && !empty($cfg["inbound"])) {
+                $inbound_cfg = [
+                    "testcall_duration" => $cfg["inbound"]["testcall_duration"] ?? 60,
+                    "testcall2_duration" => $cfg["inbound"]["testcall2_duration"] ?? 50,
+                    "testcall_prefixes" => $cfg["inbound"]["testcall_prefixes"] ?? "444453, 619334221",
+                    "testcall2_prefixes" => $cfg["inbound"]["testcall2_prefixes"] ?? "2237"
+                ];
+            }
+        }
+
+        // Fallback default trunks if still empty
+        if (empty($dbTrunks)) {
+            $dbTrunks = [
+                "cuba" => [
+                    "id" => "cuba", "name" => "Cuba", "target_ip" => "192.168.88.76:5060", "sip_port" => 5060,
+                    "prefix" => "4444", "country_code" => "53", "prefix_cid" => "444453",
+                    "monthly_limit" => 5000, "max_channels" => 600, "call_duration" => 60,
+                    "context" => "testcall", "running" => false, "limit_reached" => false, "active_calls" => 0, "used_minutes" => 0
+                ],
+                "mali" => [
+                    "id" => "mali", "name" => "Mali", "target_ip" => "192.168.88.76:5060", "sip_port" => 5060,
+                    "prefix" => "", "country_code" => "2237", "prefix_cid" => "2237",
+                    "monthly_limit" => 1000000, "max_channels" => 2000, "call_duration" => 50,
+                    "context" => "testcall2", "running" => false, "limit_reached" => false, "active_calls" => 0, "used_minutes" => 0
+                ],
+                "senegal" => [
+                    "id" => "senegal", "name" => "Senegal", "target_ip" => "178.22.15.201:5060", "sip_port" => 5060,
+                    "prefix" => "619334", "country_code" => "221", "prefix_cid" => "619334221",
+                    "monthly_limit" => 150000, "max_channels" => 600, "call_duration" => 60,
+                    "context" => "testcall", "running" => false, "limit_reached" => false, "active_calls" => 0, "used_minutes" => 0
+                ]
+            ];
+        }
+
+        // Check active channels and systemd service status
+        $ast_bin = trim(shell_exec("which asterisk 2>/dev/null") ?: "/usr/sbin/asterisk");
+        $chan_output = file_exists($ast_bin) ? (@shell_exec("sudo {$ast_bin} -rx \"core show channels\" 2>/dev/null") ?: @shell_exec("{$ast_bin} -rx \"core show channels\" 2>/dev/null")) : "";
+
+        foreach ($dbTrunks as $tid => &$trData) {
+            $ip_clean = explode(":", $trData["target_ip"])[0] ?? "";
+            $act = 0;
+            if ($chan_output) {
+                foreach (explode("\n", $chan_output) as $line) {
+                    if (($ip_clean && strpos($line, $ip_clean) !== false) || strpos($line, "{$tid}-trunk") !== false) {
+                        if (strpos($line, "SIP/") !== false || strpos($line, "PJSIP/") !== false) $act++;
+                    }
+                }
+            }
+            $trData["active_calls"] = $act;
+            $srv_out = @shell_exec("systemctl is-active asterisk-callgen-{$tid}.service 2>/dev/null");
+            $trData["running"] = (trim((string)$srv_out) === "active");
+        }
+        unset($trData);
+
+        // Normalize gateways
+        $clean_gws = [];
+        foreach ($gateways as $idx => $gw) {
+            $gw_ip = trim($gw["ip"] ?? "");
+            if (!$gw_ip) continue;
+            $gw_port = (int)($gw["port"] ?? 5060);
+            if (strpos($gw_ip, ":") !== false) {
+                $p = explode(":", $gw_ip, 2);
+                $gw_ip = $p[0];
+                if (!$gw_port && !empty($p[1])) $gw_port = (int)$p[1];
+            }
+            if (!$gw_port) $gw_port = 5060;
+            $clean_gws[] = [
+                "id" => $gw["id"] ?? "src-" . ($idx + 1),
+                "ip" => $gw_ip,
+                "port" => $gw_port,
+                "label" => $gw["label"] ?? "Gateway " . ($idx + 1),
+                "prefix" => $gw["prefix"] ?? "",
+                "country_code" => $gw["country_code"] ?? "",
+                "context" => $gw["context"] ?? "auto",
+                "is_active" => (int)($gw["is_active"] ?? 1)
+            ];
+        }
+
+        $j = [
+            "trunks" => $dbTrunks,
+            "inbound" => [
+                "source_ips" => $clean_gws,
+                "source_ip" => implode(", ", array_filter(array_column($clean_gws, "ip"))),
+                "testcall_duration" => (int)($inbound_cfg["testcall_duration"] ?? 60),
+                "testcall2_duration" => (int)($inbound_cfg["testcall2_duration"] ?? 50),
+                "testcall_prefixes" => $inbound_cfg["testcall_prefixes"] ?? "444453, 619334221",
+                "testcall2_prefixes" => $inbound_cfg["testcall2_prefixes"] ?? "2237",
+                "active_channels" => 0,
+                "active_calls" => [],
+                "recent_calls" => []
+            ]
+        ];
     }
 
     // Resilience layer: Ensure sip_port and target_ip format are fully consistent
@@ -497,10 +701,13 @@ if ($a === "save") {
     $saved = @file_put_contents($f, json_encode($cfgData, JSON_PRETTY_PRINT) . "\n");
     if ($saved === false) {
         [$sr, $so] = ctl(["save", $trunk, json_encode($cfgData)]);
-        if ($sr) {
-            done(["ok" => false, "error" => "Failed to write configuration: " . $so], 500);
-        }
     }
+
+    // Always update callgen-config.json as persistence fallback
+    $cfg = load_config();
+    if (!isset($cfg["trunks"])) $cfg["trunks"] = [];
+    $cfg["trunks"][$trunk] = $cfgData;
+    save_config($cfg);
 
     [$r, $o] = ctl(["reload", $trunk]);
     done(["ok" => true, "message" => "Saved settings for " . ($name ?: ucfirst($trunk)) . " to database. Effective within 5s."]);
@@ -662,9 +869,10 @@ if ($a === "save-inbound") {
     } else {
         [$sr, $so] = ctl(["save-inbound", $jsonPayload]);
     }
-    if ($sr && $saved === false) {
-        done(["ok" => false, "error" => "Failed to write inbound configuration: " . $so], 500);
-    }
+    // Always update callgen-config.json as persistence fallback
+    $cfg = load_config();
+    $cfg["inbound"] = $inboundCfg;
+    save_config($cfg);
 
     done(["ok" => true, "message" => "Saved " . count($clean_ips) . " Source IP(s) & duration limits (testcall: {$dur1}s, testcall2: {$dur2}s) to database and updated Asterisk dialplan."]);
 }

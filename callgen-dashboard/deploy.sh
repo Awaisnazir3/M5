@@ -326,9 +326,9 @@ cat > "$SUDOERS_FILE" <<EOF
 Defaults:apache !requiretty
 Defaults:www-data !requiretty
 Defaults:nginx !requiretty
-apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
-www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
-nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py
+apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
 EOF
 chmod 440 "$SUDOERS_FILE"
 if command -v visudo >/dev/null 2>&1; then
