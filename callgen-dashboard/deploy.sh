@@ -132,6 +132,7 @@ chown -R asterisk:asterisk /var/log/asterisk 2>/dev/null || true
 mkdir -p /var/spool/asterisk/outgoing /tmp/asterisk_calls_cuba /tmp/asterisk_calls_senegal /tmp/asterisk_calls_mali
 chmod 777 /var/spool/asterisk/outgoing /tmp/asterisk_calls_* 2>/dev/null || true
 chown -R asterisk:asterisk /var/spool/asterisk 2>/dev/null || true
+rm -f /var/spool/asterisk/outgoing/*.call /tmp/asterisk_calls_*/*.call 2>/dev/null || true
 
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen.sh" /usr/local/bin/asterisk_callgen.sh
 install -m 755 "${SCRIPT_DIR}/bin/asterisk_callgen2.sh" /usr/local/bin/asterisk_callgen2.sh
@@ -344,9 +345,9 @@ cat > "$SUDOERS_FILE" <<EOF
 Defaults:apache !requiretty
 Defaults:www-data !requiretty
 Defaults:nginx !requiretty
-apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
-www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
-nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+apache ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+www-data ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+nginx ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
 EOF
 chmod 440 "$SUDOERS_FILE"
 if command -v visudo >/dev/null 2>&1; then

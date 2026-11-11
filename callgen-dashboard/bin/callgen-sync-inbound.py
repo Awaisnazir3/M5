@@ -221,8 +221,6 @@ pjsip_lines = [
     "; Each authorized IP has its own isolated endpoint, AOR, and identify mapping.",
     "; NO fallback or aggregated identify is used to prevent prefix leakage.",
     "; ==============================================================================",
-    "",
-    "#include pjsip_trunks.conf",
     ""
 ]
 
@@ -492,6 +490,7 @@ for t in ['mali', 'cuba', 'senegal']:
         f"; Destination Route Trunk: {t.upper()} (Target: {thost}:{tport}, Context: {ctx})",
         f"[{ep_name}]",
         "type=endpoint",
+        "transport=transport-udp",
         f"context={ctx}",
         "disallow=all",
         "allow=ulaw,alaw,g729,gsm,g722",
@@ -528,7 +527,7 @@ if os.path.isdir(local_ast_dir):
     except Exception:
         pass
 
-# Ensure /etc/asterisk/pjsip.conf includes pjsip_trunks.conf or contains the endpoints
+# Ensure /etc/asterisk/pjsip.conf includes pjsip_trunks.conf and has zero duplicate inline trunks
 pjsip_main_file = '/etc/asterisk/pjsip.conf'
 if os.path.exists(pjsip_main_file):
     try:
@@ -536,6 +535,16 @@ if os.path.exists(pjsip_main_file):
             main_cfg = pf.read()
 
         modified = False
+        # Remove any legacy inline trunk definitions from pjsip.conf to avoid duplicate object errors with pjsip_trunks.conf
+        for t in ['mali', 'cuba', 'senegal']:
+            ep_name = f"{t}-trunk"
+            pattern = rf'(?:;[^\n]*\n)*\[{ep_name}\][\s\S]*?(?=\n\[|#include|\Z)'
+            if re.search(pattern, main_cfg):
+                main_cfg = re.sub(pattern, '', main_cfg)
+                modified = True
+
+        main_cfg = re.sub(r'\n{3,}', '\n\n', main_cfg)
+
         if '#include pjsip_trunks.conf' not in main_cfg:
             main_cfg += "\n#include pjsip_trunks.conf\n"
             modified = True
@@ -545,35 +554,6 @@ if os.path.exists(pjsip_main_file):
         if '#include pjsip_customer_vendor.conf' not in main_cfg:
             main_cfg += "\n#include pjsip_customer_vendor.conf\n"
             modified = True
-
-        for t in ['mali', 'cuba', 'senegal']:
-            ep_name = f"{t}-trunk"
-            t_obj = trunks_info.get(t) or default_trunk_fallbacks[t]
-            tip = t_obj.get('target_ip', default_trunk_fallbacks[t]['target_ip'])
-            tport = int(t_obj.get('sip_port') or default_trunk_fallbacks[t]['sip_port'])
-            thost = tip.split(':')[0] if ':' in tip else tip
-            if ':' in tip:
-                p_part = tip.split(':')[1]
-                if p_part.isdigit(): tport = int(p_part)
-
-            if f'[{ep_name}]' in main_cfg:
-                main_cfg = re.sub(
-                    rf'(\[{ep_name}\][\s\S]*?type=aor[\s\S]*?contact=sip:)[^\s\n]+',
-                    rf'\g<1>{thost}:{tport}',
-                    main_cfg,
-                    count=1
-                )
-                main_cfg = re.sub(
-                    rf'(\[{ep_name}\][\s\S]*?type=identify[\s\S]*?match=)[^\s\n]+',
-                    rf'\g<1>{thost}',
-                    main_cfg,
-                    count=1
-                )
-                modified = True
-            else:
-                ctx = t_obj.get('context', 'testcall2' if t == 'mali' else 'testcall')
-                main_cfg += f"\n; Added {t.upper()} Route Trunk\n[{ep_name}]\ntype=endpoint\ncontext={ctx}\ndisallow=all\nallow=ulaw,alaw,g729,gsm,g722\naors={ep_name}\ndirect_media=no\nforce_rport=yes\nrewrite_contact=yes\nrtp_symmetric=yes\n\n[{ep_name}]\ntype=aor\ncontact=sip:{thost}:{tport}\n\n[{ep_name}]\ntype=identify\nendpoint={ep_name}\nmatch={thost}\n"
-                modified = True
 
         if modified:
             with open(pjsip_main_file, 'w') as pf:

@@ -2,6 +2,6 @@
 Defaults:apache !requiretty
 Defaults:www-data !requiretty
 Defaults:nginx !requiretty
-apache ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
-www-data ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
-nginx ALL=(root) NOPASSWD: /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+apache ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+www-data ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl
+nginx ALL=(root) NOPASSWD: /usr/bin/python3, /usr/local/sbin/callgen-control, /usr/local/sbin/callgen-sync-inbound.py, /usr/local/sbin/callgen_db.py, /usr/sbin/asterisk, /usr/local/sbin/asterisk, /usr/bin/asterisk, /usr/bin/systemctl, /bin/systemctl

@@ -105,6 +105,21 @@ PY
 
     # 4. Dispatch 1 call every 2 seconds if under capacity limits
     if ((REM >= DUR)) && [ "$((ACTIVE + PENDING))" -lt "$MAXCALLS" ]; then
+        # Ensure endpoint is loaded in Asterisk before dispatching call
+        if ! "$AST" -rx "pjsip show endpoint ${TRUNK}-trunk" 2>/dev/null | grep -q "Endpoint:"; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Endpoint ${TRUNK}-trunk not found in Asterisk memory. Reloading PJSIP..."
+            if [ -x /usr/local/sbin/callgen-sync-inbound.py ]; then
+                python3 /usr/local/sbin/callgen-sync-inbound.py >/dev/null 2>&1 || true
+            fi
+            "$AST" -rx "pjsip reload" >/dev/null 2>&1 || true
+            sleep 1
+            if ! "$AST" -rx "pjsip show endpoint ${TRUNK}-trunk" 2>/dev/null | grep -q "Endpoint:"; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for Asterisk endpoint ${TRUNK}-trunk to load..."
+                sleep 2
+                continue
+            fi
+        fi
+
         # Exact callerid and ANI pattern for Senegal (Prefix 619334 + CC 221)
         CALLERID="${PREFIX_CID}$(/usr/bin/tr -dc '0-9' < /dev/urandom 2>/dev/null | /usr/bin/head -c 9)"
         SIP_DEST="$TARGET_IP"
