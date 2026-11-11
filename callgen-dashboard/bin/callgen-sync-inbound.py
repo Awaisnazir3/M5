@@ -468,15 +468,36 @@ if os.path.exists(pjsip_main_file):
 
 # 7. Apply Customer & Vendor Routing (Asterisk 23 PJSIP)
 def sync_customer_vendor_routing():
-    if not DB_MODE:
-        return
-    try:
-        customers = callgen_db.get_customers()
-        vendors = callgen_db.get_vendors()
-        mappings = callgen_db.get_mappings()
-    except Exception as e:
-        print(f"Notice: unable to load customer/vendor data from DB: {e}")
-        return
+    customers = []
+    vendors = []
+    mappings = []
+    if DB_MODE:
+        try:
+            customers = callgen_db.get_customers()
+            vendors = callgen_db.get_vendors()
+            mappings = callgen_db.get_mappings()
+        except Exception as e:
+            print(f"Notice: unable to load customer/vendor data from DB: {e}")
+
+    if not customers:
+        cfg_paths = [
+            os.path.join(os.path.dirname(__file__), '..', '..', 'callgen-config.json'),
+            os.path.join(os.path.dirname(__file__), '..', 'callgen-config.json'),
+            '/var/lib/callgen/callgen-config.json',
+            '/etc/callgen-config.json'
+        ]
+        for cp in cfg_paths:
+            if os.path.exists(cp):
+                try:
+                    with open(cp, 'r') as f:
+                        jd = json.load(f)
+                        customers = jd.get('_customers', [])
+                        vendors = jd.get('_vendors', [])
+                        mappings = jd.get('_mappings', [])
+                        if customers:
+                            break
+                except Exception:
+                    pass
 
     # A. Generate /etc/asterisk/pjsip_customer_vendor.conf
     pjsip_cv_lines = [

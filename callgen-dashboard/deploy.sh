@@ -99,6 +99,17 @@ mkdir -p /var/lib/callgen
 chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
 chmod 2775 /var/lib/callgen 2>/dev/null || true
 
+# Copy initial callgen-config.json if not present
+if [ ! -f /var/lib/callgen/callgen-config.json ]; then
+    if [ -f "${SCRIPT_DIR}/callgen-config.json" ]; then
+        cp "${SCRIPT_DIR}/callgen-config.json" /var/lib/callgen/callgen-config.json 2>/dev/null || true
+    elif [ -f "${SCRIPT_DIR}/../callgen-config.json" ]; then
+        cp "${SCRIPT_DIR}/../callgen-config.json" /var/lib/callgen/callgen-config.json 2>/dev/null || true
+    fi
+fi
+chown -R asterisk:"${WEB_USER}" /var/lib/callgen 2>/dev/null || true
+chmod 666 /var/lib/callgen/callgen-config.json 2>/dev/null || true
+
 install -m 755 "${SCRIPT_DIR}/bin/callgen_db.py" /usr/local/sbin/callgen_db.py
 for pydir in /usr/local/lib/python3.*/site-packages /usr/lib/python3.*/site-packages; do
     if [ -d "$pydir" ]; then

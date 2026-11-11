@@ -16,6 +16,29 @@ from datetime import datetime
 DB_PATH = os.environ.get('CALLGEN_DB', '/var/lib/callgen/callgen.db')
 CSV_PATH = '/var/log/asterisk/cdr-csv/Master.csv'
 
+
+def get_config_json_path():
+    candidates = [
+        os.path.join(os.path.dirname(__file__), '..', '..', 'callgen-config.json'),
+        os.path.join(os.path.dirname(__file__), '..', 'callgen-config.json'),
+        '/var/lib/callgen/callgen-config.json',
+        '/etc/callgen-config.json'
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    return candidates[0]
+
+def load_callgen_json():
+    p = get_config_json_path()
+    if os.path.exists(p):
+        try:
+            with open(p, 'r') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
 def get_connection():
     """Returns a SQLite connection configured with WAL mode and row factory."""
     db_dir = os.path.dirname(DB_PATH)
@@ -60,6 +83,27 @@ def ensure_schema_migrations(conn):
         g_cols = [r[1] for r in cur.execute("PRAGMA table_info(gateways)").fetchall()]
         if 'port' not in g_cols:
             conn.execute("ALTER TABLE gateways ADD COLUMN port INTEGER DEFAULT 5060")
+
+        # Ensure column compatibility across customers and vendors
+        cust_cols = [r[1] for r in cur.execute("PRAGMA table_info(customers)").fetchall()] if 'customers' in existing_tables else []
+        if 'max_channels' not in cust_cols and 'customers' in existing_tables:
+            conn.execute("ALTER TABLE customers ADD COLUMN max_channels INTEGER DEFAULT 100")
+        if 'country_code' not in cust_cols and 'customers' in existing_tables:
+            conn.execute("ALTER TABLE customers ADD COLUMN country_code TEXT DEFAULT ''")
+
+        cip_cols = [r[1] for r in cur.execute("PRAGMA table_info(customer_ips)").fetchall()] if 'customer_ips' in existing_tables else []
+        if 'ip' not in cip_cols and 'customer_ips' in existing_tables:
+            conn.execute("ALTER TABLE customer_ips ADD COLUMN ip TEXT DEFAULT ''")
+
+        vend_cols = [r[1] for r in cur.execute("PRAGMA table_info(vendors)").fetchall()] if 'vendors' in existing_tables else []
+        if 'caller_id' not in vend_cols and 'vendors' in existing_tables:
+            conn.execute("ALTER TABLE vendors ADD COLUMN caller_id TEXT DEFAULT ''")
+        if 'country_code' not in vend_cols and 'vendors' in existing_tables:
+            conn.execute("ALTER TABLE vendors ADD COLUMN country_code TEXT DEFAULT ''")
+
+        vip_cols = [r[1] for r in cur.execute("PRAGMA table_info(vendor_ips)").fetchall()] if 'vendor_ips' in existing_tables else []
+        if 'ip' not in vip_cols and 'vendor_ips' in existing_tables:
+            conn.execute("ALTER TABLE vendor_ips ADD COLUMN ip TEXT DEFAULT ''")
 
         # Auto-create Customer, Vendor, and Mapping tables if not present
         existing_tables = [r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
@@ -636,9 +680,19 @@ def get_customers():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM customers ORDER BY name ASC")
+    rows = cur.fetchall()
+    if not rows:
+        cfg = load_callgen_json()
+        for c in cfg.get('_customers', []):
+            try:
+                save_customer(c)
+            except Exception:
+                pass
+        cur.execute("SELECT * FROM customers ORDER BY name ASC")
+        rows = cur.fetchall()
     customers = []
-    for r in cur.fetchall():
-        c = dict(r)
+    for r in rows:
+    c = dict(r)
         cid = c['id']
         cur.execute("SELECT ip_address, port FROM customer_ips WHERE customer_id = ?", (cid,))
         ips = [dict(ip_row) for ip_row in cur.fetchall()]
@@ -769,9 +823,19 @@ def get_vendors():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM vendors ORDER BY name ASC")
+    rows = cur.fetchall()
+    if not rows:
+        cfg = load_callgen_json()
+        for v in cfg.get('_vendors', []):
+            try:
+                save_vendor(v)
+            except Exception:
+                pass
+        cur.execute("SELECT * FROM vendors ORDER BY name ASC")
+        rows = cur.fetchall()
     vendors = []
-    for r in cur.fetchall():
-        v = dict(r)
+    for r in rows:
+    v = dict(r)
         vid = v['id']
         cur.execute("SELECT ip_address, port FROM vendor_ips WHERE vendor_id = ?", (vid,))
         ips = [dict(ip_row) for ip_row in cur.fetchall()]
@@ -902,6 +966,26 @@ def get_mappings():
     ORDER BY c.name ASC, m.priority ASC
     """)
     rows = [dict(r) for r in cur.fetchall()]
+    if not rows:
+        cfg = load_callgen_json()
+        for m in cfg.get('_mappings', []):
+            try:
+                save_mapping(m)
+            except Exception:
+                pass
+        cur.execute("""
+        SELECT 
+            m.*,
+            c.name AS customer_name,
+            c.status AS customer_status,
+            v.name AS vendor_name,
+            v.status AS vendor_status
+        FROM customer_vendor_mappings m
+        LEFT JOIN customers c ON m.customer_id = c.id
+        LEFT JOIN vendors v ON m.vendor_id = v.id
+        ORDER BY c.name ASC, m.priority ASC
+        """)
+        rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
 
